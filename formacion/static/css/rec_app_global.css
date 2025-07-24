@@ -1,0 +1,575 @@
+/* ==========================
+   VARIABLES Y RESET
+========================== */
+
+
+/* -- Estilos Globales desde base.html -- */
+
+:root {
+    --primary-color: #3b82f6;
+    --primary-dark: #2563eb;
+    --secondary-color: #64748b;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --light-bg: #f8fafc;
+    --dark-text: #1e293b;
+    --border-color: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: var(--dark-text);
+}
+
+.main-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navbar Styles */
+.navbar-custom {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    box-shadow: var(--shadow);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color) !important;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand:hover {
+    color: var(--primary-dark) !important;
+    transform: translateY(-1px);
+}
+
+.navbar-nav .nav-link {
+    color: var(--secondary-color) !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--primary-color) !important;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* Original .user-info - será ajustado por .user-profile-clickable y otros estilos más abajo */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(59, 130, 246, 0.1); /* Esto puede ser sobrescrito por .user-profile-clickable:hover */
+    border-radius: 2rem;
+    margin-right: 1rem;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.user-role {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.2rem 0.5rem;
+    border-radius: 1rem;
+}
+
+.notification-btn {
+    position: relative;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 50%;
+}
+
+.notification-btn:hover {
+    color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--danger-color);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    min-width: 1.2rem;
+    text-align: center;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.logout-btn {
+    background: linear-gradient(135deg, var(--danger-color), #dc2626);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 2rem 0;
+}
+
+.content-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+
+
+/* --- Estilos para el componente de usuario clicable en la cabecera --- */
+
+.user-profile-clickable {
+    text-decoration: none; /* Elimina el subrayado predeterminado del enlace */
+    color: inherit; /* Hereda el color del texto de su contenedor padre (navbar-custom) */
+    cursor: pointer; /* Muestra el cursor de "mano" para indicar que es clicable */
+    display: flex; /* Permite alinear el contenido (icono y div de info) */
+    align-items: center; /* Centra verticalmente el icono y el texto */
+    gap: 0.5rem; /* Espacio entre el icono de persona y el div de info */
+    padding: 0.5rem 0.75rem; /* Añade un área clicable más generosa */
+    border-radius: 0.5rem; /* Esquinas ligeramente redondeadas para el área clicable */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transiciones suaves para hover */
+    margin-left: 1rem; /* Separa un poco del botón de notificaciones */
+}
+
+.user-profile-clickable:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Fondo sutil al pasar el ratón */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Sombra suave para un efecto de "elevación" */
+}
+
+/* Ajustes para el contenido dentro de .user-info si es necesario */
+/* Se ajusta la regla original .user-info para que funcione con el clickable */
+.user-info {
+    display: flex; /* Para alinear el icono y el div del texto del usuario */
+    align-items: center;
+    /* Reducimos el gap de 1rem a 0.75rem para que el icono de persona y el div de texto se junten un poco */
+    gap: 0.75rem; /* Espacio entre el icono bi-person-circle y el div que contiene nombre/rol */
+    /* Eliminamos padding, background y border-radius de aquí para que los tome de .user-profile-clickable */
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    margin-right: 0; /* Asegura que no haya margen extra aquí */
+}
+
+
+.user-info .user-name {
+    font-weight: 600; /* Hace el nombre un poco más prominente */
+    color: var(--dark-text); /* Asegura el color de texto */
+    line-height: 1.2; /* Ajusta la altura de línea */
+}
+
+.user-info .user-role {
+    font-size: 0.85rem; /* Se ajusta de 0.8rem a 0.85rem para un poco más de legibilidad */
+    color: var(--secondary-color); /* Color más suave para el rol */
+    line-height: 1.2;
+    /* Eliminamos background, padding y border-radius de aquí, si estaban duplicados,
+       ya que el .user-profile-clickable o el diseño general del nav los manejará. */
+    background: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+
+/* --- Nuevos estilos para la plantilla 'Mi Perfil Personal' --- */
+
+.profile-section-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.8));
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-section-card .section-title {
+    margin-bottom: 1.5rem; /* Más espacio debajo del título de la sección */
+}
+
+.profile-detail-item {
+    display: flex;
+    align-items: flex-start; /* Alineación al inicio por si el texto es largo */
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+    color: var(--dark-text);
+}
+
+.profile-detail-item strong {
+    flex-shrink: 0; /* Evita que el strong se encoja */
+    width: 150px; /* Ancho fijo para las etiquetas, ajusta si es necesario */
+    color: var(--primary-color);
+    margin-right: 0.75rem; /* Espacio entre la etiqueta y el valor */
+    font-weight: 600;
+}
+
+.profile-detail-item span {
+    flex-grow: 1; /* Permite que el valor ocupe el resto del espacio */
+    color: var(--secondary-color);
+}
+
+/* Estilos para el contenedor de acciones del perfil */
+.profile-actions-card {
+    /* No usamos @extend, duplicamos los estilos para CSS plano */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.8));
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Alinear el contenido a la izquierda */
+    gap: 1rem; /* Espacio entre los elementos dentro de la tarjeta de acciones */
+}
+
+/* Para el párrafo de descripción de las acciones */
+.profile-actions-card p {
+    color: var(--secondary-color);
+    font-size: 1rem;
+    margin-bottom: 0.5rem; /* Espacio entre el párrafo y el botón */
+}
+
+/* Responsive adjustments for profile page */
+@media (max-width: 768px) {
+    .profile-section-card {
+        padding: 1.5rem;
+    }
+
+    .profile-detail-item {
+        flex-direction: column; /* Apila etiqueta y valor en pantallas pequeñas */
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .profile-detail-item strong {
+        width: auto; /* Desactiva el ancho fijo */
+        margin-bottom: 0.2rem; /* Pequeño espacio entre etiqueta y valor apilados */
+    }
+}
+
+/* --- Estilos para Páginas de Autenticación (Login, Registro, etc.) --- */
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Ocupa el alto completo de la ventana */
+    padding: 2rem 1rem; /* Padding para evitar que el contenido toque los bordes en móviles */
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end)); /* Fondo con degradado general de tu base */
+    background-attachment: fixed; /* Mantiene el fondo fijo al hacer scroll */
+    overflow-y: auto; /* Permite scroll si el contenido es más alto que la ventana */
+}
+
+.auth-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+    backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    max-width: 450px; /* Ancho máximo de la tarjeta de login */
+    width: 100%;
+    text-align: center;
+    animation: fadeInScale 0.6s ease-out forwards; /* Animación de entrada */
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.auth-title {
+    font-size: 2rem;
+    color: var(--primary-dark);
+    margin-bottom: 2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-title i {
+    font-size: 2.2rem; /* Tamaño del icono */
+    color: var(--primary-color);
+}
+
+.auth-form {
+    width: 100%;
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.5rem; /* Espacio entre grupos de formulario */
+    text-align: left;
+}
+
+.auth-form .form-label {
+    display: block; /* Asegura que la etiqueta esté en su propia línea */
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+    color: var(--dark-text);
+    font-size: 0.95rem;
+}
+
+.auth-form input[type="text"],
+.auth-form input[type="password"],
+.auth-form input[type="email"] { /* Añade otros tipos de input si los usas */
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background-color: var(--light-background);
+    color: var(--dark-text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.auth-form input[type="text"]:focus,
+.auth-form input[type="password"]:focus,
+.auth-form input[type="email"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* Sombra de enfoque similar a los botones */
+    outline: none;
+}
+
+/* Botón primario de ancho completo */
+.btn-primary-full-width {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary-full-width:hover {
+    background: linear-gradient(135deg, var(--primary-dark), #1f50c0);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary-full-width i {
+    font-size: 1.25rem;
+}
+
+.auth-helper-text {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+    margin-top: 2rem;
+}
+
+.auth-helper-text small {
+    display: block; /* Para asegurar que el small ocupe su propia línea si es necesario */
+}
+
+/* Media Queries para responsividad */
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 1.5rem;
+        margin: 0 1rem; /* Añadir un poco de margen en los lados en móviles */
+    }
+    .auth-title {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .auth-title i {
+        font-size: 2rem;
+    }
+    .btn-primary-full-width {
+        font-size: 1rem;
+        padding: 0.8rem 1.2rem;
+    }
+}
+
+
+/* Estilos para las secciones del dashboard */
+.dashboard-section {
+    margin-bottom: 3rem; /* Espacio entre secciones */
+}
+
+.dashboard-section:last-child {
+    margin-bottom: 0; /* No hay margen inferior en la última sección */
+}
+
+.section-title {
+    font-size: 1.8rem; /* Tamaño del título de la sección */
+    color: var(--dark-text);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.section-title i {
+    font-size: 1.6rem;
+    margin-right: 0.75rem;
+    color: var(--primary-color); /* Color del icono del título */
+}
+
+.section-description {
+    font-size: 1.05rem;
+    color: #64748b; /* Un gris secundario para la descripción */
+    margin-bottom: 2rem;
+    max-width: 800px;
+}
+
+/* Estilos para las tarjetas del dashboard (si no están ya definidos o necesitas ajustarlos) */
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: var(--dark-text);
+    transition: all 0.3s ease;
+    height: 100%; /* Para que todas las tarjetas en una fila tengan la misma altura */
+    border: 1px solid var(--border-color);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    background-color: var(--light-bg);
+    text-decoration: none; /* Asegura que el subrayado desaparezca al pasar el ratón */
+}
+
+.card-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark-text); /* Asegura que el título sea legible */
+}
+
+.card-description {
+    font-size: 0.95rem;
+    color: #64748b; /* Un gris más claro para la descripción */
+    flex-grow: 1; /* Permite que la descripción ocupe el espacio restante */
+}
+
+/* Variantes de tarjetas */
+.primary-card .card-icon { color: var(--primary-color); }
+.success-card .card-icon { color: var(--success-color); }
+.warning-card .card-icon { color: var(--warning-color); }
+.danger-card .card-icon { color: var(--danger-color); }
+.info-card .card-icon { color: var(--secondary-color); } 
+
+/* Ajustes para las filas de Bootstrap (si no están ya en tu CSS global) */
+.row.g-4 > .col {
+    padding: 1rem; /* Espacio entre las tarjetas */
+}
+
+
+/* Ajuste para el contenedor de acciones */
+.table-actions-center {
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Estrechar la columna de acciones */
+.action-column-width {
+    width: 200px;
+    max-width: 200px;
+}
+
+/* Mejora del espaciado entre botones */
+.me-2 {
+    margin-right: 8px !important;
+}
+
+
+
+/* For the full-area link on dashboard cards */
+.dashboard-card {
+    position: relative; /* Needed for absolute positioning of child link */
+    overflow: hidden; /* Ensures child doesn't spill out */
+}
+
+.dashboard-card .card-link-full-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Ensures it's above other content in the card */
+    /* Optional: Add hover styles if you want a visual indication */
+    /* background-color: rgba(0, 0, 0, 0.05); */
+}
+
+/* Adjust existing card-link if it's visually overlapping the full-area link */
+.dashboard-card .card-link {
+    position: relative; /* Ensure it stays above the full-area link */
+    z-index: 2; /* Make sure this is higher than card-link-full-area */
+    /* You might need to adjust margin/padding if the button looks off */
+}
+

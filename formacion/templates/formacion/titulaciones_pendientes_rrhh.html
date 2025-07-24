@@ -1,0 +1,315 @@
+{# formacion/templates/formacion/titulaciones_pendientes_rrhh.html #}
+{% extends "base.html" %}
+{% load static %}
+{% load formacion_tags %} {# Asegúrate de que este tag está correctamente configurado para url_replace_param #}
+
+{% block title %}Titulaciones Pendientes de Validación{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-patch-check-fill"></i>
+            Titulaciones Pendientes de Validación por RRHH
+        </h1>
+        <p class="page-description">
+            Revisa y valida las titulaciones y certificaciones subidas por los empleados.
+        </p>
+    </div>
+
+    {# Área para mostrar mensajes de Django (success, error, info, warning) #}
+    {% if messages %}
+    <div class="messages-container mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if page_obj %}
+        <div class="table-container">
+            <div class="table-responsive-modern">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            {# ----- Columna Empleado (ordenable) ----- #}
+                            <th>
+                                {% with field_name="empleado" %}
+                                {% if sort_by == field_name %} {# Asumo que ahora 'sort_by' y 'direction' tienen los valores correctos #}
+                                    {% if direction == 'asc' %}
+                                        {% with new_direction='desc' arrow='<i class="bi bi-arrow-up sort-arrow"></i>' %}
+                                            <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                                <i class="bi bi-person-circle me-1"></i>
+                                                Empleado {{ arrow|safe }}
+                                            </a>
+                                        {% endwith %}
+                                    {% else %}
+                                        {% with new_direction='asc' arrow='<i class="bi bi-arrow-down sort-arrow"></i>' %}
+                                            <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                                <i class="bi bi-person-circle me-1"></i>
+                                                Empleado {{ arrow|safe }}
+                                            </a>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% else %}
+                                    {% with new_direction='asc' %}
+                                        <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                            <i class="bi bi-person-circle me-1"></i>
+                                            Empleado <i class="bi bi-arrow-down-up sort-arrow" style="opacity:0.3"></i>
+                                        </a>
+                                    {% endwith %}
+                                {% endif %}
+                                {% endwith %}
+                            </th>
+                            {# ----- Nombre Titulación (ordenable) ----- #}
+                            <th>
+                                {% with field_name="nombre" %}
+                                {% if sort_by == field_name %}
+                                    {% if direction == 'asc' %}
+                                        {% with new_direction='desc' arrow='<i class="bi bi-arrow-up sort-arrow"></i>' %}
+                                            <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                                <i class="bi bi-award me-1"></i>
+                                                Titulación {{ arrow|safe }}
+                                            </a>
+                                        {% endwith %}
+                                    {% else %}
+                                        {% with new_direction='asc' arrow='<i class="bi bi-arrow-down sort-arrow"></i>' %}
+                                            <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                                <i class="bi bi-award me-1"></i>
+                                                Titulación {{ arrow|safe }}
+                                            </a>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% else %}
+                                    {% with new_direction='asc' %}
+                                        <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                            <i class="bi bi-award me-1"></i>
+                                            Titulación <i class="bi bi-arrow-down-up sort-arrow" style="opacity:0.3"></i>
+                                        </a>
+                                    {% endwith %}
+                                {% endif %}
+                                {% endwith %}
+                            </th>
+                            {# ----- Tipo (ordenable) ----- #}
+                            <th>
+                                {% with field_name="tipo_titulacion" %}
+                                {% if sort_by == field_name %}
+                                    {% if direction == 'asc' %}
+                                        {% with new_direction='desc' arrow='<i class="bi bi-arrow-up sort-arrow"></i>' %}
+                                            <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                                <i class="bi bi-tags me-1"></i>
+                                                Tipo {{ arrow|safe }}
+                                            </a>
+                                        {% endwith %}
+                                    {% else %}
+                                        {% with new_direction='asc' arrow='<i class="bi bi-arrow-down sort-arrow"></i>' %}
+                                            <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                                <i class="bi bi-tags me-1"></i>
+                                                Tipo {{ arrow|safe }}
+                                            </a>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% else %}
+                                    {% with new_direction='asc' %}
+                                        <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                            <i class="bi bi-tags me-1"></i>
+                                            Tipo <i class="bi bi-arrow-down-up sort-arrow" style="opacity:0.3"></i>
+                                        </a>
+                                    {% endwith %}
+                                {% endif %}
+                                {% endwith %}
+                            </th>
+                            {# ----- Institución (ordenable) ----- #}
+                            <th>
+                                {% with field_name="institucion_emisora" %}
+                                {% if sort_by == field_name %}
+                                    {% if direction == 'asc' %}
+                                        {% with new_direction='desc' arrow='<i class="bi bi-arrow-up sort-arrow"></i>' %}
+                                            <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                                <i class="bi bi-building me-1"></i>
+                                                Institución {{ arrow|safe }}
+                                            </a>
+                                        {% endwith %}
+                                    {% else %}
+                                        {% with new_direction='asc' arrow='<i class="bi bi-arrow-down sort-arrow"></i>' %}
+                                            <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                                <i class="bi bi-building me-1"></i>
+                                                Institución {{ arrow|safe }}
+                                            </a>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% else %}
+                                    {% with new_direction='asc' %}
+                                        <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                            <i class="bi bi-building me-1"></i>
+                                            Institución <i class="bi bi-arrow-down-up sort-arrow" style="opacity:0.3"></i>
+                                        </a>
+                                    {% endwith %}
+                                {% endif %}
+                                {% endwith %}
+                            </th>
+                            {# ----- Fecha Obtención (ordenable) ----- #}
+                            <th>
+                                {% with field_name="fecha_obtencion" %}
+                                {% if sort_by == field_name %}
+                                    {% if direction == 'asc' %}
+                                        {% with new_direction='desc' arrow='<i class="bi bi-arrow-up sort-arrow"></i>' %}
+                                            <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                                <i class="bi bi-calendar2-check me-1"></i>
+                                                Fecha Obtención {{ arrow|safe }}
+                                            </a>
+                                        {% endwith %}
+                                    {% else %}
+                                        {% with new_direction='asc' arrow='<i class="bi bi-arrow-down sort-arrow"></i>' %}
+                                            <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                                <i class="bi bi-calendar2-check me-1"></i>
+                                                Fecha Obtención {{ arrow|safe }}
+                                            </a>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% else %}
+                                    {% with new_direction='asc' %}
+                                        <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                            <i class="bi bi-calendar2-check me-1"></i>
+                                            Fecha Obtención <i class="bi bi-arrow-down-up sort-arrow" style="opacity:0.3"></i>
+                                        </a>
+                                    {% endwith %}
+                                {% endif %}
+                                {% endwith %}
+                            </th>
+                            {# Documento y Acciones no ordenables #}
+                            <th class="text-center"><i class="bi bi-file-earmark me-1"></i> Documento</th>
+                            <th class="text-center"><i class="bi bi-gear-fill me-1"></i> Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for titulacion in page_obj %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-person-circle text-primary"></i>
+                                        <span class="fw-semibold">{{ titulacion.empleado.get_full_name }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-medium">{{ titulacion.nombre }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-tipo">
+                                        <i class="bi bi-bookmark-check me-1"></i>
+                                        {{ titulacion.get_tipo_titulacion_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {{ titulacion.institucion_emisora|default:"N/A" }}
+                                </td>
+                                <td>
+                                    {{ titulacion.fecha_obtencion|date:"d/m/Y" }}
+                                </td>
+                                <td class="text-center">
+                                    {% if titulacion.documento_adjunto %}
+                                        <a href="{{ titulacion.documento_adjunto.url }}" target="_blank" class="btn-action btn-view-doc-small" title="Ver Documento">
+                                            <i class="bi bi-file-earmark-text-fill"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">
+                                            <i class="bi bi-dash-circle"></i> N/A
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="table-actions-center">
+                                    {# Formulario para Validar #}
+                                    <form method="post" action="{% url 'formacion:titulaciones_pendientes_rrhh' %}" class="d-inline-block me-2">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="titulacion_id" value="{{ titulacion.id }}">
+                                        <input type="hidden" name="action" value="validar"> {# Agregamos el campo action #}
+                                        <button type="submit" class="btn-action btn-success-action" title="Validar Titulación">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
+
+                                    {# Botón para Abrir Modal de Rechazo #}
+                                    <button type="button" class="btn-action btn-delete"
+                                            data-bs-toggle="modal" data-bs-target="#rejectModal"
+                                            data-titulacion-id="{{ titulacion.id }}"
+                                            data-titulacion-nombre="{{ titulacion.nombre }}"
+                                            title="Rechazar Titulación">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% include 'formacion/includes/pagination_controls.html' %}
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-journal-check"></i>
+            <h4>¡Felicidades!</h4>
+            <p>No hay titulaciones pendientes de validación actualmente.</p>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+</div>
+
+{# Modal de Rechazo #}
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Rechazar Titulación: <span id="modalTitulacionNombre"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'formacion:titulaciones_pendientes_rrhh' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="titulacion_id" id="modalTitulacionId">
+                    <input type="hidden" name="action" value="rechazar">
+                    <div class="mb-3">
+                        <label for="motivo_rechazo" class="form-label">Motivo del Rechazo:</label>
+                        <textarea class="form-control" id="motivo_rechazo" name="motivo_rechazo" rows="4" required placeholder="Explica por qué se rechaza esta titulación..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{# Script para manejar el modal de rechazo #}
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var rejectModal = document.getElementById('rejectModal');
+        rejectModal.addEventListener('show.bs.modal', function (event) {
+            // Botón que disparó el modal
+            var button = event.relatedTarget;
+            // Extraer información de los atributos data-*
+            var titulacionId = button.getAttribute('data-titulacion-id');
+            var titulacionNombre = button.getAttribute('data-titulacion-nombre');
+
+            // Actualizar el contenido del modal
+            var modalTitulacionIdInput = rejectModal.querySelector('#modalTitulacionId');
+            var modalTitulacionNombreSpan = rejectModal.querySelector('#modalTitulacionNombre');
+
+            modalTitulacionIdInput.value = titulacionId;
+            modalTitulacionNombreSpan.textContent = titulacionNombre;
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock content %}

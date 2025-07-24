@@ -1,0 +1,125 @@
+{# formacion/cursos_obligatorios_lista.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listado de Cursos Obligatorios{% endblock %}
+
+{% block content %}
+<div class="content-container">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-list-check me-2"></i> Cursos Obligatorios
+        </h1>
+        <div class="page-description">
+            Listado de cursos marcados como obligatorios, ya sea de forma general o para puestos de trabajo específicos.
+        </div>
+    </div>
+
+    {# Mostrar mensajes de Django #}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if has_obligatory_courses %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+            {% for data in cursos_con_obligatoriedad %} {# Esta `data` ahora contiene todos los campos extendidos #}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title text-primary-dark mb-2">{{ data.curso.nombre }}</h5>
+                        <p class="card-text text-muted small mb-2">
+                            Tipo: <strong>{{ data.curso.get_tipo_display }}</strong> | Modalidad: <strong>{{ data.curso.get_modalidad_display }}</strong>
+                            {% if data.curso.duracion_horas %}<br>Duración: <strong>{{ data.curso.duracion_horas|floatformat:"0" }} horas</strong>{% endif %}
+                            {% if data.curso.fecha_inicio %}<br>Inicio: {{ data.curso.fecha_inicio|date:"d/m/Y" }}{% endif %}
+                            {% if data.curso.fecha_fin %} - Fin: {{ data.curso.fecha_fin|date:"d/m/Y" }}{% endif %}
+                        </p>
+                        
+                        {# Mostrar Plazas si aplica #}
+                        {% if data.curso.plazas_totales is not None and data.curso.plazas_totales > 0 %}
+                            <p class="mb-0 text-muted small">Plazas: {{ data.curso.plazas_disponibles }} / {{ data.curso.plazas_totales }}</p>
+                        {% elif data.curso.plazas_totales == 0 %} {# Si plazas_totales es 0, asumimos ilimitadas #}
+                            <p class="mb-0 text-muted small">Plazas: Ilimitadas</p>
+                        {% endif %}
+
+                        <hr class="my-2">
+
+                        <div class="mt-auto">
+                            <h6 class="fw-bold mb-2">Estado de Obligatoriedad:</h6>
+                            {% if data.es_obligatorio_general %}
+                                <span class="badge bg-success-subtle text-success mb-2 me-2">
+                                    <i class="bi bi-star-fill"></i> Obligatorio General
+                                </span>
+                            {% endif %}
+
+                            {% if data.puestos_obligatorios %}
+                                <span class="badge bg-primary-subtle text-primary mb-2">
+                                    <i class="bi bi-briefcase-fill"></i> Obligatorio para Puestos:
+                                </span>
+                                <ul class="list-unstyled ms-3 mt-1 small">
+                                    {% for puesto_nombre in data.puestos_obligatorios %}
+                                        <li><i class="bi bi-dot"></i> {{ puesto_nombre }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                {% if not data.es_obligatorio_general %}
+                                    <span class="badge bg-secondary-subtle text-secondary">
+                                        <i class="bi bi-info-circle"></i> No obligatorio (ni general ni por puesto)
+                                    </span>
+                                {% endif %}
+                            {% endif %}
+
+                            <hr class="my-2">
+
+                            {# Sección para solicitar inscripción #}
+                            <h6 class="fw-bold mb-2">Inscripción:</h6>
+                            {% if data.estado_usuario %}
+                                <span class="status-badge 
+                                    {% if 'pendiente' in data.estado_usuario|lower %}status-info{% elif 'confirmado' in data.estado_usuario|lower or 'aprobado' in data.estado_usuario|lower %}status-success{% else %}status-secondary{% endif %} mb-2">
+                                    Tu estado: {{ data.estado_usuario }}
+                                </span>
+                            {% endif %}
+
+                            {% if data.puede_solicitar %}
+                                <form action="{% url 'formacion:solicitar_inscripcion_curso' curso_id=data.curso.id %}" method="post" style="display:inline-block;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-action btn-primary-action px-4 py-2 fw-semibold" style="min-width: 180px; font-size: 1rem;" title="Solicitar Inscripción">
+                                        <i class="bi bi-box-arrow-in-right"></i> Solicitar
+                                    </button>
+                                </form>
+                            {% else %}
+                                <div class="mb-2">
+                                    <span class="text-muted small d-block mb-1">
+                                        <i class="bi bi-info-circle"></i> {{ data.motivo_no_solicitar|default:"No disponible" }}
+                                    </span>
+                                    <button type="button" class="btn-action btn-secondary-action px-4 py-2 fw-semibold" style="min-width: 180px; font-size: 1rem;" disabled title="{{ data.motivo_no_solicitar }}">
+                                        <i class="bi bi-slash-circle"></i> No disponible
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-info-circle"></i>
+            <p>Actualmente no hay cursos marcados como obligatorios en el sistema.</p>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+</div>
+{% endblock %}

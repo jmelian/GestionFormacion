@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Preselección de Participantes ({{ departamento.nombre }}){% endblock %}
+
+{% block content %}
+<div class="content-container">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-people me-2"></i> Preselección de Participantes ({{ departamento.nombre }})
+        </h1>
+        <div class="page-description">
+            Gestiona los empleados preseleccionados para cursos en tu departamento.
+        </div>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger alert-modern d-flex align-items-center">
+            <i class="bi bi-x-circle-fill me-2"></i>
+            <div>{{ error }}</div>
+        </div>
+    {% endif %}
+
+    <div class="card-modern mb-4">
+        <div class="section-header">
+            <h3 class="section-title">
+                {% if editar %}
+                    <i class="bi bi-pencil-fill me-2"></i> Editar preselección
+                {% else %}
+                    <i class="bi bi-person-plus-fill me-2"></i> Añadir nueva preselección
+                {% endif %}
+            </h3>
+        </div>
+        <div class="form-card mb-4">
+            <form method="post" class="modern-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert-modern alert-danger" role="alert">
+                        <i class="bi bi-x-circle-fill me-2"></i>
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div class="form-group{% if field.errors %} has-error{% endif %} mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {% if field.field.widget.input_type == 'select' %}
+                            {% render_field field class="form-select-modern" %}
+                        {% elif field.field.widget.input_type == 'checkbox' %}
+                            <div class="form-check-modern">
+                                {% render_field field class="form-check-input-modern" %}
+                                <label class="form-check-label-modern" for="{{ field.id_for_label }}">
+                                    {{ field.label }}
+                                </label>
+                            </div>
+                        {% else %}
+                            {% render_field field class="form-control-modern" %}
+                        {% endif %}
+                        {% if field.help_text %}
+                            <small class="form-text-help">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="form-error-message">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <div class="form-actions d-flex justify-content-end gap-2 mt-4">
+                    {% if editar %}
+                        <input type="hidden" name="editar_id" value="{{ editar.id }}">
+                        <button type="submit" name="actualizar" class="btn-primary">
+                            <i class="bi bi-arrow-clockwise me-2"></i> Actualizar preselección
+                        </button>
+                        <a href="{% url 'formacion:preseleccionar_empleado' %}" class="btn-secondary">
+                            <i class="bi bi-x-circle me-2"></i> Cancelar
+                        </a>
+                    {% else %}
+                        <button type="submit" name="crear" class="btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i> Añadir preselección
+                        </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <div class="section-header">
+        <h3 class="section-title">
+            <i class="bi bi-list-check me-2"></i> Preselecciones existentes
+        </h3>
+    </div>
+
+    {% if preselecciones %}
+        <div class="table-container">
+            <div class="table-responsive-modern">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th>Empleado</th>
+                            <th class="text-center">Prioridad</th>
+                            <th>Observaciones</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in preselecciones %}
+                            <tr>
+                                <td>{{ p.curso.nombre }}</td>
+                                <td>{{ p.empleado.get_full_name }}</td>
+                                <td class="text-center">{{ p.prioridad }}</td>
+                                <td>{{ p.observaciones|default:"N/A" }}</td>
+                                <td class="table-actions-center">
+                                    <a href="{% url 'formacion:preseleccionar_empleado' %}?editar={{ p.id }}" class="btn-action btn-edit" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="post" class="d-inline-block">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="eliminar" value="{{ p.id }}">
+                                        <button type="submit" class="btn-action btn-delete" title="Eliminar" onclick="return confirm('¿Estás seguro de que quieres eliminar esta preselección?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-info-circle"></i>
+            <p>No hay preselecciones registradas para tu departamento.</p>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+</div>
+{% endblock %}

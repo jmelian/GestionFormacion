@@ -1,0 +1,105 @@
+{# formacion/solicitudes_curso_gestion_list.html #}
+
+{% extends 'base.html' %}
+{% load static %} {# Asegúrate de cargar static si usas imágenes o assets estáticos en el futuro #}
+
+{% block title %}Gestión de Solicitudes de Curso{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-folder-check me-2"></i> Gestión de Solicitudes de Curso</h1>
+        <div class="page-description">
+            Revisa y gestiona las solicitudes de nuevos cursos enviadas por los coordinadores.
+        </div>
+    </div>
+
+    <div class="table-container">
+    {% if solicitudes %}
+        <table class="table-modern">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título Solicitado</th>
+                    <th>Solicitante</th>
+                    <th>Departamento</th>
+                    <th>Fecha</th>
+                    <th class="text-center">Carácter</th>
+                    <th class="text-center">Nº Part.</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for solicitud in solicitudes %}
+                <tr>
+                    <td>{{ solicitud.id }}</td>
+                    <td>{{ solicitud.titulo_curso_solicitado }}</td>
+                    <td>{{ solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</td>
+                    <td>{{ solicitud.departamento_solicitante.nombre|default:"N/A" }}</td>
+                    <td>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+                    <td class="text-center">
+                        {# Mapping de los valores de `caracter_formacion` a tus clases de estado de CSS #}
+                        {# Puedes ajustar estos mapeos si los nombres de tus estados en el modelo no coinciden directamente con las clases CSS #}
+                        <span class="status-badge 
+                            {% if solicitud.caracter_formacion == 'urgente' %}status-danger{% comment %} O podrías tener una clase específica como status-urgente si la defines {% endcomment %}
+                            {% elif solicitud.caracter_formacion == 'planificado' %}status-info{% comment %} O status-planificado {% endcomment %}
+                            {% elif solicitud.caracter_formacion == 'obligatorio_legal' %}status-primary{% comment %} O status-obligatorio {% endcomment %}
+                            {% else %}status-secondary{% endif %}">
+                            {{ solicitud.get_caracter_formacion_display }}
+                        </span>
+                    </td>
+                    <td class="text-center">{{ solicitud.numero_participantes_estimado }}</td>
+                    <td class="text-center">
+                        {# Mapping de los valores de `estado` a tus clases de estado de CSS #}
+                        <span class="status-badge 
+                            {% if solicitud.estado == 'pendiente' %}status-warning
+                            {% elif solicitud.estado == 'aprobada' %}status-success
+                            {% elif solicitud.estado == 'rechazada' %}status-danger
+                            {% elif solicitud.estado == 'en_proceso' %}status-primary
+                            {% elif solicitud.estado == 'completada' %}status-secondary{# Considera una clase como status-completed si es diferente #}
+                            {% else %}status-secondary{% endif %}">
+                            {{ solicitud.get_estado_display }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        {# Usa la clase general btn-action con btn-action-participants para este botón de "Ver Detalle" #}
+                        <a href="{% url 'formacion:detalle_solicitud_curso' pk=solicitud.pk %}" class="btn-action btn-action-participants" title="Ver Detalle">
+                            <i class="bi bi-eye-fill"></i>{# El texto "Ver Detalle" se omite para usar solo el icono, como en tus otros btn-action #}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty-state mt-4">
+            <i class="bi bi-info-circle"></i>
+            <p>Actualmente no hay solicitudes de curso pendientes de revisión.</p>
+        </div>
+    {% endif %}
+    </div> {# Cierre de table-container #}
+
+    {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                {% endif %}
+                {% for i in paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == i %}active{% endif %}"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

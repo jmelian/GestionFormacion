@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar sesión{% endblock %}
+
+{% block content %}
+<h2>Acceso a la Plataforma de Formación</h2>
+<form method="post" action="{% url 'login' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+</form>
+{% endblock %}

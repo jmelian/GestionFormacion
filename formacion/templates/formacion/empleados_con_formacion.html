@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load static %}
+{% load formacion_tags %}
+
+{% block title %}Formación por Empleado{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="bi bi-people-fill"></i>
+        Formación por Empleado
+    </h1>
+    <p class="page-description">
+        Consulta y gestiona la formación de todos los empleados de la organización
+    </p>
+</div>
+
+<div class="filters-container">
+    <form method="get" action="{% url 'formacion:empleados_con_formacion' %}">
+        <div class="filter-flexbar">
+            <div class="filter-group">
+                <label for="departamento" class="filter-label">
+                    <i class="bi bi-building me-1"></i>
+                    Departamento
+                </label>
+                <select name="departamento" id="departamento" class="form-select form-select-modern">
+                    <option value="">Todos los Departamentos</option>
+                    {% for dep in departamentos %}
+                        <option value="{{ dep.id }}" {% if selected_departamento == dep.id %}selected{% endif %}>
+                            {{ dep.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="keyword" class="filter-label">
+                    <i class="bi bi-search me-1"></i>
+                    Búsqueda
+                </label>
+                <input type="text" name="keyword" id="keyword" class="form-control form-control-modern" 
+                    placeholder="Buscar por formación..." value="{{ keyword|default:'' }}">
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-filter">
+                    <i class="bi bi-funnel-fill"></i>
+                    Aplicar Filtros
+                </button>
+                <a href="{% url 'formacion:empleados_con_formacion' %}" class="btn btn-clear">
+                    <i class="bi bi-x-circle-fill"></i>
+                    Limpiar
+                </a>
+            </div>
+        </div>
+        {# hidden inputs aquí... #}
+        {% if sort_by %}<input type="hidden" name="sort_by" value="{{ sort_by }}">{% endif %}
+        {% if direction %}<input type="hidden" name="direction" value="{{ direction }}">{% endif %}
+    </form>
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-modern">
+            <thead>
+                <tr>
+                    {% for col_name, field_name in tabla_columnas.items %}
+                    <th>
+                        {% if sort_by == field_name %}
+                            {% if direction == 'asc' %}
+                                {% with new_direction='desc' arrow='<i class="bi bi-arrow-up sort-arrow"></i>' %}
+                                    <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                        {{ col_name }} {{ arrow|safe }}
+                                    </a>
+                                {% endwith %}
+                            {% else %}
+                                {% with new_direction='asc' arrow='<i class="bi bi-arrow-down sort-arrow"></i>' %}
+                                    <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                        {{ col_name }} {{ arrow|safe }}
+                                    </a>
+                                {% endwith %}
+                            {% endif %}
+                        {% else %}
+                            {% with new_direction='asc' %}
+                                <a href="?{% url_replace_param sort_by=field_name direction=new_direction %}" class="sort-link">
+                                    {{ col_name }}
+                                    <i class="bi bi-arrow-down-up sort-arrow" style="opacity: 0.3;"></i>
+                                </a>
+                            {% endwith %}
+                        {% endif %}
+                    </th>
+                    {% endfor %}
+                    <th>
+                        <i class="bi bi-mortarboard-fill me-1"></i>
+                        Resumen Formación
+                    </th>
+                    <th>
+                        <i class="bi bi-gear-fill me-1"></i>
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for empleado in empleados %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-person-circle text-primary"></i>
+                                <strong>{{ empleado.username }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-medium">{{ empleado.get_full_name }}</div>
+                        </td>
+                        <td>
+                            {% if empleado.departamento %}
+                                <span class="department-tag">{{ empleado.departamento.nombre }}</span>
+                            {% else %}
+                                <span class="text-muted">Sin departamento</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                <span class="summary-badge courses">
+                                    <i class="bi bi-journal-bookmark me-1"></i>
+                                    {{ empleado.num_participaciones }} Cursos
+                                </span>
+                                <span class="summary-badge qualifications">
+                                    <i class="bi bi-award me-1"></i>
+                                    {{ empleado.num_titulaciones }} Titulaciones
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="{% url 'formacion:empleado_formacion_detalle' empleado.id %}" class="btn-details">
+                                <i class="bi bi-eye-fill"></i>
+                                Ver Detalles
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="bi bi-person-x"></i>
+                                <h4>No se encontraron empleados</h4>
+                                <p>Intenta ajustar los filtros o eliminar algunos criterios de búsqueda</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

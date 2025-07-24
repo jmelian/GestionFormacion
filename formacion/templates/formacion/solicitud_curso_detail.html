@@ -1,0 +1,188 @@
+{# formacion/solicitud_curso_detail.html #}
+
+{% extends 'base.html' %}
+
+{% block title %}Detalle Solicitud de Curso: {{ solicitud.titulo_curso_solicitado }}{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-file-earmark-text me-2"></i> Detalle de Solicitud de Curso</h1>
+        <div class="page-description">
+            Información completa de la solicitud de curso.
+        </div>
+    </div>
+
+    <div class="card modern-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5>Solicitud: {{ solicitud.titulo_curso_solicitado }}</h5>
+            <span class="status-badge status-{{ solicitud.estado }}">{{ solicitud.get_estado_display }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Coordinador Solicitante:</strong> {{ solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</p>
+                    <p><strong>Departamento Solicitante:</strong> {{ solicitud.departamento_solicitante.nombre|default:"N/A" }}</p>
+                    <p><strong>Fecha de Solicitud:</strong> {{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</p>
+                    <p><strong>Carácter de la Formación:</strong> <span class="status-badge status-{{ solicitud.caracter_formacion }}">{{ solicitud.get_caracter_formacion_display }}</span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Número Estimado de Participantes:</strong> {{ solicitud.numero_participantes_estimado }}</p>
+                    <p><strong>Formato Preferido:</strong> {{ solicitud.get_formato_preferido_display|default:"No especificado" }}</p>
+                    <p><strong>Duración Estimada:</strong> {{ solicitud.duracion_estimada|default:"No especificada" }}</p>
+                    <p><strong>Fechas/Horarios Preferidos:</strong> {{ solicitud.fechas_horarios_preferidos|default:"No especificados" }}</p>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="mb-3">
+                <h6>Objetivo del Curso:</h6>
+                <p>{{ solicitud.objetivo_curso }}</p>
+            </div>
+
+            <div class="mb-3">
+                <h6>Justificación de la Necesidad:</h6>
+                <p>{{ solicitud.justificacion_necesidad }}</p>
+            </div>
+
+            {% if solicitud.temas_contenidos_clave %}
+            <div class="mb-3">
+                <h6>Temas o Contenidos Clave a Cubrir:</h6>
+                <p>{{ solicitud.temas_contenidos_clave }}</p>
+            </div>
+            {% endif %}
+
+            {% if solicitud.comentarios_adicionales %}
+            <div class="mb-3">
+                <h6>Comentarios/Notas Adicionales del Solicitante:</h6>
+                <p>{{ solicitud.comentarios_adicionales }}</p>
+            </div>
+            {% endif %}
+
+            {% if solicitud.estado == 'rechazada' and solicitud.motivo_rechazo %}
+            <div class="alert alert-danger" role="alert">
+                <h6>Motivo del Rechazo:</h6>
+                <p>{{ solicitud.motivo_rechazo }}</p>
+            </div>
+            {% endif %}
+
+            {% if solicitud.estado == 'completada' and solicitud.comentarios_procesamiento %}
+            <div class="alert alert-info" role="alert">
+                <h6>Comentarios de Procesamiento:</h6>
+                <p>{{ solicitud.comentarios_procesamiento }}</p>
+            </div>
+            {% endif %}
+
+            <hr>
+
+            {# Acciones de Gestión #}
+            <div class="actions-section mt-4 d-flex justify-content-start flex-wrap gap-2">
+                {% if solicitud.estado == 'pendiente' %}
+                    <form action="{% url 'formacion:aceptar_solicitud' pk=solicitud.pk %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-primary-action btn-success-action confirm-action-btn" data-confirm-message="¿Estás seguro de que deseas aprobar esta solicitud? Se notificará al coordinador.">
+                            <i class="bi bi-check-circle-fill me-1"></i> Aprobar Solicitud
+                        </button>
+                    </form>
+                {% endif %}
+                {% if solicitud.estado == 'pendiente' or solicitud.estado == 'aprobada' or solicitud.estado == 'en_proceso' %}
+                    <a href="{% url 'formacion:rechazar_solicitud' pk=solicitud.pk %}" class="btn-primary-action btn-danger-action">
+                        <i class="bi bi-x-circle-fill me-1"></i> Rechazar Solicitud
+                    </a>
+                {% endif %}
+                {% if solicitud.estado == 'pendiente' or solicitud.estado == 'aprobada' or solicitud.estado == 'en_proceso' %}
+                    <form action="{% url 'formacion:procesar_solicitud' pk=solicitud.pk %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-primary-action btn-info-action confirm-action-btn" data-confirm-message="¿Estás seguro de que deseas procesar esta solicitud? Esto la marcará como completada y la eliminará de la lista activa.">
+                            <i class="bi bi-gear-fill me-1"></i> Procesar Solicitud
+                        </button>
+                    </form>
+                {% endif %}
+                <a href="{% url 'formacion:solicitudes_curso_gestion' %}" class="btn-secondary-action">
+                    <i class="bi bi-arrow-left-circle-fill me-1"></i> Volver a Solicitudes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{# Usa los estilos globales. Solo añade aquí los que no estén en app_global.css #}
+<style>
+    /* BADGES de estado para solicitudes (añadir si no existen en app_global.css) */
+    .status-badge {
+        display: inline-block;
+        padding: 0.35em 0.7em;
+        font-size: 0.95em;
+        font-weight: 600;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.5rem;
+        color: #fff;
+        letter-spacing: 0.02em;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        margin-left: 0.5rem;
+    }
+    .status-pendiente { background: linear-gradient(90deg, #ffe066 60%, #ffc107 100%); color: #333; border: 1px solid #ffe066; }
+    .status-aprobada { background: linear-gradient(90deg, #43e97b 60%, #38f9d7 100%); border: 1px solid #43e97b; }
+    .status-rechazada { background: linear-gradient(90deg, #ff5858 60%, #f09819 100%); border: 1px solid #ff5858; }
+    .status-en_proceso { background: linear-gradient(90deg, #36d1c4 60%, #007bff 100%); border: 1px solid #36d1c4; }
+    .status-completada { background: linear-gradient(90deg, #868f96 60%, #596164 100%); border: 1px solid #868f96; }
+    .status-urgente { background: linear-gradient(90deg, #fd7e14 60%, #ffb347 100%); border: 1px solid #fd7e14; }
+    .status-planificado { background: linear-gradient(90deg, #17a2b8 60%, #43cea2 100%); border: 1px solid #17a2b8; }
+    .status-obligatorio_legal { background: linear-gradient(90deg, #6f42c1 60%, #b06ab3 100%); border: 1px solid #6f42c1; }
+    .status-otro { background: linear-gradient(90deg, #6c757d 60%, #adb5bd 100%); border: 1px solid #6c757d; }
+
+    /* Botones de acción de color (si no existen en app_global.css) */
+    .btn-success-action {
+        background: linear-gradient(135deg, #10b981, #22d3ee);
+        color: #fff !important;
+        border: none;
+        box-shadow: 0 5px 15px rgba(16,185,129,0.15);
+    }
+    .btn-success-action:hover {
+        background: linear-gradient(135deg, #059669, #0ea5e9);
+        color: #fff !important;
+    }
+    .btn-danger-action {
+        background: linear-gradient(135deg, #ef4444, #f59e0b);
+        color: #fff !important;
+        border: none;
+        box-shadow: 0 5px 15px rgba(239,68,68,0.15);
+        text-decoration: none !important;
+    }
+    .btn-danger-action:hover {
+        background: linear-gradient(135deg, #b91c1c, #d97706);
+        color: #fff !important;
+        text-decoration: none !important;
+    }
+    .btn-info-action {
+        background: linear-gradient(135deg, #3b82f6, #06b6d4);
+        color: #fff !important;
+        border: none;
+        box-shadow: 0 5px 15px rgba(59,130,246,0.15);
+    }
+    .btn-info-action:hover {
+        background: linear-gradient(135deg, #2563eb, #0e7490);
+        color: #fff !important;
+    }
+</style>
+
+{# JavaScript para confirmación de acciones (opcional pero recomendado) #}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmButtons = document.querySelectorAll('.confirm-action-btn');
+        confirmButtons.forEach(button => {
+            button.addEventListener('click', function(event) {
+                const message = this.dataset.confirmMessage || '¿Estás seguro de que quieres realizar esta acción?';
+                if (!confirm(message)) {
+                    event.preventDefault(); // Detiene el envío del formulario si el usuario cancela
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

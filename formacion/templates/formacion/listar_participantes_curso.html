@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Participantes del Curso{% endblock %}
+
+{% block content %}
+<div class="content-container">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-people-fill me-2"></i> Participantes del Curso: {{ curso.nombre }}
+        </h1>
+        <div class="page-description">
+            Gestiona la participación de los empleados en este curso.
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="messages-container mt-3 mb-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if participantes %}
+        <div class="table-container">
+            <div class="table-responsive-modern">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th>Empleado</th>
+                            <th>Departamento</th>
+                            <th class="text-center">Fecha inicio</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Certificado</th>
+                            <th class="text-center">Nota Final</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for participacion in participantes %}
+                            <tr>
+                                <td>{{ participacion.empleado.get_full_name }}</td>
+                                <td>{{ participacion.empleado.departamento.nombre }}</td>
+                                <td class="text-center">{{ participacion.fecha_inicio_real|date:"d/m/Y" }}</td>
+                                <td class="text-center">
+                                    {% if participacion.estado == 'pendiente' %}
+                                        <span class="status-badge status-info"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>
+                                    {% elif participacion.estado == 'solicitado' %}
+                                        <span class="status-badge status-info"><i class="bi bi-file-earmark-check-fill me-1"></i> Solicitado</span>
+                                    {% elif participacion.estado == 'confirmada' %}
+                                        <span class="status-badge status-success"><i class="bi bi-calendar-check-fill me-1"></i> Confirmado</span>
+                                    {% elif participacion.estado == 'aceptado' %}
+                                        <span class="status-badge status-success"><i class="bi bi-check-circle-fill me-1"></i> Aceptado</span>
+                                    {% elif participacion.estado == 'asistido' %}
+                                        <span class="status-badge status-primary"><i class="bi bi-person-fill-check me-1"></i> Asistido</span>
+                                    {% elif participacion.estado == 'completado' %}
+                                        <span class="status-badge status-completed"><i class="bi bi-award-fill me-1"></i> Completado</span>
+                                    {% elif participacion.estado == 'cancelado' %}
+                                        <span class="status-badge status-danger"><i class="bi bi-x-circle-fill me-1"></i> Cancelado</span>
+                                    {% elif participacion.estado == 'rechazado' %}
+                                        <span class="status-badge status-secondary"><i class="bi bi-slash-circle-fill me-1"></i> Rechazado</span>
+                                    {% else %}
+                                        <span class="status-badge status-secondary">
+                                            <i class="bi bi-dash-circle me-1"></i>
+                                            {% if participacion.get_estado_display %}
+                                                {{ participacion.get_estado_display }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if participacion.certificado_obtenido %}
+                                        <span class="status-badge status-success" title="Certificado Obtenido">
+                                            <i class="bi bi-check-lg me-1"></i> Obtenido
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted"><i class="bi bi-dash-circle"></i> N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if participacion.nota_final %}
+                                        <span class="summary-badge">{{ participacion.nota_final }}</span>
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td class="table-actions-center">
+                                    {# Botones de Aprobar/Rechazar (para estados iniciales) #}
+                                    {% if participacion.estado == 'solicitado' or participacion.estado == 'pendiente' %}
+                                        <form method="post" action="{% url 'formacion:aprobar_participacion' participacion.id %}" class="d-inline-block">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-success-action" title="Aprobar Participación">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'formacion:rechazar_participacion' participacion.id %}" class="d-inline-block ms-2">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-delete" title="Rechazar Participación">
+                                                <i class="bi bi-x-circle-fill"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    {# Botón para Marcar como Asistido (solo para RRHH) #}
+                                    {% if participacion.estado == 'confirmada' or participacion.estado == 'aceptado' %}
+                                        <form method="post" action="{% url 'formacion:marcar_asistido' participacion.id %}" class="d-inline-block ms-2">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-action-participants" title="Marcar como Asistido">
+                                                <i class="bi bi-person-fill-check"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    {# Botón para Marcar como Completado (solo para RRHH) #}
+                                    {# Aparece si ya está asistido, o si se saltó el paso de asistido y está confirmado/aceptado #}
+                                    {% if participacion.estado == 'asistido' or participacion.estado == 'confirmada' or participacion.estado == 'aceptado' %}
+                                        <form method="post" action="{% url 'formacion:marcar_completado' participacion.id %}" class="d-inline-block ms-2">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-completed-action" title="Marcar como Completado"
+                                                    onclick="return confirm('¿Estás seguro de que quieres marcar esta participación como COMPLETADA? Asegúrate de haber introducido la nota final y el estado del certificado.');">
+                                                <i class="bi bi-award-fill"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    {# Botón para Ver Detalles (siempre que no esté en estados iniciales o cancelado/rechazado) #}
+                                    {% if participacion.estado == 'confirmada' or participacion.estado == 'aceptado' or participacion.estado == 'asistido' or participacion.estado == 'completado' %}
+                                        <a href="#" class="btn-action btn-admin-link ms-2" title="Ver Detalles">
+                                            <i class="bi bi-info-circle-fill"></i>
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-people"></i>
+            <p>No hay participantes registrados para este curso todavía.</p>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:gestion_cursos_list' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver a Gestión de Cursos
+        </a>
+    </div>
+
+</div>
+{% endblock %}

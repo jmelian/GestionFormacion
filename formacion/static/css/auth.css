@@ -1,0 +1,143 @@
+/* El contenedor y tarjeta de login */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1; /* Permite que este contenedor ocupe el espacio disponible dentro de main-content */
+    /* Eliminado: min-height: 100vh; de aquí */
+    
+    /* Mantenemos el padding aquí para el espacio alrededor de la tarjeta de login */
+    padding: 2rem 1rem; 
+    
+    /* Mantén el background aquí si quieres un fondo diferente para la página de login
+       que el fondo general del body. Si quieres que se vea el fondo del body, elimínalo. */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
+    
+    overflow-y: hidden; /* Previene una barra de desplazamiento en este contenedor específico */
+}
+
+.auth-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+    backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    padding: 2.5rem; /* Este padding es el espacio interno de la tarjeta */
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    max-width: 450px;
+    width: 100%;
+    text-align: center;
+    animation: fadeInScale 0.6s ease-out forwards;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/*Estilos para el título y el icono*/
+
+.auth-title {
+    font-size: 2rem;
+    color: #6366f1;
+    margin-bottom: 2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-title i {
+    font-size: 2.2rem;
+    color: #3b82f6;
+}
+
+
+/*Estilos para los campos y formularios del login*/
+
+.auth-form {
+    width: 100%;
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.auth-form .form-label {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.auth-form input[type="text"],
+.auth-form input[type="password"],
+.auth-form input[type="email"] {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.auth-form input[type="text"]:focus,
+.auth-form input[type="password"]:focus,
+.auth-form input[type="email"]:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+
+
+/* Texto de ayuda */
+.auth-helper-text {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin-top: 2rem;
+}
+.auth-helper-text small {
+    display: block;
+}
+
+/* Alerta de error */
+.auth-error, .alert-modern.alert-danger {
+    color: #dc2626;
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    font-size: 1em;
+    padding: 0.6em 1em;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Responsive en móvil */
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 1.5rem;
+        margin: 0 1rem;
+    }
+    .auth-title {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .auth-title i {
+        font-size: 2rem;
+    }
+    .btn-primary-full-width {
+        font-size: 1rem;
+        padding: 0.8rem 1.2rem;
+    }
+}

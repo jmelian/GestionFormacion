@@ -1,0 +1,67 @@
+{% extends 'base.html' %} {# O tu plantilla base #}
+{% load crispy_forms_tags %} {# Si usas django-crispy-forms para un mejor estilo #}
+
+{% block title %}Encuesta de Satisfacción - {{ curso.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Encuesta de Satisfacción del Curso</h2>
+    <h3>"{{ curso.nombre }}"</h3>
+
+    <div class="card p-3 mb-4">
+        <h5 class="card-title">Datos del Curso</h5>
+        <p><strong>Fecha:</strong> {{ fecha_actual|date:"d/m/Y" }}</p>
+        <p><strong>Curso:</strong> {{ curso.nombre }}</p>
+        <p><strong>Profesor:</strong> {% if curso.profesor %}{{ curso.profesor }}{% else %}N/A{% endif %}</p>
+        <p><strong>Aula:</strong> {% if curso.aula %}{{ curso.aula }}{% else %}N/A{% endif %}</p>
+        <p><strong>Duración:</strong> {% if curso.duracion %}{{ curso.duracion }}{% else %}N/A{% endif %}</p>
+        <p><strong>Horario:</strong> {% if curso.horario %}{{ curso.horario }}{% else %}N/A{% endif %}</p>
+        {# Puedes añadir aquí el tipo de formación si lo tienes en el modelo Curso #}
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="card p-4 mb-4">
+            <h5 class="card-title">VALORACIÓN DEL PROFESOR / CURSO</h5>
+            {% for field in form %}
+                {% if field.name == 'opinion_contenido_curso' or field.name == 'conocimientos_profesor' or field.name == 'gusto_general_curso' %}
+                    <div class="mb-3">
+                        <label class="form-label d-block">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            {# Si tu valoración final es calculada, la mostrarías aquí. Si es un campo de entrada, iría con los otros. #}
+        </div>
+
+        <div class="card p-4 mb-4">
+            <h5 class="card-title">VALORACIÓN DE LA EFICACIA DE LA FORMACIÓN</h5>
+            {% for field in form %}
+                {% if field.name == 'mejora_conocimientos_carrera' or field.name == 'adquisicion_habilidades_puesto' %}
+                    <div class="mb-3">
+                        <label class="form-label d-block">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            {# Si tu valoración final es calculada, la mostrarías aquí. Si es un campo de entrada, iría con los otros. #}
+        </div>
+
+        <div class="card p-4 mb-4">
+            <h5 class="card-title">SUGERENCIAS / OBSERVACIONES</h5>
+            <div class="mb-3">
+                {{ form.sugerencias_observaciones }}
+                {% for error in form.sugerencias_observaciones.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Enviar Encuesta</button>
+        <a href="{% url 'formacion:mis_cursos' %}" class="btn btn-secondary">Volver a Mis Cursos</a>
+    </form>
+</div>
+{% endblock %}

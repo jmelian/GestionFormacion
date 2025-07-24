@@ -1,0 +1,257 @@
+{# formacion/gestionar_solicitudes_obligatorias_rrhh.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="content-container">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-person-check me-2"></i> {{ page_title }}
+        </h1>
+        <div class="page-description">
+            {{ page_description }}
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if has_pendientes %}
+        <div class="table-container mb-4">
+            <div class="table-responsive-modern">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th>Empleado</th>
+                            <th>Email</th>
+                            <th>Curso</th>
+                            <th>Fecha Solicitud</th>
+                            <th>Estado</th>
+                            <th class="action-column-width">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in solicitudes_pendientes %}
+                        <tr>
+                            <td>
+                                <strong>{{ solicitud.empleado.first_name }} {{ solicitud.empleado.last_name }}</strong>
+                                {% if solicitud.empleado.departamento %}
+                                    <br>(<small class="text-muted">{{ solicitud.empleado.departamento.nombre }}</small>)
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ solicitud.empleado.email }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ solicitud.curso.nombre }}</strong>
+                                <br><small class="text-muted">Tipo: {{ solicitud.curso.get_tipo_display }}</small>
+                                <br><small class="text-muted">Modalidad: {{ solicitud.curso.get_modalidad_display }}</small>
+                            </td>
+                            <td>{{ solicitud.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if solicitud.estado == 'pendiente' %}
+                                    <span class="status-badge status-info">Pendiente<br>Confirmación</span>
+                                {% else %}
+                                    <span class="status-badge status-info">{{ solicitud.get_estado_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="action-cell">
+                                <div class="action-cell-content">
+                                    <form action="{% url 'formacion:aprobar_solicitud_obligatoria' participacion_id=solicitud.id %}" method="post" class="action-form-full"> {# Nueva clase para este form, o usar las existentes si ya tienen estilos adecuados #}
+                                        {% csrf_token %}
+                                        <div class="date-input-container mb-2"> {# Puedes mantener el mb-2 si quieres un margen entre fecha y botón #}
+                                            <label for="id_fecha_inicio_real_{{ solicitud.id }}" class="form-label visually-hidden">Fecha de Inicio</label>
+                                            <input type="date" name="fecha_inicio_real" id="id_fecha_inicio_real_{{ solicitud.id }}" class="form-control date-input" required>
+                                        </div>
+                                        {# Mueve el botón de aprobar DENTRO de este formulario #}
+                                        <div class="action-buttons-container justify-content-center"> {# Centra los botones #}
+                                            <button type="submit" class="btn-action-confirm-small" title="Aprobar Solicitud">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                            {# El formulario de rechazar puede permanecer separado si lo deseas, pero el input de fecha no lo afecta #}
+                                            <form action="{% url 'formacion:rechazar_solicitud_obligatoria' participacion_id=solicitud.id %}" method="post" class="action-form">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn-action-reject-small" title="Rechazar Solicitud">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-info-circle"></i>
+            <p>No hay solicitudes de cursos obligatorios pendientes de revisión en este momento.</p>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+</div>
+
+<style>
+/* Estilos para la columna de acciones */
+.action-column-width {
+    width: 160px;
+    max-width: 160px;
+}
+
+.action-cell {
+    padding: 8px 12px !important;
+    vertical-align: middle;
+}
+
+.action-cell-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-height: 80px;
+    justify-content: center;
+}
+
+/* Estilos para el campo de fecha */
+.date-input-container {
+    width: 100%;
+}
+
+.date-input {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    height: 32px;
+    text-align: center;
+}
+
+.date-input:focus {
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+    outline: none;
+}
+
+/* Contenedor de botones de acción */
+.action-buttons-container {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    width: 100%;
+}
+
+.action-form {
+    display: inline-flex;
+    margin: 0;
+}
+
+/* Botones de acción pequeños */
+.btn-action-confirm-small {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+    min-width: 36px;
+    height: 32px;
+}
+
+.btn-action-confirm-small:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea685 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-action-reject-small {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+    min-width: 36px;
+    height: 32px;
+}
+
+.btn-action-reject-small:hover {
+    background: linear-gradient(135deg, #c82333 0%, #dc2626 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.btn-action-confirm-small:active,
+.btn-action-reject-small:active {
+    transform: translateY(0);
+}
+
+/* Iconos de los botones */
+.btn-action-confirm-small i,
+.btn-action-reject-small i {
+    font-size: 1rem;
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 768px) {
+    .action-column-width {
+        width: 140px;
+        max-width: 140px;
+    }
+    
+    .action-cell-content {
+        gap: 6px;
+        min-height: 70px;
+    }
+    
+    .date-input {
+        font-size: 0.75rem;
+        height: 28px;
+    }
+    
+    .btn-action-confirm-small,
+    .btn-action-reject-small {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+        min-width: 32px;
+        height: 28px;
+    }
+    
+    .btn-action-confirm-small i,
+    .btn-action-reject-small i {
+        font-size: 0.875rem;
+    }
+}
+</style>
+
+{% endblock %}

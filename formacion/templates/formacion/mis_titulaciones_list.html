@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Titulaciones y Certificaciones{% endblock %}
+
+{% block content %}
+<div class="content-container"> {# Envuelve todo el contenido en un contenedor para aplicar padding y centrado #}
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-mortarboard-fill"></i> Mis Titulaciones y Certificaciones
+        </h1>
+        <div class="page-description">
+            Gestiona tu formación académica, certificaciones y otros documentos relevantes.
+        </div>
+    </div>
+
+    {# Los mensajes del sistema se manejan globalmente en base.html #}
+
+    <div class="d-flex justify-content-end mb-4"> {# Contenedor para el botón de añadir #}
+        <a href="{% url 'formacion:mi_titulacion_create' %}" class="btn-primary">
+            <i class="bi bi-plus-circle-fill me-2"></i>Añadir Nueva Titulación/Certificación
+        </a>
+    </div>
+
+    {% if titulaciones %}
+        <div class="table-container"> {# Usa la clase para el contenedor de la tabla #}
+            <table class="table-modern"> {# Aplica la clase de tabla moderna #}
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Nivel MECES</th> 
+                        <th>Institución</th>
+                        <th>Fecha Obtención</th>
+                        <th>Fecha Caducidad</th>
+                        <th>Estado RRHH</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for titulacion in titulaciones %}
+                        <tr>
+                            <td>{{ titulacion.nombre }}</td>
+                            <td>{{ titulacion.get_tipo_titulacion_display }}</td>
+                            <td>
+                                {% if titulacion.nivel_meces %} 
+                                    {{ titulacion.get_nivel_meces_display }}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ titulacion.institucion_emisora|default:"N/A" }}</td>
+                            <td>{{ titulacion.fecha_obtencion|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if titulacion.fecha_caducidad %}
+                                    {{ titulacion.fecha_caducidad|date:"d/m/Y" }}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge 
+                                    {% if titulacion.estado == 'aprobado' %}status-success
+                                    {% elif titulacion.estado == 'pendiente' %}status-warning
+                                    {% elif titulacion.estado == 'rechazado' %}status-danger
+                                    {% endif %}">
+                                    {% if titulacion.estado == 'aprobado' %}
+                                        <i class="bi bi-check-circle-fill me-1"></i> Aprobado
+                                    {% elif titulacion.estado == 'pendiente' %}
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Pendiente
+                                    {% elif titulacion.estado == 'rechazado' %}
+                                        <i class="bi bi-x-circle-fill me-1"></i> Rechazado
+                                    {% endif %}
+                                </span>
+                                {% if titulacion.estado == 'rechazado' and titulacion.motivo_rechazo %}
+                                    {# Mostrar tooltip solo si está rechazado y hay motivo #}
+                                    <i class="bi bi-info-circle-fill text-danger ms-2" 
+                                       data-bs-toggle="tooltip" data-bs-placement="top" 
+                                       title="Motivo: {{ titulacion.motivo_rechazo }}"></i>
+                                {% endif %}
+                            </td>
+                            <td class="table-actions-center-wrap"> {# Clase para alinear los botones #}
+                                {# Botón Editar - Solo si la titulación está pendiente O RECHAZADA #}
+                                {% if titulacion.estado == 'pendiente' or titulacion.estado == 'rechazado' %}
+                                    <a href="{% url 'formacion:mi_titulacion_update' pk=titulacion.pk %}" class="btn-action btn-edit" title="Editar">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                {% else %}
+                                    {# Opcional: Deshabilitar o no mostrar el botón si no está pendiente/rechazada #}
+                                    <button class="btn-action btn-edit disabled" title="No se puede editar" disabled>
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+                                {% endif %}
+
+                                {# Botón Eliminar - Solo si la titulación está pendiente #}
+                                {% if titulacion.estado == 'pendiente' %} {# Mantiene la eliminación solo para 'pendiente' #}
+                                    <a href="{% url 'formacion:mi_titulacion_delete' pk=titulacion.pk %}" class="btn-action btn-delete" title="Eliminar">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </a>
+                                {% else %}
+                                    {# Opcional: Deshabilitar o no mostrar el botón si no está pendiente #}
+                                    <button class="btn-action btn-delete disabled" title="No se puede eliminar" disabled>
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                {% endif %}
+                                {% if titulacion.documento_adjunto %}
+                                    <a href="{{ titulacion.documento_adjunto.url }}" target="_blank" class="btn-action btn-view-doc-small" title="Ver Documento">
+                                        <i class="bi bi-file-earmark-text-fill"></i>
+                                    </a>
+                                {% endif %}
+                                {# Botón de Ver Detalles (si tienes una vista de detalle para el empleado) #}
+                                <a href="{% url 'formacion:detalle_titulacion' titulacion.pk %}" class="btn-action btn-details" title="Ver Detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-info-circle"></i>
+            <p>Aún no has añadido ninguna titulación o certificación a tu perfil.</p>
+            <p>Haz clic en "Añadir Nueva Titulación/Certificación" para empezar.</p>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-start mt-4"> {# Contenedor para el botón de volver #}
+        <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+</div>
+{% endblock %}

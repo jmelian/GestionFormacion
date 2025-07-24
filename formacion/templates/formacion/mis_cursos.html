@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mis Cursos{% endblock %}
+
+{% block content %}
+<div class="content-container">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-mortarboard-fill me-2"></i> Mis Cursos
+        </h1>
+        <div class="page-description">
+            Consulta el estado de tu participación en los cursos y formaciones.
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="messages-container mt-3 mb-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if participaciones %}
+        <div class="table-container">
+            <div class="table-responsive-modern">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th>Tipo</th>
+                            <th class="text-center">Fechas</th>
+                            <th class="text-center">Duración (horas)</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Certificado</th>
+                            <th class="text-center">Nota Final</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in participaciones %}
+                            <tr>
+                                <td>
+                                    {# Enlace al detalle de la participación #}
+                                    <a href="{% url 'formacion:detalle_participacion' participacion_id=p.id %}" class="course-link">
+                                        {{ p.curso.nombre }}
+                                    </a>
+                                </td>
+                                <td>{{ p.curso.get_tipo_display }}</td>
+                                <td class="text-center">
+                                    {% if p.fecha_inicio_real %}
+                                        {# Prioriza la fecha de inicio real de la participación #}
+                                        {{ p.fecha_inicio_real|date:"d/m/Y" }}
+                                        {% if p.curso.fecha_fin %}
+                                            - {{ p.curso.fecha_fin|date:"d/m/Y" }}
+                                        {% endif %}
+                                    {% elif p.curso.fecha_inicio and p.curso.fecha_fin %}
+                                        {# Si no hay fecha de inicio real, muestra las fechas generales del curso #}
+                                        {{ p.curso.fecha_inicio|date:"d/m/Y" }} - {{ p.curso.fecha_fin|date:"d/m/Y" }}
+                                    {% elif p.curso.fecha_inicio %}
+                                        {# Si solo hay fecha de inicio del curso #}
+                                        Desde {{ p.curso.fecha_inicio|date:"d/m/Y" }}
+                                    {% else %}
+                                        {# Si no hay ninguna fecha relevante #}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">{{ p.curso.duracion_horas }}</td>
+                                <td class="text-center">
+                                    {% comment %} Aplicar badges de estado según el valor de p.estado {% endcomment %}
+                                    {% if p.estado == 'pendiente' %}
+                                        <span class="status-badge status-info"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>
+                                    {% elif p.estado == 'solicitado' %}
+                                        <span class="status-badge status-info"><i class="bi bi-file-earmark-check-fill me-1"></i> Solicitado</span>
+                                    {% elif p.estado == 'confirmada' %}
+                                        <span class="status-badge status-success"><i class="bi bi-calendar-check-fill me-1"></i> Confirmado</span>
+                                    {% elif p.estado == 'aceptado' %}
+                                        <span class="status-badge status-success"><i class="bi bi-check-circle-fill me-1"></i> Aceptado</span>
+                                    {% elif p.estado == 'asistido' %}
+                                        <span class="status-badge status-primary"><i class="bi bi-person-fill-check me-1"></i> Asistido</span>
+                                    {% elif p.estado == 'completado' %}
+                                        <span class="status-badge status-completed"><i class="bi bi-award-fill me-1"></i> Completado</span>
+                                    {% elif p.estado == 'cancelado' %}
+                                        <span class="status-badge status-danger"><i class="bi bi-x-circle-fill me-1"></i> Cancelado</span>
+                                    {% elif p.estado == 'rechazado' %}
+                                        <span class="status-badge status-secondary"><i class="bi bi-slash-circle-fill me-1"></i> Rechazado</span>
+                                    {% else %}
+                                        <span class="status-badge status-secondary">{{ p.get_estado_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if p.certificado_url %}
+                                        <a href="{{ p.certificado_url }}" target="_blank" class="btn-action btn-view-doc-small" title="Ver Certificado">
+                                            <i class="bi bi-file-earmark-text-fill"></i> Ver Certificado
+                                        </a>
+                                    {% elif p.certificado_obtenido %}
+                                        <span class="status-badge status-success" title="Certificado Obtenido">
+                                            <i class="bi bi-check-lg me-1"></i> Obtenido
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted"><i class="bi bi-dash-circle"></i> N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if p.nota_final %}
+                                        <span class="summary-badge">{{ p.nota_final }}</span>
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="table-actions-center">
+                                    {# Botón para Marcar como Completado #}
+                                    {% comment %} 
+                                    Los estados 'completado', 'cancelado', 'abandonado', 'rechazado' se consideran finales
+                                    y no deberían permitir la acción de "Marcar como Completado".
+                                    Puedes ajustar esta lista de exclusión según la lógica de tu aplicación.
+                                    {% endcomment %}
+                                    {% if p.estado not in estados_finales_participacion %}
+                                        <form action="{% url 'formacion:marcar_participacion_completada' participacion_id=p.id %}" method="post" class="d-inline-block me-2">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-success-action" title="Marcar como Completado"
+                                                    onclick="return confirm('¿Estás seguro de que deseas marcar tu participación en el curso \"{{ p.curso.nombre }}\" como completada?');">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    {# Botón de Cancelar Participación #}
+                                    {% comment %} 
+                                    Se mantiene la lógica original para el botón de cancelar.
+                                    Asegúrate de que 'p.can_cancel' está definido en tu modelo o vista.
+                                    {% endcomment %}
+                                    {% if p.can_cancel %} {# Asumiendo que 'can_cancel' es un método o propiedad del modelo Participacion #}
+                                        <form method="post" action="{% url 'formacion:cancelar_participacion' p.id %}" class="d-inline-block">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-cancel-action" title="Cancelar Participación"
+                                                    onclick="return confirm('¿Estás seguro de que deseas cancelar tu participación en el curso \"{{ p.curso.nombre }}\"?');">
+                                                <i class="bi bi-x-circle-fill"></i>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        {# Mostrar un estado de no cancelación más claro con iconos #}
+                                        {% if p.estado == 'completado' or p.estado == 'asistido' %}
+                                            <span class="status-badge status-secondary" title="Curso ya completado/asistido">
+                                                <i class="bi bi-check-all me-1"></i> Finalizado
+                                            </span>
+                                        {% elif p.estado == 'cancelado' %}
+                                            <span class="status-badge status-danger" title="Participación ya cancelada">
+                                                <i class="bi bi-slash-circle-fill me-1"></i> Cancelado
+                                            </span>
+                                        {% elif p.estado == 'rechazado' %}
+                                            <span class="status-badge status-secondary" title="Participación rechazada">
+                                                <i class="bi bi-x-octagon-fill me-1"></i> Rechazado
+                                            </span>
+                                        {% elif p.curso.fecha_fin and p.curso.fecha_fin < "now"|date:"Y-m-d" and p.estado != 'asistido' and p.estado != 'completado' %}
+                                            <span class="status-badge status-secondary" title="Curso ya finalizado">
+                                                <i class="bi bi-clock-history me-1"></i> Finalizado
+                                            </span>
+                                        {% else %}
+                                            {# Si no se puede cancelar por otras razones o el estado no lo permite #}
+                                            <span class="status-badge status-secondary" title="No se puede cancelar en este estado">
+                                                <i class="bi bi-info-circle-fill me-1"></i> No Cancelable
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div> {# /table-responsive-modern #}
+        </div> {# /table-container #}
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-journal-check"></i>
+            <p>No tienes cursos registrados por el momento o tus cursos no cumplen los criterios de visualización.</p>
+            <div class="d-flex justify-content-center mt-3">
+                <a href="{% url 'formacion:proximos_cursos' %}" class="btn-secondary-action-modern">
+                    <i class="bi bi-calendar-event me-2"></i> Ver Próximos Cursos Disponibles
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+</div>
+{% endblock %}

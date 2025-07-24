@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Estado de Cursos{% endblock %}
+
+{% block content %}
+<div class="content-container">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-bar-chart-line-fill"></i> Estado General de Cursos
+        </h1>
+        <div class="page-description">
+            Visualiza un resumen detallado de la situación actual de todos los cursos.
+        </div>
+    </div>
+
+    {# Formulario para el filtro de cursos terminados #}
+    <div class="filter-controls mb-3">
+        <form method="GET" action="{% url 'formacion:estado_cursos' %}" class="d-flex align-items-center">
+            <label class="form-check-label me-2">
+                <input type="checkbox" class="form-check-input" name="show_finished" value="true" {% if show_finished_courses %}checked{% endif %} onchange="this.form.submit()">
+                Mostrar cursos terminados
+            </label>
+            {# Opcional: un botón de reset si hay más filtros en el futuro #}
+            {# <a href="{% url 'formacion:estado_cursos' %}" class="btn btn-sm btn-outline-secondary">Limpiar Filtros</a> #}
+        </form>
+    </div>
+
+
+    {% if datos_cursos %}
+        <div class="table-container">
+            <div class="table-responsive-modern">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th class="text-center">Plazas Totales</th>
+                            <th class="text-center">Plazas Disponibles</th>
+                            <th class="text-center">Participación</th> {# Nueva columna para el resumen #}
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in datos_cursos %}
+                        <tr>
+                            <td>{{ data.nombre }}</td>
+                            <td class="text-center"><span class="summary-badge">{{ data.plazas_totales }}</span></td>
+                            <td class="text-center"><span class="summary-badge courses">{{ data.plazas_disponibles }}</span></td>
+                            <td>{{ data.participacion_resumen }}</td> {# Mostrar el resumen de participación #}
+                            <td>{{ data.fecha_inicio|date:"d/m/Y" }}</td>
+                            <td>{{ data.fecha_fin|date:"d/m/Y" }}</td>
+                            <td class="table-actions-center">
+                                {% if data.num_pendientes_validar > 0 %}
+                                    <a href="{% url 'formacion:gestionar_preselecciones_curso' data.id %}" class="btn-action btn-action-preselection" title="Gestionar Preselecciones">
+                                        <i class="bi bi-ui-checks"></i>
+                                        {# Opcional: Mostrar el número de pendientes aquí si es importante visualmente #}
+                                        {% if data.num_pendientes_validar > 0 %}<span class="action-badge">{{ data.num_pendientes_validar }}</span>{% endif %}
+                                    </a>
+                                {% else %}
+                                    <button class="btn-action btn-action-disabled" disabled title="No hay preselecciones pendientes">
+                                        <i class="bi bi-ui-checks"></i>
+                                    </button>
+                                {% endif %}
+                                <a href="{% url 'formacion:listar_participantes_curso' data.id %}" class="btn-action btn-action-participants" title="Ver Participantes">
+                                    <i class="bi bi-people-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7"> {# Ajustar colspan al nuevo número de columnas (7) #}
+                                <div class="empty-state">
+                                    <i class="bi bi-journal-x"></i>
+                                    <p>No hay cursos disponibles con los filtros aplicados.</p>
+                                    <p>Por favor, añade nuevos cursos para ver su estado aquí.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-journal-x"></i>
+            <p>No hay cursos para mostrar o un problema con la carga de datos.</p>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

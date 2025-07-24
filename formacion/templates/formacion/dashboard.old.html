@@ -1,0 +1,488 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .dashboard-header {
+        background: linear-gradient(135deg, #f1f5f9 80%, #e0e7ef 100%);
+        border-radius: 1.2rem;
+        padding: 2.2rem 2rem 1.5rem 2rem;
+        margin-bottom: 2.2rem;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        border: 1px solid #e0e7ef;
+        text-align: left;
+    }
+    .welcome-title {
+        font-size: 2.3rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+        letter-spacing: -1px;
+    }
+    .welcome-title i {
+        font-size: 2.1rem;
+        vertical-align: middle;
+    }
+    .welcome-subtitle {
+        color: #64748b;
+        font-size: 1.13rem;
+        font-weight: 500;
+        margin-bottom: 0;
+    }
+    .nav-dashboard-tabs {
+        margin-bottom: 2.2rem;
+        border: none;
+        display: flex;
+        gap: 0.5rem;
+        background: none;
+    }
+    .nav-dashboard-tabs .nav-link {
+        background: #f1f5f9;
+        border: none;
+        border-radius: 1.2rem 1.2rem 0 0;
+        color: #64748b;
+        font-size: 1.13rem;
+        font-weight: 700;
+        padding: 0.85rem 2.1rem 0.85rem 2.1rem;
+        margin-right: 0.2rem;
+        transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.04);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    .nav-dashboard-tabs .nav-link.active, .nav-dashboard-tabs .nav-link:focus {
+        background: #64748b;
+        color: #f1f5f9;
+        box-shadow: 0 4px 16px 0 rgba(59, 130, 246, 0.10);
+    }
+    .nav-dashboard-tabs .nav-link.active i, .nav-dashboard-tabs .nav-link:focus i {
+        color: #f1f5f9;
+    }
+    .nav-dashboard-tabs .nav-link i {
+        font-size: 1.3rem;
+    }
+    .dashboard-section-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #f1f5f9;
+        margin-bottom: 1.3rem;
+        margin-top: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        letter-spacing: -0.5px;
+    }
+    .dashboard-section-title i {
+        color: #f1f5f9;
+        font-size: 1.5rem;
+    }
+    .dashboard-tabs-content {
+        margin-top: 1.2rem;
+    }
+    .dashboard-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        margin-top: 2rem;
+        justify-content: flex-start;
+    }
+    .dashboard-card {
+        flex: 1 1 320px;
+        max-width: 350px;
+        min-width: 260px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #fff 80%, #f1f5f9 100%);
+        border-radius: 1.2rem;
+        box-shadow: 0 6px 24px 0 rgba(59, 130, 246, 0.07);
+        border: 1.5px solid #e0e7ef;
+        padding: 1.7rem 1.3rem 1.3rem 1.3rem;
+        position: relative;
+        transition: box-shadow 0.2s, transform 0.2s;
+        overflow: hidden;
+        animation: fadeInUp 0.7s;
+    }
+    .dashboard-card:hover {
+        box-shadow: 0 12px 32px 0 rgba(59, 130, 246, 0.13);
+        transform: translateY(-6px) scale(1.025);
+        z-index: 2;
+    }
+    .dashboard-card .card-icon {
+        font-size: 2.7rem;
+        margin-bottom: 1.1rem;
+        display: block;
+        color: #3b82f6;
+        filter: drop-shadow(0 2px 6px #8b5cf633);
+    }
+    .dashboard-card .card-title {
+        font-size: 1.22rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+    }
+    .dashboard-card .card-description {
+        color: #64748b;
+        font-size: 1.01rem;
+        line-height: 1.5;
+        margin-bottom: 1.3rem;
+        min-height: 48px;
+    }
+    .dashboard-card .card-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.01rem;
+        padding: 0.55rem 1.2rem;
+        border-radius: 0.7rem;
+        background: linear-gradient(90deg, #3b82f6 60%, #8b5cf6 100%);
+        box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.08);
+        transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+    }
+    .dashboard-card .card-link:hover {
+        background: linear-gradient(90deg, #2563eb 60%, #7c3aed 100%);
+        color: #fff;
+        transform: translateX(4px) scale(1.04);
+        box-shadow: 0 4px 16px 0 rgba(59, 130, 246, 0.13);
+    }
+    /* Badges de color según área */
+    .dashboard-card.card-empleado { border-left: 6px solid #10b981; }
+    .dashboard-card.card-coordinador { border-left: 6px solid #f59e0b; }
+    .dashboard-card.card-formacion { border-left: 6px solid #f6e75c; }
+    .dashboard-card.card-rrhh { border-left: 6px solid #06b6d4; }
+    .dashboard-card.card-direccion { border-left: 6px solid #ef4444; }
+    .dashboard-card.card-admin { border-left: 6px solid #6b7280; }
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .dashboard-grid {
+            gap: 1.2rem;
+        }
+        .dashboard-card {
+            min-width: 220px;
+            max-width: 98vw;
+        }
+    }
+    @media (max-width: 768px) {
+        .dashboard-header {
+            padding: 1.2rem 0.7rem 1.2rem 0.7rem;
+        }
+        .dashboard-section-title {
+            font-size: 1.05rem;
+            margin-top: 1.3rem;
+        }
+        .nav-dashboard-tabs .nav-link {
+            font-size: 0.99rem;
+            padding: 0.5rem 0.7rem;
+        }
+        .dashboard-card {
+            min-width: 100%;
+            max-width: 100%;
+        }
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+
+<div class="dashboard-header">
+    <h1 class="welcome-title">
+        <i class="bi bi-emoji-smile me-2"></i>
+        ¡Bienvenido/a, {{ user.get_full_name|default:user.username }}!
+    </h1>
+    <p class="welcome-subtitle">
+        <i class="bi bi-gear-fill me-2"></i>
+        Accede a tus funcionalidades según tu perfil y gestiona tu formación de manera eficiente.
+    </p>
+</div>
+
+{# === GENERACIÓN DE TABS SEGÚN ROLES === #}
+<ul class="nav nav-tabs nav-dashboard-tabs" id="dashboardTabs" role="tablist">
+    {% if es_empleado %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-personal-tab" data-bs-toggle="tab" data-bs-target="#tab-personal" type="button" role="tab" aria-controls="tab-personal" aria-selected="true">
+                <i class="bi bi-person-badge-fill me-1"></i> Mi Espacio
+            </button>
+        </li>
+    {% endif %}
+    {% if es_empleado or es_formacion or es_rrhh or es_direccion or es_admin %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if not es_empleado %}active{% endif %}" id="tab-cursos-tab" data-bs-toggle="tab" data-bs-target="#tab-cursos" type="button" role="tab" aria-controls="tab-cursos" aria-selected="false">
+                <i class="bi bi-easel2-fill me-1"></i> Cursos y Formación
+            </button>
+        </li>
+    {% endif %}
+    {% if es_coordinador %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-coordinador-tab" data-bs-toggle="tab" data-bs-target="#tab-coordinador" type="button" role="tab" aria-controls="tab-coordinador" aria-selected="false">
+                <i class="bi bi-diagram-3-fill me-1"></i> Mi Departamento
+            </button>
+        </li>
+    {% endif %}
+    {% if es_rrhh %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-rrhh-tab" data-bs-toggle="tab" data-bs-target="#tab-rrhh" type="button" role="tab" aria-controls="tab-rrhh" aria-selected="false">
+                <i class="bi bi-person-badge-fill me-1"></i> RRHH
+            </button>
+        </li>
+    {% endif %}
+    {% if es_formacion %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-formacion-tab" data-bs-toggle="tab" data-bs-target="#tab-formacion" type="button" role="tab" aria-controls="tab-formacion" aria-selected="false">
+                <i class="bi bi-kanban-fill me-1"></i> Gestión
+            </button>
+        </li>
+    {% endif %}
+    {% if es_direccion %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-direccion-tab" data-bs-toggle="tab" data-bs-target="#tab-direccion" type="button" role="tab" aria-controls="tab-direccion" aria-selected="false">
+                <i class="bi bi-graph-up-arrow me-1"></i> Dirección
+            </button>
+        </li>
+    {% endif %}
+    {% if es_admin %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-admin-tab" data-bs-toggle="tab" data-bs-target="#tab-admin" type="button" role="tab" aria-controls="tab-admin" aria-selected="false">
+                <i class="bi bi-gear-wide-connected me-1"></i> Administración
+            </button>
+        </li>
+    {% endif %}
+</ul>
+
+<div class="tab-content dashboard-tabs-content" id="dashboardTabsContent">
+
+    {# TAB: MI ESPACIO PERSONAL #}
+    {% if es_empleado %}
+    <div class="tab-pane fade show active" id="tab-personal" role="tabpanel" aria-labelledby="tab-personal-tab" tabindex="0">
+        <div class="dashboard-section-title"><i class="bi bi-person-badge-fill"></i> Mi Espacio Personal</div>
+        <div class="dashboard-grid">
+            <div class="dashboard-card card-empleado">
+                <span class="card-icon">👤</span>
+                <h3 class="card-title">Mi Perfil Personal</h3>
+                <p class="card-description">Visualiza y consulta tus datos personales, información de contacto y detalles profesionales.</p>
+                <a href="{% url 'formacion:perfil_empleado_visualizar' %}" class="card-link">
+                    <i class="bi bi-person-lines-fill"></i> Acceder al perfil
+                </a>
+            </div>
+            <div class="dashboard-card card-empleado">
+                <span class="card-icon">🎓</span>
+                <h3 class="card-title">Mi Formación</h3>
+                <p class="card-description">Gestiona tus titulaciones, certificaciones y registra otros cursos realizados fuera de la empresa.</p>
+                <a href="{% url 'formacion:mis_titulaciones_list' %}" class="card-link">
+                    <i class="bi bi-mortarboard-fill"></i> Gestionar formación
+                </a>
+            </div>
+            <div class="dashboard-card card-empleado">
+                <span class="card-icon">📘</span>
+                <h3 class="card-title">Mis Cursos</h3>
+                <p class="card-description">Consulta tu historial formativo, progreso actual y certificados obtenidos en los cursos completados.</p>
+                <a href="{% url 'formacion:mis_cursos' %}" class="card-link">
+                    <i class="bi bi-journal-bookmark-fill"></i> Ver historial
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# TAB: CURSOS Y FORMACIÓN #}
+    {% if es_empleado or es_formacion or es_rrhh or es_direccion or es_admin %}
+    <div class="tab-pane fade {% if not es_empleado %}show active{% endif %}" id="tab-cursos" role="tabpanel" aria-labelledby="tab-cursos-tab" tabindex="0">
+        <div class="dashboard-section-title"><i class="bi bi-easel2-fill"></i> Cursos y Formación</div>
+        <div class="dashboard-grid">
+            {% if es_empleado %}
+            <div class="dashboard-card card-empleado">
+                <span class="card-icon">📅</span>
+                <h3 class="card-title">Próximos Cursos</h3>
+                <p class="card-description">Descubre los cursos disponibles próximamente y mantente al día con las oportunidades formativas.</p>
+                <a href="{% url 'formacion:proximos_cursos' %}" class="card-link">
+                    <i class="bi bi-calendar-event-fill"></i> Explorar cursos
+                </a>
+            </div>
+            <div class="dashboard-card card-empleado">
+                <span class="card-icon">📋</span>
+                <h3 class="card-title">Cursos Obligatorios</h3>
+                <p class="card-description">Consulta los cursos de formación que son obligatorios para tu puesto o de forma general, y solicita tu inscripción.</p>
+                <a href="{% url 'formacion:cursos_obligatorios_lista' %}" class="card-link">
+                    <i class="bi bi-list-check"></i> Ver Cursos Obligatorios
+                </a>
+            </div>
+            {% endif %}
+            {% if es_formacion or es_rrhh or es_direccion or es_admin %}
+            <div class="dashboard-card card-formacion">
+                <span class="card-icon">📋</span>
+                <h3 class="card-title">Estado de Cursos</h3>
+                <p class="card-description">Consulta el estado general de todos los cursos, participantes y métricas de progreso formativo.</p>
+                <a href="{% url 'formacion:estado_cursos' %}" class="card-link">
+                    <i class="bi bi-clipboard-data-fill"></i> Ver estado general
+                </a>
+            </div>
+            <div class="dashboard-card card-formacion">
+                <span class="card-icon">📊</span>
+                <h3 class="card-title">Formación por Empleado</h3>
+                <p class="card-description">Visualiza las formaciones y titulaciones de cada empleado, con filtros por departamento y búsqueda.</p>
+                <a href="{% url 'formacion:empleados_con_formacion' %}" class="card-link">
+                    <i class="bi bi-people-fill"></i> Consultar empleados
+                </a>
+            </div>
+            <div class="dashboard-card card-formacion">
+                <span class="card-icon">📚</span>
+                <h3 class="card-title">Gestión de Cursos</h3>
+                <p class="card-description">Crea, edita y gestiona los cursos y programas de formación internos de la empresa.</p>
+                
+                {# This link makes the entire card clickable and takes you to the main HR course list #}
+                <a href="{% url 'formacion:gestion_cursos_list' %}" class="card-link-full-area">
+                    <span class="visually-hidden">Gestionar Cursos</span> 
+                </a>
+
+                {# This is the specific link for creating a new course #}
+                <a href="{% url 'formacion:crear_curso' %}" class="card-link">
+                    <i class="bi bi-plus-circle-fill"></i> Crear Nuevo Curso
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# TAB: COORDINADOR #}
+    {% if es_coordinador %}
+    <div class="tab-pane fade" id="tab-coordinador" role="tabpanel" aria-labelledby="tab-coordinador-tab" tabindex="0">
+        <div class="dashboard-section-title"><i class="bi bi-diagram-3-fill"></i> Gestión de Departamento</div>
+        <div class="dashboard-grid">
+            <div class="dashboard-card card-coordinador">
+                <span class="card-icon">👥</span>
+                <h3 class="card-title">Mi Departamento</h3>
+                <p class="card-description">Revisa y gestiona la formación de tu equipo, supervisa el progreso y coordina las actividades formativas.</p>
+                <a href="{% url 'formacion:equipo_departamento' %}" class="card-link">
+                    <i class="bi bi-diagram-3-fill"></i> Gestionar equipo
+                </a>
+            </div>
+            <div class="dashboard-card card-coordinador">
+                <span class="card-icon">✅</span>
+                <h3 class="card-title">Preselección</h3>
+                <p class="card-description">Propón empleados de tu departamento para formaciones futuras y gestiona las recomendaciones.</p>
+                <a href="{% url 'formacion:preseleccionar_empleado' %}" class="card-link">
+                    <i class="bi bi-person-check-fill"></i> Preseleccionar empleados
+                </a>
+            </div>
+            <div class="dashboard-card card-solicitud-curso">
+                <span class="card-icon">💡</span>
+                <h3 class="card-title">Solicitar Formación</h3>
+                <p class="card-description">Envía una propuesta para un nuevo curso o programa de capacitación para tu equipo o departamento.</p>
+                <a href="{% url 'formacion:solicitar_curso' %}" class="card-link">
+                    <i class="bi bi-send-fill"></i> Enviar Solicitud de Curso
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# TAB: RRHH #}
+    {% if es_rrhh %}
+    <div class="tab-pane fade" id="tab-rrhh" role="tabpanel" aria-labelledby="tab-rrhh-tab" tabindex="0">
+        <div class="dashboard-section-title"><i class="bi bi-person-badge-fill"></i> Recursos Humanos</div>
+        <div class="dashboard-grid">
+            <div class="dashboard-card card-rrhh">
+                <span class="card-icon">📄</span>
+                <h3 class="card-title">Validación de Certificados</h3>
+                <p class="card-description">Valida y aprueba las formaciones recibidas por empleados, gestiona certificaciones externas.</p>
+                <a href="{% url 'formacion:titulaciones_pendientes_rrhh' %}" class="card-link">
+                    <i class="bi bi-patch-check-fill"></i> Validar certificados
+                </a>
+            </div>
+            <div class="dashboard-card card-rrhh">
+                <span class="card-icon">🗂️</span>
+                <h3 class="card-title">Validar Cursos Obligatorios</h3>
+                <p class="card-description">Revisa y gestiona las solicitudes de inscripción de los empleados a cursos obligatorios que están pendientes de tu aprobación.</p>
+                <a href="{% url 'formacion:gestionar_solicitudes_obligatorias_rrhh' %}" class="card-link">
+                    <i class="bi bi-check2-square"></i> Gestionar Solicitudes
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# TAB: GESTIÓN #}
+    {% if es_formacion or es_rrhh or es_direccion%}
+    <div class="tab-pane fade" id="tab-formacion" role="tabpanel" aria-labelledby="tab-formacion-tab" tabindex="0">
+        <div class="dashboard-section-title"><i class="bi bi-list-check"></i> Gestión de Preselecciones</div>
+        <div class="dashboard-grid">
+            <div class="dashboard-card card-formacion">
+                <span class="card-icon">📊</span>
+                <h3 class="card-title">Gestión de Preselecciones</h3>
+                <p class="card-description">Consulta y confirma las preselecciones realizadas por coordinadores para cada curso disponible.</p>
+                <a href="{% url 'formacion:confirmar_preseleccionados_lista' %}" class="card-link">
+                    <i class="bi bi-list-check"></i> Gestionar preselecciones
+                </a>
+            </div>
+            <div class="dashboard-card card-rrhh">
+                <span class="card-icon">📋</span>
+                <h3 class="card-title">Solicitudes de Curso</h3>
+                <p class="card-description">Revisa y gestiona las solicitudes de formación enviadas por los coordinadores.</p>
+                <a href="{% url 'formacion:solicitudes_curso_gestion' %}" class="card-link">
+                    <i class="bi bi-list-check"></i> Ver Solicitudes
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# TAB: DIRECCIÓN #}
+    {% if es_direccion %}
+    <div class="tab-pane fade" id="tab-direccion" role="tabpanel" aria-labelledby="tab-direccion-tab" tabindex="0">
+        <div class="dashboard-section-title"><i class="bi bi-graph-up-arrow"></i> Dirección</div>
+        <div class="dashboard-grid">
+            <div class="dashboard-card card-direccion">
+                <span class="card-icon">📈</span>
+                <h3 class="card-title">Panel de Dirección</h3>
+                <p class="card-description">Accede a informes ejecutivos, métricas de formación y análisis del estado general de la organización.</p>
+                <a href="{% url 'admin:index' %}" class="card-link">
+                    <i class="bi bi-graph-up-arrow"></i> Panel ejecutivo
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# TAB: ADMINISTRACIÓN #}
+    {% if es_admin %}
+    <div class="tab-pane fade" id="tab-admin" role="tabpanel" aria-labelledby="tab-admin-tab" tabindex="0">
+        <div class="dashboard-section-title"><i class="bi bi-gear-wide-connected"></i> Administración</div>
+        <div class="dashboard-grid">
+            <div class="dashboard-card card-admin">
+                <span class="card-icon">🛠️</span>
+                <h3 class="card-title">Administración del Sistema</h3>
+                <p class="card-description">Acceso completo al backend de Django para configuración avanzada y gestión del sistema.</p>
+                <a href="{% url 'admin:index' %}" class="card-link">
+                    <i class="bi bi-gear-wide-connected"></i> Panel de administración
+                </a>
+            </div>
+            <div class="dashboard-card card-rrhh">
+                <span class="card-icon">👤</span>
+                <h3 class="card-title">Registro de Empleados</h3>
+                <p class="card-description">Registra nuevos empleados en el sistema y configura sus perfiles y permisos iniciales.</p>
+                <a href="{% url 'formacion:alta_usuario_empleado' %}" class="card-link">
+                    <i class="bi bi-person-plus-fill"></i> Registrar empleado
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

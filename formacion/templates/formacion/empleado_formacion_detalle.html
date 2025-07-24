@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Formación de {{ empleado.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="content-container mt-4"> {# Usamos content-container para centrar y añadir padding #}
+    <a href="{% url 'formacion:empleados_con_formacion' %}" class="btn-back mb-4">
+        <i class="bi bi-arrow-left"></i> Volver al Listado de Empleados
+    </a>
+
+    <div class="page-header"> {# Reutilizamos page-header para el encabezado principal del empleado #}
+        <h1 class="page-title">
+            <i class="bi bi-person-fill"></i> {# Icono para el empleado #}
+            Detalles de Formación de {{ empleado.get_full_name }}
+        </h1>
+        <div class="page-description">
+            <p class="employee-detail-item"><i class="bi bi-briefcase-fill"></i> <strong>Departamento:</strong> {{ empleado.departamento.nombre|default:"N/A" }}</p>
+            <p class="employee-detail-item"><i class="bi bi-envelope-fill"></i> <strong>Email:</strong> {{ empleado.email|default:"N/A" }}</p>
+            {# Puedes añadir más detalles del empleado si los tienes en tu modelo User extendido #}
+        </div>
+    </div>
+
+    <div class="section-header"> {# Nuevo div para la sección de cursos #}
+        <h3 class="section-title">
+            <i class="bi bi-journal-bookmark-fill"></i> Cursos Realizados (Participaciones)
+        </h3>
+    </div>
+    {% if participaciones %}
+        <div class="table-container"> {# Reutilizamos table-container #}
+            <div class="table-responsive">
+                <table class="table table-modern"> {# Usamos table-modern #}
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th>Estado</th>
+                            <th>Nota Final</th>
+                            <th>Fecha de Registro</th>
+                            <th>Validado RRHH</th>
+                            <th>Certificado Obtenido</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in participaciones %}
+                            <tr>
+                                <td>{{ p.curso.nombre }}</td>
+                                <td><span class="status-badge status-info">{{ p.get_estado_display }}</span></td>
+                                <td>{{ p.nota_final|default:"-" }}</td>
+                                <td>{{ p.created_at|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if p.validado %}
+                                        <span class="status-badge status-success">Sí</span>
+                                    {% else %}
+                                        <span class="status-badge status-warning">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if p.certificado_obtenido %}
+                                        <span class="status-badge status-success">Sí</span>
+                                    {% else %}
+                                        <span class="status-badge status-danger">No</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <p class="no-data-message">
+            <i class="bi bi-info-circle-fill me-2"></i> Este empleado no tiene cursos registrados.
+        </p>
+    {% endif %}
+
+    <div class="section-header mt-5"> {# Nuevo div para la sección de titulaciones, con margen superior #}
+        <h3 class="section-title">
+            <i class="bi bi-award-fill"></i> Titulaciones y Certificaciones
+        </h3>
+    </div>
+    {% if titulaciones %}
+        <div class="table-container"> {# Reutilizamos table-container #}
+            <div class="table-responsive">
+                <table class="table table-modern"> {# Usamos table-modern #}
+                    <thead>
+                        <tr>
+                            <th>Nombre Titulación</th>
+                            <th>Tipo</th>
+                            <th>Institución</th>
+                            <th>Fecha Obtención</th>
+                            <th>Fecha Caducidad</th>
+                            <th>Validado RRHH</th>
+                            <th>Documento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in titulaciones %}
+                            <tr>
+                                <td>{{ t.nombre }}</td>
+                                <td><span class="status-badge status-info">{{ t.get_tipo_titulacion_display }}</span></td>
+                                <td>{{ t.institucion_emisora|default:"-" }}</td>
+                                <td>{{ t.fecha_obtencion|date:"d/m/Y" }}</td>
+                                <td>{{ t.fecha_caducidad|date:"d/m/Y"|default:"-" }}</td>
+                                <td>
+                                    {% if t.validado_rrhh %}
+                                        <span class="status-badge status-success">Sí</span>
+                                    {% else %}
+                                        <span class="status-badge status-warning">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if t.documento_adjunto %}
+                                        <a href="{{ t.documento_adjunto.url }}" target="_blank" class="btn-view-doc">
+                                            <i class="bi bi-file-earmark-text-fill me-1"></i> Ver Doc.
+                                        </a>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <p class="no-data-message">
+            <i class="bi bi-info-circle-fill me-2"></i> Este empleado no tiene titulaciones o certificaciones registradas.
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+# Directorios de entorno virtual
+venv/
+env/
+.env/
+.env
+
+# Archivos de Python
+*.pyc
+__pycache__/
+*.log
+*.sqlite3
+*.db
+
+# Archivos de configuración de Django sensibles
+# ¡IMPORTANTE! Si tu settings.py principal contiene la SECRET_KEY y credenciales,
+# DEBES mover esa información a variables de entorno o a un archivo local_settings.py
+# que esté IGNORADO aquí.
+#
+# Opción 1: Usando un archivo .env (recomendado con python-decouple o django-environ)
+.env # Este archivo contendrá tu SECRET_KEY y credenciales de BD. ¡Debe ser ignorado!
+
+# Opción 2: Usando un archivo local_settings.py
+# Si tienes un archivo como 'myproject/local_settings.py' que contiene la info sensible
+# y es importado por tu settings.py principal, ignóralo así:
+# myproject/local_settings.py # Reemplaza 'myproject' por el nombre de tu carpeta de proyecto principal
+
+# Archivos de medios subidos por usuarios
+media/
+
+# Archivos de IDEs y editores (ej. VS Code, PyCharm)
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Archivos de compilación de frontend (si usas Node.js/npm)
+node_modules/
+npm-debug.log
+yarn-error.log
+.parcel-cache/
+
+# Archivos de pruebas
+.coverage
+.pytest_cache/
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de datos
+*.json
+

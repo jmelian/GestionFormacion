@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Eliminación{% endblock %}
+
+{% block content %}
+    <h2>Eliminar Titulación/Certificación</h2>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <p>¿Estás seguro de que quieres eliminar la titulación/certificación "<strong>{{ titulacion.nombre }}</strong>" de tu perfil?</p>
+    <p class="text-danger">Esta acción no se puede deshacer.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+        <a href="{% url 'formacion:mis_titulaciones_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %} {# ¡Asegúrate de que esta línea esté presente! #}
+
+{% block title %}Alta de Empleado{% endblock %}
+
+{% block content %}
+<div class="content-container"> {# Contenedor principal #}
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-person-plus-fill me-2"></i> Alta de Nuevo Empleado
+        </h1>
+        <div class="page-description">
+            Complete los siguientes campos para crear una nueva cuenta de empleado en el sistema.
+        </div>
+    </div>
+
+    <div class="form-card"> {# Usando la clase form-card #}
+        <form method="post" class="modern-form"> {# Tu clase modern-form #}
+            {% csrf_token %}
+
+            {# Manejo de errores de formulario globales (no de campo específico) #}
+            {% if form.non_field_errors %}
+                <div class="alert-modern alert-danger" role="alert">
+                    <i class="bi bi-x-circle-fill me-2"></i>
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {# Itera sobre los campos del formulario para aplicar estilos individuales #}
+            {% for field in form %}
+                <div class="form-group {% if field.errors %}has-error{% endif %}">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}:</label>
+                    
+                    {# APLICA LA CLASE CSS ESPECÍFICAMENTE AQUÍ #}
+                    {% if field.field.widget.input_type == 'select' %}
+                        {% render_field field class="form-select-modern" %}
+                    {% elif field.field.widget.input_type == 'checkbox' %}
+                        <div class="form-check-modern">
+                            {% render_field field class="form-check-input-modern" %}
+                            <label class="form-check-label-modern" for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+                        </div>
+                    {% else %}
+                        {# Esto cubrirá text, password, email, number, etc. #}
+                        {% render_field field class="form-control-modern" %} 
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text-help">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="form-error-message">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ error }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="form-actions"> {# Contenedor para los botones de acción #}
+                <button type="submit" class="btn-primary-action">
+                    <i class="bi bi-plus-circle-fill me-2"></i> Crear Empleado
+                </button>
+                <a href="{% url 'formacion:dashboard' %}" class="btn-secondary-action ms-2"> 
+                    <i class="bi bi-x-lg me-2"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div> {# /form-card #}
+
+</div> {# /content-container #}
+{% endblock %}

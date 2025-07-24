@@ -1,0 +1,46 @@
+/* =========================
+   VARIABLES Y RESET
+========================= */
+
+:root {
+    --main-bg: #f8fafc;
+    --main-fg: #22223b;
+    --brand-color: #6366f1;
+    --brand-color-2: #38bdf8;
+    --accent: #2dd4bf;
+    --danger: #dc2626;
+    --success: #22c55e;
+    --warning: #fbbf24;
+    --info: #0ea5e9;
+    --muted: #64748b;
+    --footer-bg: #f3f4f6;
+    --dashboard-bg: #f1f5f9;
+    --card-shadow: 0 2px 16px rgba(60,80,150,.11);
+    --radius: 13px;
+    --font-main: 'Inter', Arial, sans-serif;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.2rem;
+    --font-size-sm: 0.98rem;
+    --box-padding: 1.25rem;
+    --card-bg: #fff;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-family: var(--font-main);
+    background: var(--main-bg);
+    font-size: var(--font-size-base);
+    color: var(--main-fg);
+    height: 100%;
+    scroll-behavior: smooth;
+}
+
+body:not(.dashboard-bg) {
+    background: var(--main-bg);
+    color: var(--main-fg);
+}

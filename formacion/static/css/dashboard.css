@@ -1,0 +1,238 @@
+/* =========================
+   DASHBOARD - ESTILO COMPLETO
+========================= */
+
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.dashboard-header {
+    background: linear-gradient(135deg, #f1f5f9 80%, #e0e7ef 100%);
+    border-radius: 1.2rem;
+    padding: 2.2rem 2rem 1.5rem 2rem;
+    margin-bottom: 2.2rem;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    border: 1px solid #e0e7ef;
+    text-align: left;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.welcome-title {
+    font-size: 2.3rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+    letter-spacing: -1px;
+}
+.welcome-title i {
+    font-size: 2.1rem;
+    vertical-align: middle;
+}
+.welcome-subtitle {
+    color: #64748b;
+    font-size: 1.13rem;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+.nav-dashboard-tabs {
+    margin-bottom: 2.2rem;
+    border: none;
+    display: flex;
+    gap: 0.5rem;
+    background: none;
+    justify-content: center;
+}
+.nav-dashboard-tabs .nav-link {
+    background: #f1f5f9;
+    border: none;
+    border-radius: 1.2rem 1.2rem 0 0;
+    color: #64748b;
+    font-size: 1.13rem;
+    font-weight: 700;
+    padding: 0.85rem 2.1rem 0.85rem 2.1rem;
+    margin-right: 0.2rem;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.nav-dashboard-tabs .nav-link.active, .nav-dashboard-tabs .nav-link:focus {
+    background: #64748b;
+    color: #f1f5f9;
+    box-shadow: 0 4px 16px 0 rgba(59, 130, 246, 0.10);
+}
+.nav-dashboard-tabs .nav-link.active i, .nav-dashboard-tabs .nav-link:focus i {
+    color: #f1f5f9;
+}
+.nav-dashboard-tabs .nav-link i {
+    font-size: 1.3rem;
+}
+
+.dashboard-section-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #f1f5f9;
+    margin-bottom: 1.3rem;
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    letter-spacing: -0.5px;
+}
+.dashboard-section-title i {
+    color: #f1f5f9;
+    font-size: 1.5rem;
+}
+.dashboard-section {
+    margin-bottom: 2.6rem;
+    margin-top: 0.7rem;
+}
+.dashboard-tabs-content {
+    margin-top: 1.2rem;
+}
+
+.dashboard-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 2rem;
+    justify-content: flex-start;
+    
+}
+.card-link-full-area {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+    cursor: pointer;
+}
+.dashboard-card {
+    flex: 1 1 320px;
+    max-width: 350px;
+    min-width: 260px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #fff 80%, #f1f5f9 100%);
+    border-radius: 1.2rem;
+    box-shadow: 0 6px 24px 0 rgba(59, 130, 246, 0.07);
+    border: 1.5px solid #e0e7ef;
+    padding: 1.7rem 1.3rem 1.3rem 1.3rem;
+    position: relative;
+    transition: box-shadow 0.2s, transform 0.2s;
+    overflow: hidden;
+    animation: fadeInUp 0.7s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 12px 32px 0 rgba(59, 130, 246, 0.13);
+    transform: translateY(-6px) scale(1.025);
+    z-index: 2;
+}
+
+.dashboard-card .card-icon {
+    font-size: 2.7rem;
+    margin-bottom: 1.1rem;
+    display: block;
+    color: #3b82f6;
+    filter: drop-shadow(0 2px 6px #8b5cf633);
+}
+
+.dashboard-card .card-title {
+    font-size: 1.22rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+
+.dashboard-card .card-description {
+    color: #64748b;
+    font-size: 1.01rem;
+    line-height: 1.5;
+    margin-bottom: 1.3rem;
+    min-height: 48px;
+}
+
+.dashboard-card .card-link {
+    position: relative;
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.01rem;
+    padding: 0.55rem 1.2rem;
+    border-radius: 0.7rem;
+    background: linear-gradient(90deg, #3b82f6 60%, #8b5cf6 100%);
+    box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.08);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+    pointer-events: auto;
+}
+.dashboard-card .card-link:hover {
+    background: linear-gradient(90deg, #2563eb 60%, #7c3aed 100%);
+    color: #fff;
+    transform: translateX(4px) scale(1.04);
+    box-shadow: 0 4px 16px 0 rgba(59, 130, 246, 0.13);
+}
+
+/* Bordes de color en las cards según área */
+.dashboard-card.card-empleado { border-left: 6px solid #10b981; }
+.dashboard-card.card-coordinador { border-left: 6px solid #f59e0b; }
+.dashboard-card.card-formacion { border-left: 6px solid #f6e75c; }
+.dashboard-card.card-rrhh { border-left: 6px solid #06b6d4; }
+.dashboard-card.card-direccion { border-left: 6px solid #ef4444; }
+.dashboard-card.card-admin { border-left: 6px solid #6b7280; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .dashboard-header {
+        max-width: 98vw;
+    }
+}
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        gap: 1.2rem;
+    }
+    .dashboard-card {
+        min-width: 220px;
+        max-width: 98vw;
+    }
+}
+@media (max-width: 900px) {
+    .dashboard-card {
+        min-width: 80vw;
+        max-width: 90vw;
+    }
+}
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 1.2rem 0.7rem 1.2rem 0.7rem;
+    }
+    .dashboard-section-title {
+        font-size: 1.05rem;
+        margin-top: 1.3rem;
+    }
+    .nav-dashboard-tabs .nav-link {
+        font-size: 0.99rem;
+        padding: 0.5rem 0.7rem;
+    }
+    .dashboard-card {
+        min-width: 100%;
+        max-width: 100%;
+    }
+}
+

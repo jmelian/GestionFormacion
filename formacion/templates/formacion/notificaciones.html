@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Notificaciones{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-bell-fill me-2"></i> Mis Notificaciones
+        </h1>
+        <div class="page-description">
+            Consulta tus notificaciones importantes y avisos del sistema.
+        </div>
+    </div>
+
+    <div class="notificaciones-list">
+        {% if notificaciones %}
+            <ul class="list-group list-group-flush">
+                {% for notif in notificaciones %}
+                    <li class="list-group-item d-flex align-items-start {% if not notif.leida %}fw-bold bg-light{% endif %}">
+                        <span class="me-3">
+                            {% if notif.leida %}
+                                <i class="bi bi-envelope-open text-secondary"></i>
+                            {% else %}
+                                <i class="bi bi-envelope-fill text-primary"></i>
+                            {% endif %}
+                        </span>
+                        <div class="flex-grow-1">
+                            <div class="small text-muted">{{ notif.fecha|date:"d/m/Y H:i" }}</div>
+                            {# ¡CAMBIO AQUÍ! Añadimos la lógica para la URL #}
+                            <div>
+                                {% if notif.url %}
+                                    <a href="{{ notif.url }}" class="text-decoration-none">
+                                        <strong>{{ notif.mensaje }}</strong>
+                                        {% if not notif.leida %}<span class="badge bg-primary ms-2">Nueva</span>{% endif %}
+                                    </a>
+                                {% else %}
+                                    <strong>{{ notif.mensaje }}</strong>
+                                    {% if not notif.leida %}<span class="badge bg-primary ms-2">Nueva</span>{% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {# Puedes añadir aquí un botón para marcar como leída si tu vista lo permite #}
+                        {# Ejemplo: <form action="{% url 'marcar_notificacion_leida' notif.id %}" method="post">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-secondary ms-auto">Marcar como leída</button></form> #}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state mt-4">
+                <i class="bi bi-info-circle"></i>
+                <p>No tienes notificaciones.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Panel
+        </a>
+    </div>
+</div>
+{% endblock %}

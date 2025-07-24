@@ -1,0 +1,69 @@
+{# formacion/templates/formacion/detalle_titulacion.html #}
+{% extends "base.html" %}
+{% load static %}
+{% load formacion_tags %}
+
+{% block title %}Detalle de Titulación: {{ titulacion.nombre }}{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-award-fill"></i> Detalle de Titulación
+        </h1>
+        <p class="page-description">Información completa sobre la titulación.</p>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">{{ titulacion.nombre }}</h5>
+            <p class="card-text"><strong>Empleado:</strong> {{ titulacion.empleado.get_full_name }}</p>
+            <p class="card-text"><strong>Tipo:</strong> {{ titulacion.get_tipo_titulacion_display }}</p>
+            <p class="card-text"><strong>Institución:</strong> {{ titulacion.institucion_emisora|default:"N/A" }}</p>
+            <p class="card-text"><strong>Fecha de Obtención:</strong> {{ titulacion.fecha_obtencion|date:"d/m/Y" }}</p>
+            
+            {% if titulacion.fecha_caducidad %}
+                <p class="card-text"><strong>Fecha de Caducidad:</strong> {{ titulacion.fecha_caducidad|date:"d/m/Y" }}</p>
+            {% endif %}
+
+            <p class="card-text"><strong>Estado RRHH:</strong> 
+                <span class="badge 
+                    {% if titulacion.estado == 'aprobado' %}bg-success
+                    {% elif titulacion.estado == 'pendiente' %}bg-warning text-dark
+                    {% elif titulacion.estado == 'rechazado' %}bg-danger
+                    {% endif %}">
+                    {{ titulacion.get_estado_display }}
+                </span>
+            </p>
+
+            {% if titulacion.estado == 'rechazado' and titulacion.motivo_rechazo %}
+                <div class="alert alert-danger mt-3" role="alert">
+                    <strong>Motivo del Rechazo:</strong> {{ titulacion.motivo_rechazo }}
+                </div>
+            {% endif %}
+
+            {% if titulacion.documento_adjunto %}
+                <p class="card-text">
+                    <strong>Documento:</strong> 
+                    <a href="{{ titulacion.documento_adjunto.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Descargar Documento
+                    </a>
+                </p>
+            {% endif %}
+
+            {# Enlaces adicionales #}
+            <hr>
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{% url 'formacion:mis_titulaciones_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver a Mis Titulaciones
+                </a>
+                {% if request.user == titulacion.empleado or request.user.is_superuser or request.user|has_group:"RRHH" %}
+                    <a href="{% url 'admin:formacion_titulacion_change' titulacion.id %}" target="_blank" class="btn btn-outline-info">
+                        <i class="bi bi-box-arrow-up-right"></i> Ver en Admin
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

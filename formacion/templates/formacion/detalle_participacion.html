@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %} {# If you use widget_tweaks for forms on this page #}
+
+{% block title %}Detalle de Participación{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-person-workspace me-2"></i> Detalles de Tu Participación en "{{ participacion.curso.nombre }}"
+        </h1>
+        <div class="page-description">
+            Aquí puedes ver toda la información relevante a tu inscripción y progreso en este curso.
+        </div>
+    </div>
+
+    <div class="form-card">
+        <div class="mb-3">
+            <strong>Curso:</strong> {{ participacion.curso.nombre }}
+        </div>
+        <div class="mb-3">
+            <strong>Estado de tu participación:</strong> <span class="badge bg-primary">{{ participacion.get_estado_display }}</span>
+        </div>
+        <div class="mb-3">
+            <strong>Proveedor:</strong> {% if participacion.curso.proveedor %}{{ participacion.curso.proveedor.nombre }}{% else %}N/A{% endif %}
+        </div>
+        <div class="mb-3">
+            <strong>Modalidad:</strong> {{ participacion.curso.get_modalidad_display }}
+        </div>
+        <div class="mb-3">
+            <strong>Duración (horas):</strong> {% if participacion.curso.duracion_horas %}{{ participacion.curso.duracion_horas }}{% else %}N/A{% endif %}
+        </div>
+        <div class="mb-3">
+            <strong>Fecha de Inicio del Curso:</strong> {% if participacion.curso.fecha_inicio %}{{ participacion.curso.fecha_inicio|date:"d/m/Y" }}{% else %}Pendiente{% endif %}
+        </div>
+        <div class="mb-3">
+            <strong>Fecha de Fin del Curso:</strong> {% if participacion.curso.fecha_fin %}{{ participacion.curso.fecha_fin|date:"d/m/Y" }}{% else %}Pendiente{% endif %}
+        </div>
+        <div class="mb-3">
+            <strong>Nota Final:</strong> {% if participacion.nota_final %}{{ participacion.nota_final }}{% else %}N/A{% endif %}
+        </div>
+        <div class="mb-3">
+            <strong>Certificado Obtenido:</strong> {% if participacion.certificado_obtenido %}Sí{% else %}No{% endif %}
+            {% if participacion.certificado_obtenido and participacion.fecha_certificado %}
+            (Fecha: {{ participacion.fecha_certificado|date:"d/m/Y" }})
+            {% endif %}
+        </div>
+        {# Add other relevant participation details here #}
+
+        <hr>
+
+        <div class="d-flex justify-content-end gap-2">
+            {# Button to mark as completed - only if eligible #}
+            {# Now using 'estados_finales_participacion' passed from the view context. #}
+            {% if participacion.estado not in estados_finales_participacion %}
+            <form action="{% url 'formacion:marcar_participacion_completada' participacion_id=participacion.id %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle-fill me-1"></i> Marcar como Completado
+                </button>
+            </form>
+            {% endif %}
+            
+            <a href="{% url 'formacion:mis_cursos' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Volver a Mis Cursos
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

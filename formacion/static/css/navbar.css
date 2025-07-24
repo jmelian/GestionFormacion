@@ -1,0 +1,171 @@
+/* =========================
+   NAVBAR Y CABECERA
+========================= */
+
+.navbar-custom {
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(60,80,150,.09);
+    padding: 0.6rem 0.8rem;
+    border-radius: 0;
+    border-bottom: none;
+    min-height: 60px;
+}
+
+.navbar .container-fluid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2em;
+}
+
+.navbar-brand {
+    font-size: 1.22rem;
+    font-weight: 700;
+    color: #6366f1;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    text-decoration: none;
+}
+
+.navbar-brand {
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s, padding 0.18s;
+    padding: 0.38em 1.3em 0.38em 1em; 
+    border-radius: 18px;
+}
+
+.navbar-brand:hover,
+.navbar-brand:focus {
+    background: #e0e7ff;
+    color: #374151;
+    border-radius: 18px;
+    box-shadow: 0 3px 12px #a5b4fc33;
+    transform: scale(1.04);
+    padding: 0.44em 1.5em 0.44em 1.2em; 
+    text-decoration: none;
+    z-index: 2;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.8em;
+}
+
+.user-profile-clickable {
+    text-decoration: none;
+    color: inherit;
+    padding: 0.2em 0.8em 0.2em 0.3em;
+    border-radius: 19px;
+    transition: background 0.17s;
+    margin-right: 0.7em;
+    display: flex;
+    align-items: center;
+}
+
+.user-profile-clickable:hover,
+.user-profile-clickable:focus {
+    background: #e0e7ff;
+    color: #374151;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 1em;
+    color: #22223b;
+}
+
+.user-role {
+    font-size: 0.95em;
+    color: #818cf8;
+}
+
+.notification-btn {
+    position: relative;
+    color: #6366f1;
+    background: #f3f4f6;
+    border: none;
+    font-size: 1.25em;
+    margin: 0 0.7em;
+    padding: 0.43em 0.9em;
+    border-radius: 18px;
+    transition: background .13s;
+}
+
+.notification-btn:hover,
+.notification-btn:focus {
+    background: #e0e7ff;
+    color: #374151;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 0.81em;
+    font-weight: 700;
+    padding: 2.2px 7.5px;
+    border-radius: 16px;
+    z-index: 2;
+}
+
+.logout-btn {
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    border-radius: 11px;
+    font-size: 1em;
+    font-weight: 600;
+    padding: 0.6em 1.1em;
+    margin-left: 0.9em;
+    transition: background .14s;
+}
+
+.logout-btn:hover,
+.logout-btn:focus {
+    background: #fca5a5;
+    color: #7f1d1d;
+}
+
+@media (max-width: 600px) {
+    .navbar .container-fluid {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1em;
+    }
+    .navbar-custom {
+        padding: 0.3rem 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .user-info {
+        flex-direction: row;
+        gap: 0.5rem;
+        margin-right: 0;
+        margin-bottom: 0;
+        padding: 0;
+        background: transparent;
+    }
+
+    .navbar-collapse .d-flex.align-items-center.flex-wrap {
+        flex-direction: column;
+        align-items: flex-start !important;
+        padding-top: 1rem;
+    }
+
+    .notification-btn, .logout-btn, .user-profile-clickable {
+        margin-left: 0 !important;
+        margin-bottom: 0.5rem;
+        width: 100%;
+        justify-content: flex-start;
+        padding-left: 1rem;
+    }
+
+    .logout-btn {
+        margin-bottom: 1rem;
+    }
+}

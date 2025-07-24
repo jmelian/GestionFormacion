@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil Personal{% endblock %}
+
+{% block content %}
+<div class="content-container"> {# Asegúrate de usar content-container para el padding y centrado #}
+
+    <div class="page-header"> {# Encabezado principal de la página de perfil #}
+        <h1 class="page-title">
+            <i class="bi bi-person-fill"></i> Mi Perfil Personal
+        </h1>
+        <div class="page-description">
+            Aquí puedes visualizar y consultar tus datos personales, información de contacto y detalles profesionales.
+        </div>
+    </div>
+
+    {# Los mensajes del sistema ya se manejan globalmente en base.html con estilos modernos #}
+    {# por lo que no necesitas el bloque 'if messages' aquí directamente, base.html se encargará #}
+
+    <div class="profile-section-card"> {# Usamos la nueva clase de tarjeta para los detalles #}
+        <h3 class="section-title">
+            <i class="bi bi-card-list"></i> Datos Personales
+        </h3>
+        <div class="profile-details-grid"> {# Un div para organizar mejor los detalles #}
+            <p class="profile-detail-item"><strong>Nombre de Usuario:</strong> <span>{{ empleado.username }}</span></p>
+            <p class="profile-detail-item"><strong>Nombre:</strong> <span>{{ empleado.first_name|default:"-" }}</span></p>
+            <p class="profile-detail-item"><strong>Apellidos:</strong> <span>{{ empleado.last_name|default:"-" }}</span></p>
+            <p class="profile-detail-item"><strong>Correo Electrónico:</strong> <span>{{ empleado.email|default:"-" }}</span></p>
+            <p class="profile-detail-item"><strong>DNI/NIE:</strong> <span>{{ empleado.dni|default:"No especificado" }}</span></p>
+            <p class="profile-detail-item"><strong>Género:</strong> <span>{{ empleado.get_sexo_display|default:"No especificado" }}</span></p>
+            <p class="profile-detail-item"><strong>Sede de Trabajo:</strong> <span>{{ empleado.get_sede_display|default:"No especificado" }}</span></p>
+            <p class="profile-detail-item"><strong>Departamento:</strong> <span>{{ empleado.departamento_actual.nombre|default:"No asignado" }}</span></p>
+            <p class="profile-detail-item"><strong>Puesto:</strong> <span>{{ empleado.puesto|default:"No asignado" }}</span></p>
+            {# Puedes añadir más campos aquí que quieras que el empleado visualice #}
+        </div>
+    </div>
+
+    <div class="profile-actions-card mt-4"> {# Usamos la nueva clase de tarjeta para las acciones #}
+        <h3 class="section-title">
+            <i class="bi bi-mortarboard-fill"></i> Mi Formación Académica y Certificaciones
+        </h3>
+        <p>Aquí puedes gestionar tus titulaciones, certificaciones y otra formación relevante.</p>
+        <a href="{% url 'formacion:mis_titulaciones_list' %}" class="btn-primary">
+            <i class="bi bi-book-fill me-2"></i>Gestionar Mi Formación
+        </a>
+    </div>
+
+    <a href="{% url 'formacion:dashboard' %}" class="btn-back mt-4"> {# Reutilizamos el botón de volver #}
+        <i class="bi bi-arrow-left"></i> Volver al Dashboard
+    </a>
+
+</div>
+{% endblock %}
