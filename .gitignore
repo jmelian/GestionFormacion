@@ -17,7 +17,7 @@ __pycache__/
 # que esté IGNORADO aquí.
 #
 # Opción 1: Usando un archivo .env (recomendado con python-decouple o django-environ)
-.env # Este archivo contendrá tu SECRET_KEY y credenciales de BD. ¡Debe ser ignorado!
+.env 
 
 # Opción 2: Usando un archivo local_settings.py
 # Si tienes un archivo como 'myproject/local_settings.py' que contiene la info sensible
@@ -48,5 +48,5 @@ yarn-error.log
 Thumbs.db
 
 # Archivos de datos
-*.json
+datos/
 

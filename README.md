@@ -110,6 +110,30 @@ Para `SECRET_KEY`: Puedes generar una clave segura ejecutando en tu terminal (co
 python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
 ```
 
+## Configuración Inicial de la Aplicación
+Para asegurar que tu aplicación tenga los grupos de usuarios y permisos necesarios desde el principio (ej. `RRHH`, `Formación`, `Coordinador`, `Dirección`), puedes cargar los datos iniciales proporcionados. Estos archivos definen la estructura de permisos y roles que la aplicación espera.
+
+### Función de los archivos:
+
+- `initial_groups.json`: Contiene la definición de los grupos de usuarios de Django (ej. 'RRHH', 'Formación').
+
+- `initial_permissions.json`: Contiene la definición de los permisos de Django (ej. 'Can add curso', 'Can view empleado'). Estos permisos son generados automáticamente por Django al ejecutar _makemigrations_ y _migrate_, pero este archivo asegura que estén disponibles si se necesitan cargar explícitamente o para auditoría.
+
+### Cómo cargar los datos iniciales:
+
+Asegúrate de que los archivos `initial_groups.json` y `initial_permissions.json` se encuentren en la raíz de tu proyecto o en la carpeta fixtures de una de tus aplicaciones (ej. formacion/fixtures/).
+
+```bash
+# Carga los grupos de usuarios
+python manage.py loaddata initial_groups.json
+
+# Carga los permisos (si los necesitas cargar explícitamente, aunque migrate suele crearlos)
+python manage.py loaddata initial_permissions.json
+```
+
+>**Nota**: Estos archivos se pueden generar usando el comando _dumpdata_ de Django. Por ejemplo: `python manage.py dumpdata auth.Group --indent 2 > initial_groups.json`. Si encuentras problemas de codificación al generarlos, especialmente en Windows, puedes usar ´export PYTHONIOENCODING=utf-8´ antes del comando dumpdata.
+
+
 ## Base de Datos y Migraciones
 Aplica las migraciones de la base de datos para crear las tablas necesarias:
 ```bash
