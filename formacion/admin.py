@@ -6,24 +6,18 @@ from django.utils.html import format_html # Solo si se necesita para enlaces de 
 from .forms import EmpleadoCreationForm, EmpleadoChangeForm, CursoForm, DepartamentoForm
 
 from .models import (
-    Departamento,
-    Area,     
-    PuestoDeTrabajo, 
-    Empleado,
-    Proveedor,
-    Proyecto,
-    Curso,
-    Participacion,
-    RequisitoPuestoFormacion, 
-    Preseleccion,
-    Notificacion,
-    Titulacion, 
-    SolicitudCurso,
+    Departamento, Area,     
+    PuestoDeTrabajo, Empleado,
+    Proveedor, Proyecto,
+    Curso, Participacion,
+    RequisitoPuestoFormacion, Preseleccion,
+    Notificacion, Titulacion, SolicitudCurso,
+    PreguntaEncuesta, EncuestaSatisfaccion,
+    RespuestaEncuesta, DetalleRespuesta
 )
-from .models import EncuestaSatisfaccion, PreguntaEncuesta, RespuestaEncuesta, DetalleRespuesta
-
 
 # Personalización del modelo Empleado (que ahora es nuestro AUTH_USER_MODEL)
+@admin.register(Empleado)
 class EmpleadoAdmin(UserAdmin):
     form = EmpleadoChangeForm
     add_form = EmpleadoCreationForm
@@ -72,6 +66,7 @@ class EmpleadoAdmin(UserAdmin):
     
 
 # Admin para el modelo Departamento
+@admin.register(Departamento)
 class DepartamentoAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'coordinador')
     search_fields = ('nombre', 'coordinador__username', 'coordinador__first_name', 'coordinador__last_name')
@@ -79,6 +74,7 @@ class DepartamentoAdmin(admin.ModelAdmin):
     fields = ('nombre', 'descripcion', 'coordinador') # Asegúrate de incluir 'coordinador' aquí
 
 # Admin para el nuevo modelo Area
+@admin.register(Area)
 class AreaAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'departamento', 'descripcion')
     list_filter = ('departamento',)
@@ -86,6 +82,7 @@ class AreaAdmin(admin.ModelAdmin):
     raw_id_fields = ('departamento',)
 
 # Admin para el nuevo modelo PuestoDeTrabajo
+@admin.register(PuestoDeTrabajo)
 class PuestoDeTrabajoAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'codigo', 'departamento')
     list_filter = ('departamento',)
@@ -95,6 +92,7 @@ class PuestoDeTrabajoAdmin(admin.ModelAdmin):
 
 
 # Admin para el nuevo modelo Proveedor
+@admin.register(Proveedor)
 class ProveedorAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'telefono', 'email', 'created_at') 
     search_fields = ('nombre', 'email', 'telefono') # 'contacto' eliminado
@@ -102,6 +100,7 @@ class ProveedorAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at')
 
 # Admin para el nuevo modelo Proyecto
+@admin.register(Proyecto)
 class ProyectoAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'jefe_proyecto', 'estado', 'fecha_inicio', 'fecha_fin_prevista', 'created_at')
     list_filter = ('estado', 'jefe_proyecto', 'fecha_inicio')
@@ -111,6 +110,7 @@ class ProyectoAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at')
 
 # Admin para el modelo Curso
+@admin.register(Curso)
 class CursoAdmin(admin.ModelAdmin):
     form = CursoForm
     list_display = (
@@ -128,6 +128,7 @@ class CursoAdmin(admin.ModelAdmin):
 
 
 # Admin para el modelo Participacion
+@admin.register(Participacion)
 class ParticipacionAdmin(admin.ModelAdmin):
     list_display = (
         'empleado', 'curso', 'estado', 'validado',
@@ -147,7 +148,8 @@ class ParticipacionAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     raw_id_fields = ('empleado', 'curso')
 
-# Admin para el nuevo modelo Titulacion
+# Admin para el modelo Titulacion
+@admin.register(Titulacion)
 class TitulacionAdmin(admin.ModelAdmin):
     list_display = (
         'empleado', 
@@ -194,13 +196,15 @@ class TitulacionAdmin(admin.ModelAdmin):
     )
 
 
-# Admin para el modelo RequisitoPuestoFormacion (antes RequisitoPuesto)
+# Admin para el modelo RequisitoPuestoFormacion
+@admin.register(RequisitoPuestoFormacion)
 class RequisitoPuestoFormacionAdmin(admin.ModelAdmin):
     list_display = ('puesto', 'curso', 'tipo_requisito')
     list_filter = ('puesto__departamento', 'puesto__nombre', 'curso__tipo', 'tipo_requisito')
     search_fields = ('puesto__nombre', 'curso__nombre', 'observaciones')
 
 # Admin para el modelo Preseleccion
+@admin.register(Preseleccion)
 class PreseleccionAdmin(admin.ModelAdmin):
     list_display = ('empleado', 'curso', 'prioridad', 'creado_por', 'fecha')
     list_filter = (
@@ -214,6 +218,7 @@ class PreseleccionAdmin(admin.ModelAdmin):
     date_hierarchy = 'fecha'
 
 # Admin para el modelo Notificacion
+@admin.register(Notificacion)
 class NotificacionAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'mensaje', 'leida', 'fecha', 'tipo', 'url')
     list_filter = (
@@ -223,21 +228,48 @@ class NotificacionAdmin(admin.ModelAdmin):
     search_fields = ('usuario__username', 'mensaje', 'usuario__first_name', 'usuario__last_name')
     readonly_fields = ('fecha',)
 
+
+@admin.register(SolicitudCurso)
+class SolicitudCursoAdmin(admin.ModelAdmin):
+    list_display = (
+        'titulo_curso_solicitado', 'solicitante', 'departamento_solicitante',
+        'fecha_solicitud', 'estado', 'caracter_formacion'
+    )
+    list_filter = ('estado', 'caracter_formacion', 'departamento_solicitante', 'fecha_solicitud')
+    search_fields = ('titulo_curso_solicitado', 'solicitante__username', 'solicitante__first_name', 'solicitante__last_name')
+    date_hierarchy = 'fecha_solicitud'
+    readonly_fields = ('solicitante', 'departamento_solicitante', 'fecha_solicitud')
+    fieldsets = (
+        (None, {
+            'fields': ('solicitante', 'departamento_solicitante', 'fecha_solicitud', 'titulo_curso_solicitado', 'objetivo_curso', 'justificacion_necesidad')
+        }),
+        ('Detalles de la Formación', {
+            'fields': ('numero_participantes_estimado', 'temas_contenidos_clave', 'formato_preferido', 'duracion_estimada', 'fechas_horarios_preferidos', 'caracter_formacion', 'comentarios_adicionales')
+        }),
+        ('Estado y Revisión', {
+            'fields': ('estado', 'motivo_rechazo', 'comentarios_procesamiento'),
+            'classes': ('collapse',) # Esto hace que esta sección sea colapsable por defecto
+        }),
+    )
+
+
 class PreguntaEncuestaInline(admin.TabularInline):
     model = PreguntaEncuesta
     extra = 1 # Número de formularios vacíos a mostrar
+    fields = ['texto_pregunta', 'tipo_pregunta', 'orden'] # Campos a mostrar en el inline
+
 
 @admin.register(EncuestaSatisfaccion)
 class EncuestaSatisfaccionAdmin(admin.ModelAdmin):
     # Campos que se muestran en la lista de objetos en el admin
     list_display = (
-        'empleado',          # Empleado que hizo la encuesta
-        'participacion_link',# Enlace a la participación (método personalizado)
-        'fecha_encuesta',    # Fecha en que se rellenó la encuesta
-        'opinion_contenido_curso', # Una de las valoraciones para ver rápidamente
-        'gusto_general_curso',     # Otra valoración clave
-        'valoracion_media_curso_profesor_display', # Propiedad para mostrar la media
-        'valoracion_media_eficacia_display',     # Propiedad para mostrar la media
+        'empleado',
+        'participacion_link',
+        'fecha_encuesta',
+        'opinion_contenido_curso',
+        'gusto_general_curso',
+        'valoracion_media_curso_profesor_display',
+        'valoracion_media_eficacia_display',
     )
 
     # Campos por los que se puede filtrar la lista
@@ -245,8 +277,8 @@ class EncuestaSatisfaccionAdmin(admin.ModelAdmin):
         'fecha_encuesta',
         'opinion_contenido_curso',
         'gusto_general_curso',
-        'empleado', # Para filtrar por empleado
-        'participacion__curso', # Para filtrar por el curso de la participación
+        'empleado',
+        'participacion__curso',
     )
 
     # Campos por los que se puede buscar texto
@@ -254,7 +286,7 @@ class EncuestaSatisfaccionAdmin(admin.ModelAdmin):
         'empleado__username',
         'empleado__first_name',
         'empleado__last_name',
-        'participacion__curso__nombre', # Buscar por nombre del curso
+        'participacion__curso__nombre',
         'sugerencias_observaciones',
     )
     
@@ -263,8 +295,8 @@ class EncuestaSatisfaccionAdmin(admin.ModelAdmin):
         'participacion',
         'empleado',
         'fecha_encuesta',
-        'valoracion_media_curso_profesor_display', # Mostrar la media calculada
-        'valoracion_media_eficacia_display',     # Mostrar la media calculada
+        'valoracion_media_curso_profesor_display',
+        'valoracion_media_eficacia_display',
     )
 
     # Orden por defecto de la lista
@@ -304,67 +336,136 @@ class EncuestaSatisfaccionAdmin(admin.ModelAdmin):
         }),
     )
 
+    # ¡Aquí se añade el inline para PreguntaEncuesta!
+    inlines = [PreguntaEncuestaInline]
+
     # Métodos para list_display que no son campos directos del modelo
+    @admin.display(description='Participación') # Etiqueta más limpia
     def participacion_link(self, obj):
-        # Asumiendo que tienes una URL para ver los detalles de Participacion
         from django.utils.html import format_html
         from django.urls import reverse
         # Intenta enlazar al detalle de la participación si tienes una URL para ello
         try:
+            # enlazar a la vista de cambio de la participación en el admin
             url = reverse('admin:%s_%s_change' % (obj.participacion._meta.app_label, obj.participacion._meta.model_name), args=[obj.participacion.id])
             return format_html('<a href="{}">{}</a>', url, obj.participacion)
         except Exception:
             return str(obj.participacion)
-    participacion_link.short_description = 'Participación'
-    participacion_link.admin_order_field = 'participacion' # Permite ordenar por la relación
+    participacion_link.admin_order_field = 'participacion__curso__nombre' # Ordena por el nombre del curso de la participación
 
+    @admin.display(description='Media Curso/Profesor')
     def valoracion_media_curso_profesor_display(self, obj):
-        # Utiliza el @property del modelo
         return f"{obj.valoracion_media_curso_profesor:.2f}" if obj.valoracion_media_curso_profesor is not None else 'N/A'
-    valoracion_media_curso_profesor_display.short_description = 'Media Curso/Profesor'
-    valoracion_media_curso_profesor_display.admin_order_field = 'opinion_contenido_curso' # Ordena por un campo relevante
+    valoracion_media_curso_profesor_display.admin_order_field = 'opinion_contenido_curso'
 
+    @admin.display(description='Media Eficacia')
     def valoracion_media_eficacia_display(self, obj):
-        # Utiliza el @property del modelo
         return f"{obj.valoracion_media_eficacia:.2f}" if obj.valoracion_media_eficacia is not None else 'N/A'
-    valoracion_media_eficacia_display.short_description = 'Media Eficacia'
-    valoracion_media_eficacia_display.admin_order_field = 'mejora_conocimientos_carrera' # Ordena por un campo relevante
+    valoracion_media_eficacia_display.admin_order_field = 'mejora_conocimientos_carrera'
 
-@admin.register(SolicitudCurso)
-class SolicitudCursoAdmin(admin.ModelAdmin):
+
+# INLINE para DetalleRespuesta (usado dentro de RespuestaEncuestaAdmin)
+class DetalleRespuestaInline(admin.TabularInline):
+    model = DetalleRespuesta
+    extra = 0 # No mostrar formularios vacíos por defecto
+    # Todos los campos son de solo lectura ya que son las respuestas enviadas
+    readonly_fields = ('pregunta', 'respuesta_texto', 'respuesta_escala')
+    # Puedes especificar los campos a mostrar si no quieres todos
+    fields = ('pregunta', 'respuesta_texto', 'respuesta_escala')
+    can_delete = False # Normalmente no quieres que se borren respuestas individuales fácilmente
+    verbose_name = "Respuesta Individual"
+    verbose_plural = "Respuestas Individuales" # Corregido a verbose_plural
+
+    # Para mostrar la pregunta de forma más amigable en el inline
+    @admin.display(description='Pregunta')
+    def pregunta_display(self, obj):
+        return obj.pregunta.texto_pregunta
+
+
+# Clase ModelAdmin para RespuestaEncuesta
+@admin.register(RespuestaEncuesta)
+class RespuestaEncuestaAdmin(admin.ModelAdmin):
     list_display = (
-        'titulo_curso_solicitado', 'solicitante', 'departamento_solicitante',
-        'fecha_solicitud', 'estado', 'caracter_formacion'
+        'participacion_info', 'encuesta_titulo', 'fecha_respuesta', 'completada'
     )
-    list_filter = ('estado', 'caracter_formacion', 'departamento_solicitante', 'fecha_solicitud')
-    search_fields = ('titulo_curso_solicitado', 'solicitante__username', 'solicitante__first_name', 'solicitante__last_name')
-    date_hierarchy = 'fecha_solicitud'
-    readonly_fields = ('solicitante', 'departamento_solicitante', 'fecha_solicitud')
+    list_filter = ('encuesta', 'completada', 'fecha_respuesta')
+    search_fields = (
+        'participacion__empleado__username',
+        'participacion__empleado__first_name',
+        'participacion__empleado__last_name',
+        'participacion__curso__nombre',
+        'encuesta__titulo',
+    )
+    date_hierarchy = 'fecha_respuesta'
+    # Los campos de relación son de solo lectura porque se asignan automáticamente
+    readonly_fields = ('participacion', 'encuesta', 'fecha_respuesta')
+    
+    # Añadimos el inline para DetalleRespuesta aquí
+    inlines = [DetalleRespuestaInline]
+
     fieldsets = (
         (None, {
-            'fields': ('solicitante', 'departamento_solicitante', 'fecha_solicitud', 'titulo_curso_solicitado', 'objetivo_curso', 'justificacion_necesidad')
-        }),
-        ('Detalles de la Formación', {
-            'fields': ('numero_participantes_estimado', 'temas_contenidos_clave', 'formato_preferido', 'duracion_estimada', 'fechas_horarios_preferidos', 'caracter_formacion', 'comentarios_adicionales')
-        }),
-        ('Estado y Revisión', {
-            'fields': ('estado', 'motivo_rechazo', 'comentarios_procesamiento'),
-            'classes': ('collapse',) # Esto hace que esta sección sea colapsable por defecto
+            'fields': ('participacion', 'encuesta', 'fecha_respuesta', 'completada')
         }),
     )
 
-# Registrar los modelos con sus clases Admin personalizadas
-admin.site.register(Departamento, DepartamentoAdmin) 
-admin.site.register(Area, AreaAdmin)             
-admin.site.register(PuestoDeTrabajo, PuestoDeTrabajoAdmin) 
-admin.site.register(Empleado, EmpleadoAdmin)
-admin.site.register(Proveedor, ProveedorAdmin)
-admin.site.register(Proyecto, ProyectoAdmin)
-admin.site.register(Curso, CursoAdmin)
-admin.site.register(Participacion, ParticipacionAdmin)
-admin.site.register(RequisitoPuestoFormacion, RequisitoPuestoFormacionAdmin) 
-admin.site.register(Preseleccion, PreseleccionAdmin)
-admin.site.register(Notificacion, NotificacionAdmin)
-admin.site.register(Titulacion, TitulacionAdmin)
-admin.site.register(RespuestaEncuesta)
-admin.site.register(DetalleRespuesta)
+    # Métodos para mostrar información relacionada en list_display
+    @admin.display(description='Participación / Empleado')
+    def participacion_info(self, obj):
+        if obj.participacion:
+            return f"{obj.participacion.empleado.get_full_name()} ({obj.participacion.curso.nombre})"
+        return "N/A"
+
+    @admin.display(description='Encuesta')
+    def encuesta_titulo(self, obj):
+        if obj.encuesta:
+            # Si la encuesta está ligada a una participación, muestra el nombre del curso
+            if obj.encuesta.participacion and obj.encuesta.participacion.curso:
+                return obj.encuesta.participacion.curso.nombre
+            # Si no, muestra el título de la encuesta si lo tiene (o su PK como fallback)
+            return obj.encuesta.titulo if hasattr(obj.encuesta, 'titulo') else obj.encuesta.pk
+        return "N/A"
+
+
+# Clase ModelAdmin para DetalleRespuesta
+# Generalmente, si usas DetalleRespuestaInline, no necesitas registrar DetalleRespuesta directamente
+# en el admin, ya que se gestiona a través de RespuestaEncuesta.
+# Sin embargo, si quieres acceso directo a DetalleRespuesta, aquí está la clase:
+@admin.register(DetalleRespuesta)
+class DetalleRespuestaAdmin(admin.ModelAdmin):
+    list_display = (
+        'respuesta_encuesta_info', 'pregunta_texto', 'respuesta_texto', 'respuesta_escala'
+    )
+    list_filter = (
+        'pregunta__tipo_pregunta',
+        'pregunta__encuesta', # Filtra por la encuesta a la que pertenece la pregunta
+        'respuesta_escala',
+    )
+    search_fields = (
+        'pregunta__texto_pregunta',
+        'respuesta_texto',
+        'respuesta_encuesta__participacion__empleado__username',
+        'respuesta_encuesta__participacion__curso__nombre',
+    )
+    readonly_fields = ('respuesta_encuesta', 'pregunta', 'respuesta_texto', 'respuesta_escala') # Todos los campos son de solo lectura
+    
+    fieldsets = (
+        (None, {
+            'fields': ('respuesta_encuesta', 'pregunta', 'respuesta_texto', 'respuesta_escala')
+        }),
+    )
+
+    # Métodos para mostrar información relacionada en list_display
+    @admin.display(description='Respuesta de Encuesta (Participante / Curso)')
+    def respuesta_encuesta_info(self, obj):
+        if obj.respuesta_encuesta and obj.respuesta_encuesta.participacion:
+            participacion = obj.respuesta_encuesta.participacion
+            return f"{participacion.empleado.get_full_name()} - {participacion.curso.nombre}"
+        return "N/A"
+
+    @admin.display(description='Pregunta')
+    def pregunta_texto(self, obj):
+        if obj.pregunta:
+            return obj.pregunta.texto_pregunta
+        return "N/A"
+
