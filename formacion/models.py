@@ -310,23 +310,23 @@ class Empleado(AbstractUser):
 
     @property
     def is_rrhh(self):
-        return self.groups.filter(name='RRHH').exists()
+        return self.groups.filter(name=settings.GRUPO_RRHH).exists()
 
     @property
     def is_formacion(self):
-        return self.groups.filter(name='Formación').exists()
+        return self.groups.filter(name=settings.GRUPO_FORMACION).exists()
 
     @property
     def is_coordinador(self):
-        return self.groups.filter(name='Coordinador').exists()
+        return self.groups.filter(name=settings.GRUPO_COORDINADOR).exists()
 
     @property
     def is_direccion(self):
-        return self.groups.filter(name='Dirección').exists()
+        return self.groups.filter(name=settings.GRUPO_DIRECCION).exists()
 
     @property
     def is_empleado_rol(self):
-        return self.groups.filter(name='Empleado').exists()
+        return self.groups.filter(name=settings.GRUPO_EMPLEADO).exists()
 
 
 class Proveedor(models.Model):

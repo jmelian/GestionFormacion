@@ -322,7 +322,7 @@ def preseleccionar_empleado(request):
 
                         mensaje_notificacion = f'Nueva preselección creada por "{empleado_coordinador.get_full_name()}" para el curso "{nueva_preseleccion.curso.nombre}" de "{nueva_preseleccion.empleado.get_full_name()}". Pendiente de validar.'
 
-                        grupos_a_notificar = ['Formación', 'RRHH', 'Dirección']
+                        grupos_a_notificar = [settings.GRUPO_FORMACION, settings.GRUPO_RRHH, settings.GRUPO_DIRECCION]
 
                         try:
                             for group_name in grupos_a_notificar:
@@ -614,7 +614,7 @@ def gestionar_preseleccion(request, preseleccion_id):
     curso_preseleccionado = preseleccion.curso
     usuario_actual = request.user
 
-    es_rrhh_o_formacion_o_direccion = usuario_actual.groups.filter(name__in=['Formación', 'Dirección', 'RRHH']).exists()
+    es_rrhh_o_formacion_o_direccion = usuario_actual.groups.filter(name__in=[settings.GRUPO_FORMACION, settings.GRUPO_DIRECCION, settings.GRUPO_RRHH]).exists()
     es_admin = usuario_actual.is_superuser
 
     es_coordinador_del_departamento_de_la_preseleccion = False
@@ -728,7 +728,7 @@ def cancelar_participacion(request, participacion_id):
     if es_coordinador(usuario_actual) and participacion.empleado.departamento == getattr(usuario_actual, 'departamento_coordinado', None):
         es_coordinador_departamento = True
 
-    es_rrhh_o_formacion_o_direccion = usuario_actual.groups.filter(name__in=['Formación', 'Dirección', 'RRHH']).exists()
+    es_rrhh_o_formacion_o_direccion = usuario_actual.groups.filter(name__in=[settings.GRUPO_FORMACION, settings.GRUPO_DIRECCION, settings.GRUPO_RRHH]).exists()
     es_admin = usuario_actual.is_superuser
 
     puede_cancelar = es_propio_empleado or es_coordinador_departamento or es_rrhh_o_formacion_o_direccion or es_admin
@@ -772,11 +772,11 @@ def cancelar_participacion(request, participacion_id):
             )
 
         try:
-            formacion_group = Group.objects.get(name='Formación')
+            formacion_group = Group.objects.get(name=settings.GRUPO_FORMACION)
             usuarios_formacion_a_notificar = Empleado.objects.filter(
                 groups=formacion_group
             ).exclude(
-                groups__name='Dirección'
+                groups__name=settings.GRUPO_DIRECCION
             ).exclude(
                 id=usuario_actual.id
             ).distinct()
@@ -789,7 +789,7 @@ def cancelar_participacion(request, participacion_id):
                 )
 
         except Group.DoesNotExist:
-            print("ERROR: El grupo 'Formación' NO existe en la base de datos. Asegúrate de crearlo en el admin de Django.")
+            print("ERROR: El grupo settings.GRUPO_FORMACION NO existe en la base de datos. Asegúrate de crearlo en el admin de Django.")
         except Exception as e:
             print(f"ERROR inesperado al notificar al grupo Formación: {e}")
 
@@ -805,7 +805,7 @@ def rechazar_participacion(request, participacion_id):
     if es_coordinador(usuario_actual) and participacion.empleado.departamento == getattr(usuario_actual, 'departamento_coordinado', None):
         es_coordinador_departamento = True
 
-    es_rrhh_o_formacion_o_direccion = usuario_actual.groups.filter(name__in=['Formación', 'Dirección', 'RRHH']).exists()
+    es_rrhh_o_formacion_o_direccion = usuario_actual.groups.filter(name__in=[settings.GRUPO_FORMACION, settings.GRUPO_DIRECCION, settings.GRUPO_RRHH]).exists()
     es_admin = usuario_actual.is_superuser
 
     puede_rechazar = es_coordinador_departamento or es_rrhh_o_formacion_o_direccion or es_admin
@@ -851,11 +851,11 @@ def rechazar_participacion(request, participacion_id):
             )
 
         try:
-            formacion_group = Group.objects.get(name='Formación')
+            formacion_group = Group.objects.get(name=settings.GRUPO_FORMACION)
             usuarios_formacion_a_notificar = Empleado.objects.filter(
                 groups=formacion_group
             ).exclude(
-                groups__name='Dirección'
+                groups__name=settings.GRUPO_DIRECCION
             ).exclude(
                 id=usuario_actual.id
             ).distinct()
@@ -868,7 +868,7 @@ def rechazar_participacion(request, participacion_id):
                 )
 
         except Group.DoesNotExist:
-            print("ERROR: El grupo 'Formación' NO existe en la base de datos. Asegúrate de crearlo en el admin de Django.")
+            print("ERROR: El grupo settings.GRUPO_FORMACION NO existe en la base de datos. Asegúrate de crearlo en el admin de Django.")
         except Exception as e:
             print(f"ERROR inesperado al notificar al grupo Formación en rechazo: {e}")
 
@@ -883,7 +883,7 @@ def listar_participantes_curso(request, curso_id):
     ).select_related('empleado', 'curso', 'empleado__departamento', 'empleado__codigo_puesto')
 
     usuario_actual = request.user
-    es_rrhh_o_formacion_o_direccion = usuario_actual.groups.filter(name__in=['Formación', 'Dirección', 'RRHH']).exists()
+    es_rrhh_o_formacion_o_direccion = usuario_actual.groups.filter(name__in=[settings.GRUPO_FORMACION, settings.GRUPO_DIRECCION, settings.GRUPO_RRHH]).exists()
     es_admin = usuario_actual.is_superuser
 
     es_coordinador_curso_solicitante = False
@@ -1197,7 +1197,7 @@ def dashboard(request):
 @login_required
 @user_passes_test(es_formacion_o_direccion_o_rrhh, login_url='formacion:dashboard')
 def estado_cursos(request):
-    grupos_permitidos = ['Formación', 'RRHH', 'Dirección']
+    grupos_permitidos = [settings.GRUPO_FORMACION, settings.GRUPO_RRHH, settings.GRUPO_DIRECCION]
     if not request.user.groups.filter(name__in=grupos_permitidos).exists() and not request.user.is_superuser:
         messages.error(request, "No tienes permisos para acceder a esta página.")
         return redirect('formacion:dashboard')
@@ -1371,7 +1371,7 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
         )
         tipo_notificacion = 'info' # O 'new_request' si tienes un tipo específico
 
-        grupos_a_notificar = ['Formación', 'RRHH', 'Dirección']
+        grupos_a_notificar = [settings.GRUPO_FORMACION, settings.GRUPO_RRHH, settings.GRUPO_DIRECCION]
         usuarios_notificados_ids = set() # Para evitar duplicados si un usuario está en varios grupos
 
         # El bloque transaction.atomic() debe envolver TODAS las operaciones de BD
