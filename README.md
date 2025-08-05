@@ -110,6 +110,29 @@ Para `SECRET_KEY`: Puedes generar una clave segura ejecutando en tu terminal (co
 python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
 ```
 
+## Base de Datos y Migraciones
+Aplica las migraciones de la base de datos para crear las tablas necesarias:
+```bash
+python manage.py migrate
+```
+
+## Crear un Superusuario
+Necesitarás un superusuario para acceder al panel de administración de Django:
+```bash
+python manage.py createsuperuser
+```
+
+Sigue las instrucciones en la terminal para crear tu usuario y contraseña.
+
+Ejecutar el Servidor de Desarrollo
+Una vez que todo esté configurado, puedes iniciar el servidor de desarrollo de Django:
+```bash
+python manage.py runserver
+```
+
+El servidor estará disponible en `http://127.0.0.1:8000/` (o la dirección que te indique la terminal).
+
+
 ## Configuración Inicial de la Aplicación
 Para asegurar que tu aplicación tenga los grupos de usuarios y permisos necesarios desde el principio (ej. `RRHH`, `Formación`, `Coordinador`, `Dirección`), puedes cargar los datos iniciales proporcionados. Estos archivos definen la estructura de permisos y roles que la aplicación espera.
 
@@ -132,29 +155,6 @@ python manage.py loaddata initial_permissions.json
 ```
 
 >**Nota**: Estos archivos se pueden generar usando el comando _dumpdata_ de Django. Por ejemplo: `python manage.py dumpdata auth.Group --indent 2 > initial_groups.json`. Si encuentras problemas de codificación al generarlos, especialmente en Windows, puedes usar ´export PYTHONIOENCODING=utf-8´ antes del comando dumpdata.
-
-
-## Base de Datos y Migraciones
-Aplica las migraciones de la base de datos para crear las tablas necesarias:
-```bash
-python manage.py migrate
-```
-
-## Crear un Superusuario
-Necesitarás un superusuario para acceder al panel de administración de Django:
-```bash
-python manage.py createsuperuser
-```
-
-Sigue las instrucciones en la terminal para crear tu usuario y contraseña.
-
-Ejecutar el Servidor de Desarrollo
-Una vez que todo esté configurado, puedes iniciar el servidor de desarrollo de Django:
-```bash
-python manage.py runserver
-```
-
-El servidor estará disponible en `http://127.0.0.1:8000/` (o la dirección que te indique la terminal).
 
 ## Acceso al Panel de Administración
 Puedes acceder al panel de administración de Django en:
