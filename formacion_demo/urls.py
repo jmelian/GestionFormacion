@@ -1,4 +1,4 @@
-# tu_proyecto/urls.py (o como se llame la carpeta principal de tu proyecto)
+# formacion_demo/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings

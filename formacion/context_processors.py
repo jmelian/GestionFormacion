@@ -1,5 +1,5 @@
 # formacion/context_processors.py
-from .models import Notificacion, Empleado # Asegúrate de importar Empleado y Notificacion
+from .models import Notificacion, Empleado
 from django.conf import settings
 
 # Importamos las funciones específicas de tus vistas para determinar los roles
@@ -16,7 +16,6 @@ def global_context(request):
 
     if user.is_authenticated:
         # Notificaciones
-        # Asumiendo que 'usuario' es el campo ForeignKey en Notificacion que apunta a Empleado
         context['num_notificaciones'] = Notificacion.objects.filter(usuario=user, leida=False).count()
 
         # Roles del usuario
@@ -30,7 +29,5 @@ def global_context(request):
         # Usamos las funciones de tus vistas para determinar roles combinados si es necesario
         context['es_coordinador'] = es_coordinador(user)
         context['es_formacion_o_direccion'] = es_formacion_o_direccion(user)
-        
-        # Ya no necesitamos context['es_rrhh_o_formacion_o_direccion'] aquí
-        
+                
     return context

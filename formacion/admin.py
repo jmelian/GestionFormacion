@@ -24,7 +24,7 @@ class EmpleadoAdmin(UserAdmin):
 
     list_display = (
         'username', 'email', 'first_name', 'last_name',
-        'is_staff', 'departamento', 'area', 'es_empleado_activo' # Usa el nuevo campo 'departamento' directo aquí
+        'is_staff', 'departamento', 'area', 'es_empleado_activo'
     )
     list_filter = (
         'is_staff', 'is_superuser', 'is_active', 'groups',
@@ -42,7 +42,7 @@ class EmpleadoAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         (_('Información de Empleado'), {
             'fields': (
-                'dni', 'departamento', 'area', 'codigo_puesto', 'sexo', # AÑADE 'departamento' aquí
+                'dni', 'departamento', 'area', 'codigo_puesto', 'sexo',
                 'sede', 'estado', 'es_empleado_activo', 'puesto'
             ),
         }),
@@ -65,15 +65,12 @@ class EmpleadoAdmin(UserAdmin):
     )
     
 
-# Admin para el modelo Departamento
 @admin.register(Departamento)
 class DepartamentoAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'coordinador')
     search_fields = ('nombre', 'coordinador__username', 'coordinador__first_name', 'coordinador__last_name')
-    # Quita raw_id_fields = ('coordinador',)
-    fields = ('nombre', 'descripcion', 'coordinador') # Asegúrate de incluir 'coordinador' aquí
+    fields = ('nombre', 'descripcion', 'coordinador')
 
-# Admin para el nuevo modelo Area
 @admin.register(Area)
 class AreaAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'departamento', 'descripcion')
@@ -81,7 +78,6 @@ class AreaAdmin(admin.ModelAdmin):
     search_fields = ('nombre', 'descripcion', 'departamento__nombre')
     raw_id_fields = ('departamento',)
 
-# Admin para el nuevo modelo PuestoDeTrabajo
 @admin.register(PuestoDeTrabajo)
 class PuestoDeTrabajoAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'codigo', 'departamento')
@@ -91,15 +87,13 @@ class PuestoDeTrabajoAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at')
 
 
-# Admin para el nuevo modelo Proveedor
 @admin.register(Proveedor)
 class ProveedorAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'telefono', 'email', 'created_at') 
-    search_fields = ('nombre', 'email', 'telefono') # 'contacto' eliminado
+    search_fields = ('nombre', 'email', 'telefono')
     list_filter = ('created_at',)
     readonly_fields = ('created_at', 'updated_at')
 
-# Admin para el nuevo modelo Proyecto
 @admin.register(Proyecto)
 class ProyectoAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'jefe_proyecto', 'estado', 'fecha_inicio', 'fecha_fin_prevista', 'created_at')
@@ -109,7 +103,6 @@ class ProyectoAdmin(admin.ModelAdmin):
     raw_id_fields = ('jefe_proyecto',)
     readonly_fields = ('created_at', 'updated_at')
 
-# Admin para el modelo Curso
 @admin.register(Curso)
 class CursoAdmin(admin.ModelAdmin):
     form = CursoForm
@@ -127,7 +120,6 @@ class CursoAdmin(admin.ModelAdmin):
     raw_id_fields = ('proveedor', 'proyecto', 'departamento_solicitante')
 
 
-# Admin para el modelo Participacion
 @admin.register(Participacion)
 class ParticipacionAdmin(admin.ModelAdmin):
     list_display = (
@@ -148,7 +140,6 @@ class ParticipacionAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     raw_id_fields = ('empleado', 'curso')
 
-# Admin para el modelo Titulacion
 @admin.register(Titulacion)
 class TitulacionAdmin(admin.ModelAdmin):
     list_display = (
@@ -196,14 +187,12 @@ class TitulacionAdmin(admin.ModelAdmin):
     )
 
 
-# Admin para el modelo RequisitoPuestoFormacion
 @admin.register(RequisitoPuestoFormacion)
 class RequisitoPuestoFormacionAdmin(admin.ModelAdmin):
     list_display = ('puesto', 'curso', 'tipo_requisito')
     list_filter = ('puesto__departamento', 'puesto__nombre', 'curso__tipo', 'tipo_requisito')
     search_fields = ('puesto__nombre', 'curso__nombre', 'observaciones')
 
-# Admin para el modelo Preseleccion
 @admin.register(Preseleccion)
 class PreseleccionAdmin(admin.ModelAdmin):
     list_display = ('empleado', 'curso', 'prioridad', 'creado_por', 'fecha')
@@ -217,7 +206,6 @@ class PreseleccionAdmin(admin.ModelAdmin):
     raw_id_fields = ('empleado', 'curso', 'creado_por')
     date_hierarchy = 'fecha'
 
-# Admin para el modelo Notificacion
 @admin.register(Notificacion)
 class NotificacionAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'mensaje', 'leida', 'fecha', 'tipo', 'url')
@@ -336,15 +324,13 @@ class EncuestaSatisfaccionAdmin(admin.ModelAdmin):
         }),
     )
 
-    # ¡Aquí se añade el inline para PreguntaEncuesta!
     inlines = [PreguntaEncuestaInline]
 
     # Métodos para list_display que no son campos directos del modelo
-    @admin.display(description='Participación') # Etiqueta más limpia
+    @admin.display(description='Participación')
     def participacion_link(self, obj):
         from django.utils.html import format_html
         from django.urls import reverse
-        # Intenta enlazar al detalle de la participación si tienes una URL para ello
         try:
             # enlazar a la vista de cambio de la participación en el admin
             url = reverse('admin:%s_%s_change' % (obj.participacion._meta.app_label, obj.participacion._meta.model_name), args=[obj.participacion.id])
@@ -370,11 +356,10 @@ class DetalleRespuestaInline(admin.TabularInline):
     extra = 0 # No mostrar formularios vacíos por defecto
     # Todos los campos son de solo lectura ya que son las respuestas enviadas
     readonly_fields = ('pregunta', 'respuesta_texto', 'respuesta_escala')
-    # Puedes especificar los campos a mostrar si no quieres todos
     fields = ('pregunta', 'respuesta_texto', 'respuesta_escala')
-    can_delete = False # Normalmente no quieres que se borren respuestas individuales fácilmente
+    can_delete = False 
     verbose_name = "Respuesta Individual"
-    verbose_plural = "Respuestas Individuales" # Corregido a verbose_plural
+    verbose_plural = "Respuestas Individuales"
 
     # Para mostrar la pregunta de forma más amigable en el inline
     @admin.display(description='Pregunta')
@@ -382,7 +367,6 @@ class DetalleRespuestaInline(admin.TabularInline):
         return obj.pregunta.texto_pregunta
 
 
-# Clase ModelAdmin para RespuestaEncuesta
 @admin.register(RespuestaEncuesta)
 class RespuestaEncuestaAdmin(admin.ModelAdmin):
     list_display = (
@@ -427,10 +411,6 @@ class RespuestaEncuestaAdmin(admin.ModelAdmin):
         return "N/A"
 
 
-# Clase ModelAdmin para DetalleRespuesta
-# Generalmente, si usas DetalleRespuestaInline, no necesitas registrar DetalleRespuesta directamente
-# en el admin, ya que se gestiona a través de RespuestaEncuesta.
-# Sin embargo, si quieres acceso directo a DetalleRespuesta, aquí está la clase:
 @admin.register(DetalleRespuesta)
 class DetalleRespuestaAdmin(admin.ModelAdmin):
     list_display = (

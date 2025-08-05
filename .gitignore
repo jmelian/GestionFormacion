@@ -12,17 +12,7 @@ __pycache__/
 *.db
 
 # Archivos de configuración de Django sensibles
-# ¡IMPORTANTE! Si tu settings.py principal contiene la SECRET_KEY y credenciales,
-# DEBES mover esa información a variables de entorno o a un archivo local_settings.py
-# que esté IGNORADO aquí.
-#
-# Opción 1: Usando un archivo .env (recomendado con python-decouple o django-environ)
 .env 
-
-# Opción 2: Usando un archivo local_settings.py
-# Si tienes un archivo como 'myproject/local_settings.py' que contiene la info sensible
-# y es importado por tu settings.py principal, ignóralo así:
-# myproject/local_settings.py # Reemplaza 'myproject' por el nombre de tu carpeta de proyecto principal
 
 # Archivos de medios subidos por usuarios
 media/

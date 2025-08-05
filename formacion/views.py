@@ -135,8 +135,7 @@ def certificados_pendientes_rrhh(request):
             messages.success(request, f"Certificado de {participacion.empleado.get_full_name()} validado correctamente.")
         else:
             messages.info(request, "Este certificado ya estaba validado.")
-        # Ojo: 'certificados_pendientes_rrhh' necesita ser el nombre de la URL, no de la vista.
-        # Asumiendo que tu url conf tiene un 'name'='certificados_pendientes_rrhh'
+
         return redirect('formacion:certificados_pendientes_rrhh')
 
     participaciones = Participacion.objects.filter(
@@ -159,13 +158,12 @@ def titulaciones_pendientes_rrhh(request):
             # Solo validar si está pendiente de revisión
             if titulacion.estado == 'pendiente':
                 with transaction.atomic():
-                    # Eliminamos titulacion.validado_rrhh = True
-                    titulacion.estado = 'aprobado'   # Establece el estado a 'aprobado'
+                    titulacion.estado = 'aprobado' 
                     titulacion.save()
 
                     Notificacion.objects.create(
                         usuario=titulacion.empleado,
-                        mensaje=f"Tu titulación de '{titulacion.nombre}' ha sido **validada** por RRHH.",
+                        mensaje=f"Tu titulación de '{titulacion.nombre}' ha sido <strong>validada</strong> por RRHH.",
                         tipo='success',
                         url=reverse('formacion:detalle_titulacion', args=[titulacion.id]),
                         leida=False
@@ -186,12 +184,11 @@ def titulaciones_pendientes_rrhh(request):
                 with transaction.atomic():
                     titulacion.estado = 'rechazado' # Establece el estado a 'rechazado'
                     titulacion.motivo_rechazo = motivo_rechazo # Guarda el motivo del rechazo
-                    # Eliminamos titulacion.validado_rrhh = False (ya no es necesario)
                     titulacion.save()
 
                     Notificacion.objects.create(
                         usuario=titulacion.empleado,
-                        mensaje=f"Tu titulación de '{titulacion.nombre}' ha sido **rechazada** por RRHH. Motivo: {motivo_rechazo}",
+                        mensaje=f"Tu titulación de '{titulacion.nombre}' ha sido <strong>rechazada</strong> por RRHH. Motivo: {motivo_rechazo}",
                         tipo='danger',
                         url=reverse('formacion:detalle_titulacion', args=[titulacion.id]),
                         leida=False
@@ -209,7 +206,6 @@ def titulaciones_pendientes_rrhh(request):
         estado='pendiente' # Solo muestra las titulaciones que están pendientes de revisión por RRHH
     ).select_related('empleado', 'curso_relacionado')
 
-    # ... (el resto de tu lógica de ordenación y paginación es la misma) ...
     sort_by = request.GET.get('sort_by', 'fecha_obtencion')
     direction = request.GET.get('direction', 'asc')
 
@@ -387,10 +383,6 @@ def gestionar_preselecciones_curso(request, curso_id):
         queryset=Participacion.objects.filter(curso=curso),
         to_attr='_participaciones_para_curso_en_empleado'
     )
-
-    #preselecciones = Preseleccion.objects.filter(curso=curso).exclude(
-    #    empleado_id__in=participaciones_activas_ids
-    #).order_by('prioridad').select_related('empleado__departamento').prefetch_related(participaciones_prefetch)
 
     preselecciones = Preseleccion.objects.filter(curso=curso).order_by('prioridad').select_related('empleado__departamento').prefetch_related(participaciones_prefetch)
 
@@ -893,7 +885,7 @@ def listar_participantes_curso(request, curso_id):
 
     if not (es_rrhh_o_formacion_o_direccion or es_admin or es_coordinador_curso_solicitante):
         messages.error(request, "No tienes permisos para ver los participantes de este curso.")
-        return redirect('formacion:dashboard') # CAMBIADO AQUÍ
+        return redirect('formacion:dashboard')
 
     estados_no_rechazables = ['rechazado', 'cancelado', 'completado', 'asistido']
     for participacion in participaciones:
@@ -938,18 +930,13 @@ def empleados_con_formacion(request):
     # --- Filtro por Palabras Clave ---
     keyword = request.GET.get('keyword', '').strip() # .strip() para limpiar espacios en blanco
     if keyword:
-        # CORRECCIÓN CLAVE: Nombres de relación y acceso al campo 'nombre' de Titulacion
-        # Asumo que Empleado tiene related_name='participaciones' y related_name='titulaciones'
-        # Si no, deberías usar 'participacion_set' y 'titulacionempleado_set'
-        # Y para titulaciones, necesitas ir a través del modelo intermedio 'TitulacionEmpleado'
-        # hasta la Titulacion real para buscar por su nombre.
         empleados_qs = empleados_qs.filter(
             Q(first_name__icontains=keyword) |
             Q(last_name__icontains=keyword) |
             Q(email__icontains=keyword) |
             Q(participaciones__curso__nombre__icontains=keyword) | # Busca en nombre del curso de Participacion
-            Q(titulaciones__nombre__icontains=keyword) # <-- ¡CORREGIDO AQUÍ!
-        ).distinct() # Usa distinct() para evitar empleados duplicados si tienen múltiples coincidencias # Usa distinct() para evitar empleados duplicados si tienen múltiples coincidencias
+            Q(titulaciones__nombre__icontains=keyword)
+        ).distinct()
 
     # --- Ordenación de Columnas ---
     # Los valores de 'sort_by' deben coincidir con las 'field_name' de la plantilla
@@ -972,11 +959,8 @@ def empleados_con_formacion(request):
     empleados_qs = empleados_qs.order_by(sort_field)
 
     # Anotar el número de formaciones y titulaciones para el resumen visual
-    # Las anotaciones se aplican *después* de los filtros para reflejar el conjunto filtrado
+    # Las anotaciones se aplican después de los filtros para reflejar el conjunto filtrado
     empleados_qs = empleados_qs.annotate(
-        # Asegúrate que 'participaciones' y 'titulaciones' son los related_name correctos
-        # de los ForeignKey en Participacion y TitulacionEmpleado hacia Empleado.
-        # Si no, usa 'participacion_set' y 'titulacionempleado_set'
         num_participaciones=Count('participaciones', distinct=True),
         num_titulaciones=Count('titulaciones', distinct=True)
     ).select_related('departamento') # Para evitar consultas N+1 al acceder a empleado.departamento.nombre
@@ -984,7 +968,6 @@ def empleados_con_formacion(request):
     # Obtiene todos los departamentos para el filtro de la plantilla
     departamentos = Departamento.objects.all().order_by('nombre')
 
-    # DEFINE Y PASA tabla_columnas AL CONTEXTO (¡Crucial para que tu plantilla funcione!)
     tabla_columnas = {
         'Usuario': 'username',
         'Nombre Completo': 'first_name',
@@ -998,7 +981,7 @@ def empleados_con_formacion(request):
         'sort_by': sort_by,
         'direction': direction,
         'keyword': keyword, # Pasa la palabra clave al template para que se mantenga en el input
-        'tabla_columnas': tabla_columnas, # ¡IMPORTANTE! Pasa esto a la plantilla
+        'tabla_columnas': tabla_columnas,
     }
     return render(request, 'formacion/empleados_con_formacion.html', context)
 
@@ -1054,8 +1037,7 @@ def editar_perfil_empleado(request):
     context = {
         'empleado': empleado_instance,
     }
-    return render(request, 'formacion/perfil_empleado_visualizar.html', context) # Cambia el nombre de la plantilla
-
+    return render(request, 'formacion/perfil_empleado_visualizar.html', context)
 # Vistas para la gestión de Titulaciones/Certificaciones (Auto-Servicio)
 # --------------------------------------------------------------------------
 
@@ -1090,7 +1072,7 @@ class MiTitulacionCreateView(LoginRequiredMixin, CreateView):
         tipo_titulacion_seleccionado = form.cleaned_data.get('tipo_titulacion')
         # Asigna el Nivel MECES usando el mapa de constantes.
         # Si el tipo de titulación no está en el mapa, asigna un valor por defecto.
-        form.instance.nivel_meces = TIPO_TITULACION_MECES_MAP.get(tipo_titulacion_seleccionado, 'otro_meces') # 'otro_meces' es un ejemplo, usa el valor por defecto que te convenga
+        form.instance.nivel_meces = TIPO_TITULACION_MECES_MAP.get(tipo_titulacion_seleccionado, 'otro_meces')
         
         messages.success(self.request, '¡Tu nueva titulación ha sido añadida correctamente!')
         return super().form_valid(form)
@@ -1254,14 +1236,14 @@ def estado_cursos(request):
             'fecha_fin': curso.fecha_fin,
             'plazas_totales': curso.plazas_totales,
             'plazas_disponibles': curso.plazas_disponibles,
-            # 'num_postulados': num_postulados, # Este ya no se muestra directamente en tabla
-            # 'num_aceptados': aceptados,      # Estos ya no se muestran directamente en tabla
+            # 'num_postulados': num_postulados, 
+            # 'num_aceptados': aceptados, 
             # 'num_asistidos': asistidos,
             # 'num_completados': completados,
             # 'num_cancelados': cancelados,
             # 'num_rechazados': rechazados,
             'num_pendientes_validar': pendientes_validar, # Se mantiene para la lógica del botón de acciones
-            'participacion_resumen': participacion_resumen, # La nueva columna resumida
+            'participacion_resumen': participacion_resumen,
         }
         datos_cursos_con_estado.append(curso_data)
 
@@ -1283,17 +1265,14 @@ def crear_editar_curso(request, curso_id=None):
         form = CursoForm(request.POST, instance=curso)
         if form.is_valid():
             form.save()
-            # Determine success message based on whether it was a creation or an edit
             if curso_id:
                 messages.success(request, f"El curso '{curso.nombre}' ha sido actualizado correctamente.")
             else:
                 messages.success(request, f"El curso '{form.instance.nombre}' ha sido creado correctamente.")
             
-            # Redirect to the HR course management list
             return redirect('formacion:gestion_cursos') 
         else:
             messages.error(request, "Error al guardar el curso. Revisa los datos.")
-            # If form is invalid, re-render the form with errors
             return render(request, 'formacion/crear_editar_curso.html', {'form': form, 'curso': curso})
     else:
         form = CursoForm(instance=curso)
@@ -1334,8 +1313,6 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
     def form_valid(self, form):
         form.instance.solicitante = self.request.user
         
-        # Asumiendo que el usuario tiene un objeto Empleado relacionado con un departamento
-        # Ajusta esta lógica a cómo tu modelo de Usuario se relaciona con el departamento
         if hasattr(self.request.user, 'empleado') and self.request.user.empleado.departamento:
             form.instance.departamento_solicitante = self.request.user.empleado.departamento
         else:
@@ -1346,13 +1323,10 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
         response = super().form_valid(form) 
         
         # Enviar notificación después de guardar la solicitud (crea Notificacion en BD)
-        # La llamada a este método debe estar dentro del bloque try-except
-        # si queremos manejar errores de transacción aquí.
         try:
             self.enviar_notificacion_solicitud_curso(form.instance)
         except TransactionManagementError as e:
             messages.error(self.request, f"Error en la transacción de notificaciones. Por favor, inténtalo de nuevo. ({e})")
-            # Podrías querer hacer algo más aquí, como registrar el error
         except Exception as e:
             messages.error(self.request, f"Ocurrió un error inesperado al enviar notificaciones. ({e})")
         
@@ -1369,7 +1343,7 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
             f'para el curso: "{solicitud_curso.titulo_curso_solicitado}". '
             f'Pendiente de revisión.'
         )
-        tipo_notificacion = 'info' # O 'new_request' si tienes un tipo específico
+        tipo_notificacion = 'info'
 
         grupos_a_notificar = [settings.GRUPO_FORMACION, settings.GRUPO_RRHH, settings.GRUPO_DIRECCION]
         usuarios_notificados_ids = set() # Para evitar duplicados si un usuario está en varios grupos
@@ -1401,12 +1375,11 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
 
                 except Group.DoesNotExist:
                     print(f"Advertencia: El grupo '{group_name}' no existe. No se enviaron notificaciones a este grupo.")
-                    # Continúa con el siguiente grupo, no levanta TransactionManagementError
-                    continue # <--- ¡IMPORTANTE! Continúa con el siguiente elemento del bucle
+                    continue 
                 except Exception as e:
                     print(f"Error al enviar notificación al grupo '{group_name}': {e}")
                     # Si ocurre otro error, también continúa para no bloquear la transacción
-                    continue # <--- ¡IMPORTANTE! Continúa con el siguiente elemento del bucle
+                    continue
             
             # Notificar a superusuarios que no estén ya en los grupos anteriores
             super_usuarios = Empleado.objects.filter(is_superuser=True).exclude(
@@ -1424,7 +1397,7 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
                 )
                 usuarios_notificados_ids.add(admin_user.id)
 
-# Convierte la clase en una vista que puedas usar en urls.py
+# Convierte la clase en una vista para usar en urls.py
 solicitud_curso_create = SolicitudCursoCreateView.as_view()
 
 
@@ -1454,7 +1427,7 @@ class SolicitudesCursoGestionListView(LoginRequiredMixin, UserPassesTestMixin, L
             estado__in=['pendiente', 'aprobada', 'en_proceso']
         ).order_by('-fecha_solicitud')
 
-# Convierte la clase en una vista que puedas usar en urls.py
+# Convierte la clase en una vista para usar en urls.py
 solicitudes_curso_gestion_list = SolicitudesCursoGestionListView.as_view()
 
 
@@ -1473,7 +1446,7 @@ class SolicitudCursoDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailVi
         messages.error(self.request, "No tienes permiso para ver el detalle de esta solicitud.")
         return redirect('formacion:dashboard')
 
-# Convierte la clase en una vista que puedas usar en urls.py
+# Convierte la clase en una vista para usar en urls.py
 solicitud_curso_detail = SolicitudCursoDetailView.as_view()
 
 
@@ -1578,7 +1551,7 @@ class AceptarSolicitudView(SolicitudCursoAccionBase):
     def get_success_message(self, solicitud):
         return f"Solicitud '{solicitud.titulo_curso_solicitado}' aceptada y en planificación."
 
-# Convierte la clase en una vista que puedas usar en urls.py
+# Convierte la clase en una vista para usar en urls.py
 aceptar_solicitud = AceptarSolicitudView.as_view()
 
 
@@ -1626,23 +1599,14 @@ class ProcesarSolicitudView(SolicitudCursoAccionBase):
     No envía notificación al coordinador.
     """
     def perform_action(self, solicitud):
-        solicitud.estado = 'completada' # Cambiamos a 'completada' según tu modelo
-        # Opcional: Aquí podrías añadir lógica para crear una instancia de tu modelo Curso
-        # Por ejemplo:
-        # from tu_app_de_cursos.models import Curso # Asegúrate de importar tu modelo Curso
-        # Curso.objects.create(
-        #     nombre=solicitud.titulo_curso_solicitado,
-        #     descripcion=solicitud.objetivo_curso,
-        #     # ... mapear otros campos de SolicitudCurso a Curso ...
-        #     # Puedes usar solicitud.comentarios_procesamiento si quieres guardar notas internas
-        # )
+        solicitud.estado = 'completada' 
         solicitud.save()
         # NO se envía notificación al coordinador para esta acción
 
     def get_success_message(self, solicitud):
         return f"Solicitud '{solicitud.titulo_curso_solicitado}' procesada, asumiendo que se convertirá en curso formal."
 
-# Convierte la clase en una vista que puedas usar en urls.py
+# Convierte la clase en una vista para usar en urls.py
 procesar_solicitud = ProcesarSolicitudView.as_view()
 
 @login_required
@@ -1701,9 +1665,9 @@ def cursos_obligatorios_lista(request):
                 'curso': curso,
                 'es_obligatorio_general': es_obligatorio_general,
                 'puestos_obligatorios': puestos_obligatorios_nombres,
-                'estado_usuario': estado_usuario, # Nuevo: estado del usuario en este curso
-                'puede_solicitar': puede_solicitar, # Nuevo: si puede solicitarlo
-                'motivo_no_solicitar': motivo_no_solicitar, # Nuevo: motivo si no puede solicitarlo
+                'estado_usuario': estado_usuario,
+                'puede_solicitar': puede_solicitar,
+                'motivo_no_solicitar': motivo_no_solicitar,
             })
 
     context = {
@@ -1713,8 +1677,6 @@ def cursos_obligatorios_lista(request):
     return render(request, 'formacion/cursos_obligatorios_lista.html', context)
 
 
-# La vista `solicitar_inscripcion_curso` debe seguir presente en tu formacion/views.py
-# Asegúrate de que las redirecciones en esta vista apunten a 'formacion:cursos_obligatorios_lista'
 @login_required
 def solicitar_inscripcion_curso(request, curso_id):
     """
@@ -1815,12 +1777,10 @@ def aprobar_solicitud_obligatoria(request, participacion_id):
                     if field == '__all__': # Errores no asociados a un campo específico
                         error_messages.append(f"Error general: {error}")
                     else:
-                        # Django a veces cambia el nombre del campo a su 'label' si lo tienes definido.
+                        # Django a veces cambia el nombre del campo a su 'label'.
                         # Para depurar, es útil ver el nombre del campo real.
                         field_name = form.fields[field].label if field in form.fields and form.fields[field].label else field
                         error_messages.append(f"Error en '{field_name}': {error}")
-
-            # Unir todos los errores en un solo mensaje o mostrarlos individualmente
             if error_messages:
                 messages.error(request, " ".join(error_messages))
             else:
@@ -1841,10 +1801,9 @@ def rechazar_solicitud_obligatoria(request, participacion_id):
     if request.method == 'POST':
         if participacion.estado == 'pendiente':
             participacion.estado = 'rechazada'
-            participacion.fecha_confirmacion = timezone.now().date() # Puedes usar fecha_confirmacion o añadir fecha_rechazo
+            participacion.fecha_confirmacion = timezone.now().date() 
             participacion.save()
             messages.warning(request, f'La solicitud de {participacion.empleado.first_name} para "{participacion.curso.nombre}" ha sido RECHAZADA.')
-            # Aquí podrías añadir lógica para enviar una notificación al empleado
         else:
             messages.info(request, 'Esta solicitud ya no está en estado pendiente.')
         return redirect('formacion:gestionar_solicitudes_obligatorias_rrhh')
@@ -1890,20 +1849,18 @@ def marcar_completado(request, participacion_id):
                     participacion.estado = 'completado'
                     form.save() # Guarda los datos del formulario directamente en la instancia
                     
-                    # --- Lógica para la notificación interna ---
                     # Construir la URL de la encuesta usando reverse
                     url_encuesta = reverse('formacion:encuesta_satisfaccion', args=[participacion.id])
                     
                     Notificacion.objects.create(
                         usuario=participacion.empleado,
                         mensaje=f'El curso "{participacion.curso.nombre}" ha sido marcado como COMPLETADO. ¡Felicidades!',
-                        tipo='success', # Mantén el tipo que ya tenías
-                        url=url_encuesta, # <--- ¡AHORA AÑADIMOS LA URL AQUÍ!
-                        leida=False # Asegúrate de que se marque como no leída
+                        tipo='success', 
+                        url=url_encuesta, 
+                        leida=False
                     )
                     # Opcional: print de depuración para confirmar en la consola del servidor
                     print(f"DEBUG: Notificación de completado por RRHH creada para {participacion.empleado.username} con URL: {url_encuesta}")
-                    # --- Fin Lógica para la notificación interna ---
 
                     messages.success(request, f'Participación de {participacion.empleado.get_full_name()} en "{participacion.curso.nombre}" marcada como COMPLETADO.')
             else:
@@ -1922,7 +1879,7 @@ def marcar_completado(request, participacion_id):
     return redirect('formacion:listar_participantes_curso', curso_id=participacion.curso.id)
 
 @login_required
-@user_passes_test(es_rrhh, login_url='formacion:dashboard') # Asumo que 'formacion:dashboard' es tu URL de redirección
+@user_passes_test(es_rrhh, login_url='formacion:dashboard') 
 def gestion_cursos_list(request):
     """
     Vista para que RRHH liste todos los cursos para su gestión,
@@ -1973,12 +1930,8 @@ def encuesta_satisfaccion(request, participacion_id):
             encuesta.empleado = request.user
             encuesta.fecha_encuesta = date.today() # Auto-rellenar la fecha actual
             
-            # Auto-rellenar otros datos del curso si los quieres guardar en la encuesta
-            # Esto es útil si los detalles del curso cambian en el futuro, la encuesta guarda el "snapshot"
             encuesta.nombre_curso_encuesta = participacion.curso.nombre
-            # Si tienes campos para profesor, aula, etc. en tu modelo Curso:
-            # encuesta.nombre_profesor_encuesta = participacion.curso.profesor.nombre if participacion.curso.profesor else None
-
+            
             encuesta.save()
             messages.success(request, "¡Gracias! Tu encuesta de satisfacción ha sido enviada.")
             return redirect('formacion:mis_cursos') # Redirige a mis cursos después de enviar
@@ -1993,8 +1946,6 @@ def encuesta_satisfaccion(request, participacion_id):
         'participacion': participacion,
         'curso': participacion.curso, # Para mostrar detalles del curso en la plantilla
         'fecha_actual': date.today(), # Para mostrar la fecha actual
-        # Aquí puedes pasar otros datos del curso para que se muestren en la plantilla
-        # como el nombre del profesor, aula, duración, horario, si existen en tu modelo Curso
     }
     return render(request, 'formacion/encuesta_satisfaccion.html', context)
 
@@ -2023,15 +1974,13 @@ def marcar_participacion_completada(request, participacion_id):
                 )
                 
                 # Construir la URL de la encuesta usando reverse
-                # Asumo que tienes una URL configurada con el nombre 'encuesta_satisfaccion'
-                # que toma el participacion_id como argumento.
                 url_encuesta = reverse('formacion:encuesta_satisfaccion', args=[participacion.id])
                 
                 # Crear la notificación interna usando tu modelo Notificacion
                 Notificacion.objects.create(
                     usuario=request.user,  # El usuario que marcó el curso como completado
                     mensaje=notificacion_mensaje,
-                    tipo='info', # O 'success', según el tipo de icono que desees
+                    tipo='info',
                     url=url_encuesta, # Asocia la URL a la notificación
                     leida=False # Por defecto, la notificación no ha sido leída
                 )
@@ -2050,15 +1999,13 @@ def marcar_participacion_completada(request, participacion_id):
 
 @login_required
 def detalle_participacion(request, participacion_id):
-    # Ensure the user can only see their own participation details
     participacion = get_object_or_404(Participacion, id=participacion_id, empleado=request.user)
 
-    # Define the list of excluded states here
     estados_finales_participacion = ['completado', 'cancelado', 'abandonado', 'rechazado']
 
     context = {
         'participacion': participacion,
-        'curso': participacion.curso, # Pass the related course for easy access in template
+        'curso': participacion.curso,
     }
     return render(request, 'formacion/detalle_participacion.html', context)
 

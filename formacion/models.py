@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from datetime import timedelta, date
 from django.utils import timezone
 
-# --- Constantes de Choices Generales (se mantienen aquí si no pertenecen a un modelo específico) ---
+# --- Constantes de Choices Generales ---
 
 # Para el modelo Curso
 TIPO_CURSO_CHOICES = [
@@ -81,9 +81,9 @@ TIPO_TITULACION_CHOICES = [
 # Choices para MECES (con 'otro_meces' para evitar conflictos)
 NIVEL_MECES_CHOICES = [
     ('nivel_0', 'Nivel 0: Certificado de Escolaridad o equivalente'),
-    ('nivel_1', 'Nivel 1: Técnico Superior (FP Superior, Artes Plásticas y Diseño, Deportivo)'), # Ajustada descripción
-    ('nivel_2', 'Nivel 2: Grado, Arquitecto Técnico, Ingeniero Técnico, Diplomado'), # Ajustada descripción
-    ('nivel_3', 'Nivel 3: Máster, Licenciado, Arquitecto, Ingeniero'), # Ajustada descripción
+    ('nivel_1', 'Nivel 1: Técnico Superior (FP Superior, Artes Plásticas y Diseño, Deportivo)'), 
+    ('nivel_2', 'Nivel 2: Grado, Arquitecto Técnico, Ingeniero Técnico, Diplomado'), 
+    ('nivel_3', 'Nivel 3: Máster, Licenciado, Arquitecto, Ingeniero'), 
     ('nivel_4', 'Nivel 4: Doctor'),
     ('otro_meces', 'Otro / No aplicable MECES'),
 ]
@@ -301,7 +301,6 @@ class Empleado(AbstractUser):
 
     @property
     def area_actual(self):
-        # NUEVA PROPIEDAD: Obtiene el área priorizando el campo directo
         if self.area: # Si tiene un área asignada directamente
             return self.area
         elif self.codigo_puesto and self.codigo_puesto.area: # Si no, intenta obtenerla del puesto de trabajo
@@ -471,8 +470,6 @@ class SolicitudCurso(models.Model):
         verbose_name='Coordinador/a Solicitante'
     )
     # Si el usuario tiene un departamento asociado, lo asignamos aquí.
-    # Asegúrate de que tu modelo de usuario o un modelo de Empleado relacionado tenga un campo 'departamento'.
-    # Ejemplo: Si tienes un modelo Empleado con ForeignKey a Departamento, y User tiene OneToOneField a Empleado
     departamento_solicitante = models.ForeignKey(
         'formacion.Departamento',
         on_delete=models.SET_NULL,
@@ -519,7 +516,6 @@ class SolicitudCurso(models.Model):
         help_text='Si tienes alguna preferencia de fechas o franjas horarias.'
     )
 
-    # Nuevo campo de Carácter de la Formación
     caracter_formacion = models.CharField(
         max_length=50,
         choices=CARACTER_FORMACION_CHOICES,
@@ -587,9 +583,9 @@ class Participacion(models.Model):
         help_text="Estado actual de la participación del empleado en el curso."
     )
     nota_final = models.CharField(
-        max_length=100, # Choose an appropriate max_length, e.g., 50, 100, or 255
+        max_length=100,
         blank=True,
-        null=True, # CharField with blank=True will store '' by default if not null=True. null=True is better for truly optional fields.
+        null=True, 
         help_text="Calificación final o estado textual (ej. Aprobado, N/A, 7.5)."
     )
     validado = models.BooleanField(
@@ -641,7 +637,7 @@ class Titulacion(models.Model):
     )
     tipo_titulacion = models.CharField(
         max_length=50,
-        choices=TIPO_TITULACION_CHOICES, # Asegúrate de que TIPO_TITULACION_CHOICES está definido
+        choices=TIPO_TITULACION_CHOICES, 
         default='otro',
         help_text="Tipo de cualificación académica o profesional."
     )
@@ -689,14 +685,14 @@ class Titulacion(models.Model):
     )
     nivel_idioma = models.CharField(
         max_length=10,
-        choices=NIVEL_IDIOMA_CHOICES, # Asegúrate de que NIVEL_IDIOMA_CHOICES está definido
+        choices=NIVEL_IDIOMA_CHOICES, 
         blank=True,
         null=True,
         help_text="Nivel del idioma obtenido, según marco común europeo (si aplica a titulaciones de idioma)."
     )
     nivel_meces = models.CharField(
         max_length=20,
-        choices=NIVEL_MECES_CHOICES, # Asegúrate de que NIVEL_MECES_CHOICES está definido
+        choices=NIVEL_MECES_CHOICES, 
         blank=True,
         null=True,
         help_text="Nivel de la titulación según el Marco Español de Cualificaciones para la Educación Superior (MECES)."
@@ -712,7 +708,6 @@ class Titulacion(models.Model):
         verbose_name = "Titulación/Certificación"
         verbose_name_plural = "Titulaciones/Certificaciones"
         ordering = ['-fecha_obtencion', 'empleado']
-        # Si tenías 'unique_together', reevalúa si sigue siendo adecuado
         # unique_together = ('empleado', 'nombre', 'institucion_emisora', 'fecha_obtencion')
 
     def __str__(self):
@@ -731,7 +726,7 @@ class Titulacion(models.Model):
 
 class RequisitoPuestoFormacion(models.Model):
     puesto = models.ForeignKey(
-        PuestoDeTrabajo, # Esto sigue apuntando al modelo PuestoDeTrabajo
+        PuestoDeTrabajo,
         on_delete=models.CASCADE,
         related_name='requisitos_formacion',
         help_text="Puesto de trabajo al que aplica este requisito de formación."
@@ -818,11 +813,6 @@ class EncuestaSatisfaccion(models.Model):
                                  help_text="Empleado que rellena la encuesta.",
                                  null=True, blank=True)
     
-    # Datos del curso (pueden ser redundantes si se obtienen de participacion.curso,
-    # pero a veces se guardan para "snapshot" en el momento de la encuesta)
-    # Sin embargo, si siempre accedemos via participacion, no es estrictamente necesario guardarlos aquí.
-    # Podrías eliminarlos y acceder a ellos vía participacion.curso.nombre, etc.
-    # Los incluyo si quieres guardar un registro inmutable de esos datos en la encuesta.
     nombre_curso_encuesta = models.CharField(max_length=255, blank=True, null=True)
     nombre_profesor_encuesta = models.CharField(max_length=255, blank=True, null=True)
     fecha_encuesta = models.DateField(default=date.today) # Fecha en que se rellena la encuesta
@@ -848,8 +838,6 @@ class EncuestaSatisfaccion(models.Model):
         choices=VALORACION_CHOICES,
         verbose_name="En general, ¿le ha gustado el curso?"
     )
-    # valoracion_final_curso_profesor: Podría ser un campo calculado en el admin o en un método del modelo
-    # o un campo de entrada si quieres que el usuario dé una valoración final manual
 
     # Valoración de la Eficacia de la Formación
     mejora_conocimientos_carrera = models.PositiveSmallIntegerField(
@@ -894,7 +882,7 @@ class PreguntaEncuesta(models.Model):
     """
     TIPOS_PREGUNTA = [
         ('texto', 'Respuesta Abierta (Texto)'),
-        ('opcion_multiple', 'Opción Múltiple (Selección Única)'), # Si necesitas varias opciones, usa un ManyToMany en la respuesta
+        ('opcion_multiple', 'Opción Múltiple (Selección Única)'), # Para varias opciones, usar un ManyToMany en la respuesta
         ('escala', 'Escala de Calificación (1-5, 1-10, etc.)'),
     ]
     
@@ -902,11 +890,6 @@ class PreguntaEncuesta(models.Model):
     texto_pregunta = models.TextField()
     tipo_pregunta = models.CharField(max_length=50, choices=TIPOS_PREGUNTA, default='texto')
     orden = models.IntegerField(default=0, help_text="Orden en que aparecerá la pregunta en la encuesta.")
-
-    # Para preguntas de opción múltiple o escala, podrías añadir un campo para las opciones,
-    # aunque para simplicidad inicial, la escala puede ser implícita (ej. 1 al 5)
-    # Si las opciones son fijas y pocas:
-    # opciones_choice = models.CharField(max_length=255, blank=True, help_text="Opciones separadas por coma para opción múltiple/escala")
 
     def __str__(self):
         return f"{self.encuesta.titulo} - Pregunta {self.orden}: {self.texto_pregunta[:50]}..."
@@ -951,8 +934,7 @@ class DetalleRespuesta(models.Model):
     # Campo para almacenar la respuesta, adaptable al tipo de pregunta
     respuesta_texto = models.TextField(blank=True, null=True) # Para preguntas de texto
     respuesta_escala = models.IntegerField(blank=True, null=True) # Para escalas numéricas (ej. 1-5)
-    # Si tuvieras opción múltiple con ID de opción, necesitarías otro ForeignKey
-    # respuesta_opcion = models.ForeignKey(OpcionPregunta, on_delete=models.SET_NULL, null=True, blank=True)
+
 
     def __str__(self):
         return f"Respuesta a '{self.pregunta.texto_pregunta[:30]}...' de {self.respuesta_encuesta.participacion.empleado.get_full_name()}"

@@ -23,16 +23,13 @@ import datetime
 # ---------------------------------------------------------------------------------
 
 class EmpleadoCreationForm(UserCreationForm):
-    # --- IMPORTANT: We are now explicitly defining password1 and password2 ---
-    # We are NOT defining 'password' anymore, as your base form doesn't use it.
+
     password1 = forms.CharField(
-        label="Contraseña", # This will be the main password field in the UI
+        label="Contraseña",
         widget=forms.PasswordInput,
         strip=False,
         required=True,
-        # No help_text from base_fields as it's not present for 'password'. 
-        # You can add a custom one if you like:
-        # help_text="Introduzca la contraseña del nuevo empleado."
+
     )
     password2 = forms.CharField(
         label="Contraseña (confirmación)",
@@ -41,7 +38,6 @@ class EmpleadoCreationForm(UserCreationForm):
         required=True,
         # help_text="Vuelva a introducir la misma contraseña."
     )
-    # --- END password field definition ---
 
 
     # Campos de información de Empleado (no parte del User base)
@@ -50,16 +46,15 @@ class EmpleadoCreationForm(UserCreationForm):
     sede = forms.ChoiceField(choices=Empleado.SEDE_CHOICES, required=False, label="Sede Principal de Trabajo")
     estado = forms.ChoiceField(
         choices=Empleado.ESTADO_EMPLEADO_CHOICES, 
-        required=True, # El estado suele ser un campo obligatorio
-        initial='activo', # Puedes establecer un valor inicial
+        required=True, 
+        initial='activo', 
         label="Estado Actual del Empleado"
     )
     
     # Campos para la estructura organizativa
-    # Si 'departamento' es un ForeignKey y es requerido en tu modelo, cámbialo a required=True
     departamento = forms.ModelChoiceField(
         queryset=Departamento.objects.all().order_by('nombre'),
-        required=False, # Si no es obligatorio en el modelo Empleado
+        required=False, 
         label="Departamento"
     )
     area = forms.ModelChoiceField(
@@ -77,7 +72,7 @@ class EmpleadoCreationForm(UserCreationForm):
     es_empleado_activo = forms.BooleanField(
         label="¿Es empleado activo?",
         initial=True,
-        required=False, # Este campo suele ser booleano y opcional en el formulario
+        required=False, 
     )
 
     class Meta(UserCreationForm.Meta):
@@ -93,8 +88,6 @@ class EmpleadoCreationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Ensure our explicitly defined password fields are marked as required.
-        # This will now correctly target 'password1' and 'password2'
         self.fields['password1'].required = True 
         self.fields['password2'].required = True
         # Inicializar querysets para campos ModelChoiceField
@@ -102,8 +95,6 @@ class EmpleadoCreationForm(UserCreationForm):
         self.fields['area'].queryset = Area.objects.all().order_by('departamento__nombre', 'nombre')
         self.fields['codigo_puesto'].queryset = PuestoDeTrabajo.objects.all().order_by('nombre')
 
-        # La lógica de self.instance.pk no es necesaria aquí para un CreationForm.
-        # Esa lógica de inicialización para campos relacionados es más adecuada para EmpleadoChangeForm.
 
     def clean(self):
         cleaned_data = super().clean()
@@ -127,26 +118,15 @@ class EmpleadoChangeForm(UserChangeForm):
         label="Contraseña",
         widget=forms.PasswordInput,
         strip=False,
-        required=False, # Often not required on change form
+        required=False,
     )
     password2 = forms.CharField(
         label="Contraseña (confirmación)",
         widget=forms.PasswordInput,
         strip=False,
-        required=False, # Often not required on change form
+        required=False,
     )
-    # Aquí puedes mantener la lógica de inicialización en __init__ para pre-cargar los campos
-    # al editar una instancia existente.
-    # Copia la definición de campos de EmpleadoCreationForm si son los mismos que quieres editar,
-    # y adapta el Meta.fields para UserChangeForm.
 
-    # ... (Tu EmpleadoChangeForm actual, adaptado para tener los mismos campos que EmpleadoCreationForm
-    #      y con la lógica de __init__ para pre-carga) ...
-    # Asegúrate de que los campos aquí definidos (departamento, area, puesto, codigo_puesto, etc.)
-    # coincidan con los de EmpleadoCreationForm si deseas uniformidad en la gestión de estos datos
-    # a través de tus formularios de admin.
-
-    # Ejemplo de EmpleadoChangeForm adaptado (con los mismos campos que CreationForm)
     dni = forms.CharField(max_length=20, required=False, label="DNI/NIE")
     sexo = forms.ChoiceField(choices=Empleado.SEXO_CHOICES, required=False, label="Género")
     sede = forms.ChoiceField(choices=Empleado.SEDE_CHOICES, required=False, label="Sede Principal de Trabajo")
@@ -422,8 +402,8 @@ class CursoForm(forms.ModelForm):
         model = Curso
         exclude = ['codigo', 'origen']
         widgets = {
-            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'), # <-- ¡Añadido format!
-            'fecha_fin': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),   # <-- ¡Añadido format!
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'), 
         }
 
     def __init__(self, *args, **kwargs):
@@ -441,7 +421,7 @@ class CursoForm(forms.ModelForm):
             curso.plazas_disponibles = curso.plazas_totales
 
         if commit:
-            curso.save() # Ahora sí, guardamos la instancia
+            curso.save()
         return curso
     
 class SolicitudCursoForm(forms.ModelForm):
@@ -593,7 +573,6 @@ class PreseleccionForm(forms.ModelForm):
         if self.instance.pk and self.instance.curso:
             current_course = self.instance.curso
             # Comprueba si el curso actual ya está en el queryset filtrado
-            # Si no está (porque su fecha_fin ya pasó y no es nula), añádelo.
             if not self.fields['curso'].queryset.filter(pk=current_course.pk).exists():
                 self.fields['curso'].queryset |= Curso.objects.filter(pk=current_course.pk)
             self.fields['curso'].queryset = self.fields['curso'].queryset.distinct()
@@ -604,7 +583,7 @@ class AprobarParticipacionForm(forms.ModelForm):
         label="Fecha de Inicio del Curso (Asignada por RRHH)",
         widget=forms.DateInput(attrs={'type': 'date'}),
         required=True,
-        input_formats=['%Y-%m-%d'] # Asegúrate de que esta línea esté aquí, es importante
+        input_formats=['%Y-%m-%d']
     )
 
     class Meta:
@@ -647,11 +626,7 @@ class MarcarCompletadoForm(forms.ModelForm):
         widget=forms.DateInput(attrs={'type': 'date'}),
         required=False # Opcional si no todos los certificados caducan
     )
-    # Si tienes un campo certificado_url en tu modelo Participacion:
-    # certificado_url = forms.URLField(
-    #     label="URL del Certificado",
-    #     required=False
-    # )
+
 
     class Meta:
         model = Participacion
@@ -667,7 +642,6 @@ class MarcarCompletadoForm(forms.ModelForm):
             raise forms.ValidationError(
                 "Si el certificado ha sido obtenido, la fecha de obtención es obligatoria."
             )
-        # Puedes añadir más validaciones, por ejemplo, si la fecha de caducidad es anterior a la de obtención, etc.
         return cleaned_data
 
 class EncuestaSatisfaccionForm(forms.ModelForm):
