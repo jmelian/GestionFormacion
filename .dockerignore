@@ -1,0 +1,8 @@
+# Archivos y carpetas a ignorar por Docker
+.git
+.gitignore
+.dockerignore
+venv/
+__pycache__/
+.env
+db.sqlite3
