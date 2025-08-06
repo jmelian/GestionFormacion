@@ -1,0 +1,26 @@
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+  web:
+    build: . # Docker construirá la imagen usando el Dockerfile en el directorio actual.
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app # Monta el directorio local en el contenedor para desarrollo en tiempo real.
+    ports:
+      - "8000:8000" # Mapea el puerto 8000 del host al 8000 del contenedor.
+    env_file:
+      - ./.dockerenv # Carga las variables de entorno desde el archivo .env.
+    depends_on:
+      - db # Asegura que el servicio 'db' esté corriendo antes de iniciar 'web'.
+  
+  db:
+    image: postgres:15.5-alpine # Usa una imagen oficial de PostgreSQL.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/ # Persiste los datos en un volumen.
+    env_file:
+      - ./.dockerenv # Carga las variables de entorno para la base de datos.
+
+volumes:
+  postgres_data:
