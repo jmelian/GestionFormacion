@@ -1270,7 +1270,7 @@ def crear_editar_curso(request, curso_id=None):
             else:
                 messages.success(request, f"El curso '{form.instance.nombre}' ha sido creado correctamente.")
             
-            return redirect('formacion:gestion_cursos') 
+            return redirect('formacion:gestion_cursos_list') 
         else:
             messages.error(request, "Error al guardar el curso. Revisa los datos.")
             return render(request, 'formacion/crear_editar_curso.html', {'form': form, 'curso': curso})
