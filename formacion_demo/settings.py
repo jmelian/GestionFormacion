@@ -136,7 +136,16 @@ AUTH_USER_MODEL = 'formacion.Empleado'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
+
+# Directorio donde Django buscará archivos estáticos durante el desarrollo.
+# Asegúrate de que esta ruta sea correcta para tu proyecto.
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'formacion/static/'),
+]
+
+# Directorio donde se recolectarán los archivos estáticos para producción.
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

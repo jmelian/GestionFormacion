@@ -1,0 +1,722 @@
+/* Estilos comunes para badges y etiquetas */
+.summary-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin: 0.25rem;
+}
+
+.summary-badge.courses {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.summary-badge.qualifications {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+/* --- Estilos para badges de estado (de empleado_formacion_detalle) --- */
+.status-badge {
+    display: inline-block;
+    padding: 0.3em 0.6em;
+    font-size: 0.85em;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.375rem; /* Bootstrap's .rounded-pill is typically 50rem, this is more subtle */
+    color: #fff; /* Default text color */
+}
+
+/* Badges con fondos fuertes y texto blanco */
+.status-badge.status-primary { /* Usado para 'Plan Anual' */
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+}
+.status-badge.status-secondary { /* Usado para 'Proyecto', 'No disponible', 'Inscrito', 'Finalizado', 'Rechazado' */
+    background: linear-gradient(135deg, var(--secondary-color), #475569);
+    color: white;
+}
+.status-badge.status-success {
+    background: linear-gradient(135deg, var(--success-color), #059669); /* Using CSS variables */
+}
+
+.status-badge.status-warning {
+    background: linear-gradient(135deg, var(--warning-color), #d97706); /* Using CSS variables */
+}
+
+.status-badge.status-danger {
+    background: linear-gradient(135deg, var(--danger-color), #dc2626); /* Using CSS variables */
+}
+
+.status-badge.status-info {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* Para el estado 'Completado' en Mis Cursos */
+.status-badge.status-completed {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed); /* Morado o color distintivo */
+    color: white;
+}
+
+/* Badges de éxito para fondos claros (e.g., plazas disponibles) */
+.status-badge.status-success-inverse {
+    background-color: #d1fae5; /* Verde muy claro */
+    color: #065f46; /* Texto verde oscuro */
+    border: 1px solid #a7f3d0;
+}
+
+/* Badges de peligro para fondos claros (e.g., plazas agotadas) */
+.status-badge.status-danger-inverse {
+    background-color: #fee2e2; /* Rojo muy claro */
+    color: #991b1b; /* Texto rojo oscuro */
+    border: 1px solid #fecaca;
+}
+
+
+/* Estilos comunes para estado vacío */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--dark-text); /* Cambiado a un color más oscuro y legible */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 244, 248, 0.95)); /* Fondo más sólido y claro */
+    border: 1px solid rgba(220, 226, 232, 0.5); /* Borde más visible */
+    border-radius: 1rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); /* Una sombra ligera para que se "levante" */
+    margin-top: 2rem; /* Espacio superior para separarlo de otros elementos */
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color); /* Usar el color primario para el icono, lo hará destacar */
+    opacity: 0.8; /* Ligeramente transparente */
+}
+
+.empty-state p {
+    font-size: 1.1rem; /* Un poco más grande para mejor legibilidad */
+    line-height: 1.6; /* Mejor interlineado */
+    font-weight: 500; /* Hace el texto un poco más fuerte */
+    color: var(--dark-text); /* Asegura que el texto sea oscuro */
+}
+
+.department-tag {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+/* Botón de volver */
+.btn-back {
+    background: linear-gradient(135deg, #64748b, #475569); /* Grey gradient from btn-clear */
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex; /* Use inline-flex to center icon and text */
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.3);
+    color: white; /* Ensure text color remains white on hover */
+}
+
+/* =========================
+   NOTIFICACIONES / LISTADOS
+========================= */
+
+.notificaciones-list .list-group {
+    border-radius: 13px;
+    overflow: hidden;
+    box-shadow: 0 2px 14px #6366f11c;
+    background: #fff;
+}
+
+.notificaciones-list .list-group-item {
+    background: #fff;
+    border: none;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 1.09em;
+    padding: 1.1em 1.4em 1.1em 1.1em;
+    display: flex;
+    align-items: flex-start;
+    gap: 1.1rem;
+    transition: background 0.13s, box-shadow 0.12s;
+    cursor: pointer;
+}
+
+.notificaciones-list .list-group-item:last-child {
+    border-bottom: none;
+}
+
+.notificaciones-list .list-group-item.bg-light {
+    background: linear-gradient(90deg, #e0e7ff 55%, #f1f5f9 100%);
+    border-left: 6px solid #6366f1;
+    box-shadow: 0 2px 16px #a5b4fc15;
+}
+
+.notificaciones-list .list-group-item.fw-bold {
+    font-weight: 700;
+}
+
+.notificaciones-list .list-group-item i {
+    font-size: 1.5em;
+    margin-top: 1px;
+    min-width: 1.5em;
+    color: #6366f1;
+    display: inline-block;
+}
+
+.notificaciones-list .badge.bg-primary {
+    background: linear-gradient(90deg, #6366f1 60%, #38bdf8 100%);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.94em;
+    padding: 3.5px 10px;
+    border-radius: 14px;
+    margin-left: 0.7em;
+    box-shadow: 0 2px 7px #6366f122;
+}
+
+.notificaciones-list .text-decoration-none {
+    color: #1e293b;
+    transition: color 0.12s;
+}
+
+.notificaciones-list .text-decoration-none:hover {
+    color: #6366f1;
+    text-decoration: underline;
+}
+
+.notificaciones-list .small.text-muted {
+    font-size: 0.98em;
+    color: #8a99b7;
+    margin-bottom: 2px;
+}
+
+@media (max-width: 700px) {
+    .notificaciones-list .list-group-item {
+        font-size: 1em;
+        padding: 0.85em 0.6em 0.85em 0.6em;
+    }
+}
+
+/* Animaciones comunes */
+.table-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.filters-container {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.page-header {
+    animation: fadeInUp 0.2s ease-out;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+
+/* Estilos comunes para botones */
+.btn-filter {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.btn-clear {
+    background: linear-gradient(135deg, #64748b, #475569);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-clear:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.3);
+}
+
+/* Estilos para el botón btn-primary (usado en perfil) */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none; /* Importante para que los enlaces con esta clase se vean como botones */
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    color: white; /* Asegura que el texto permanezca blanco */
+}
+
+/* Estilos para el botón btn-secondary (usado en perfil) */
+.btn-secondary {
+    background: linear-gradient(135deg, var(--secondary-color), #475569);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.3);
+    color: white;
+}
+
+
+
+/* Botón principal del login */
+.btn-primary-full-width {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary-full-width:hover {
+    background: linear-gradient(135deg, #2563eb, #1f50c0);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary-full-width i {
+    font-size: 1.25rem;
+}
+
+.badge-estado,
+.badge-tipo,
+.badge-modalidad,
+.badge-resultado {
+    display: inline-block;
+    border-radius: 10px;
+    padding: 3px 10px;
+    font-size: 0.95em;
+    font-weight: 600;
+    margin-right: 3px;
+    color: #fff;
+    white-space: normal;      /* Permite salto de línea */
+    word-break: break-word;   /* Parte palabras largas si hace falta */
+    max-width: 400px;         /* Limita el ancho, ¡ajústalo a tu gusto! */
+    line-height: 1.3;
+    vertical-align: middle;   /* Por si las hay alineadas junto a texto */
+}
+
+
+
+.badge-estado {
+    background: linear-gradient(90deg, #6366f1 60%, #38bdf8 100%);
+}
+.badge-estado.finalizado {
+    background: linear-gradient(90deg, #22c55e 60%, #10b981 100%);
+}
+.badge-estado.cancelado {
+    background: linear-gradient(90deg, #ef4444 60%, #f87171 100%);
+}
+.badge-estado.en-curso {
+    background: linear-gradient(90deg, #fbbf24 60%, #fde68a 100%);
+    color: #444;
+}
+.badge-estado.proximamente {
+    background: linear-gradient(90deg, #818cf8 60%, #a5b4fc 100%);
+}
+.badge-tipo {
+    background: #2dd4bf;
+}
+.badge-modalidad {
+    background: #818cf8;
+}
+.badge-resultado {
+    background: #22c55e;
+}
+/* Base style for all action buttons in tables */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    margin: 0;
+    width: 38px; /* Tamaño fijo para los botones, se ven más consistentes */
+    height: 38px;
+    padding: 0; /* Sin padding interno, el icono ocupa todo el espacio */
+    border-radius: 0.6rem; /* Bordes suaves */
+    font-size: 1.05rem; /* Tamaño del icono */
+    transition: all 0.2s ease; /* Transición suave para hover */
+    text-decoration: none;
+    color: white; /* **Asegura que el color del icono sea blanco para que contraste con fondos oscuros** */
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para profundidad */
+    flex-shrink: 0; /* Evita que el botón se encoja en espacios reducidos */
+}
+
+.btn-action:hover {
+    transform: translateY(-2px); /* Efecto de "levantamiento" al pasar el ratón */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada en hover */
+    color: white; /* Asegura el color del icono en hover */
+    opacity: 0.9; /* Pequeña opacidad para el efecto */
+}
+
+.btn-action i {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 1.09em;
+    margin: 0;
+}
+
+/* Specific colors for action buttons (re-evaluated for better distinction) */
+
+/* Botón para "Preselecciones" (acción de revisión/gestión) */
+.btn-action.btn-action-preselection {
+    background: linear-gradient(135deg, #22c55e, #16a34a); /* Un verde distintivo para "revisar/aprobar" */
+}
+.btn-action.btn-action-preselection:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+/* Botón para "Participantes" (acción de ver detalles/lista) */
+.btn-action.btn-action-participants {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); /* Tu azul primario */
+}
+.btn-action.btn-action-participants:hover {
+    background: linear-gradient(135deg, var(--primary-dark), #1f50c0);
+}
+
+/* Botón deshabilitado */
+.btn-action.btn-action-disabled {
+    background: linear-gradient(135deg, var(--secondary-color), #475569);
+    cursor: not-allowed;
+    opacity: 0.6; /* Un poco más opaco para indicar deshabilitado */
+    transform: none; /* Sin efecto hover para botones deshabilitados */
+    box-shadow: none;
+}
+.btn-action.btn-action-disabled:hover {
+    background: linear-gradient(135deg, var(--secondary-color), #475569); /* Mismo fondo en hover para deshabilitado */
+}
+
+/* Botón de Cancelar Acción */
+.btn-action.btn-cancel-action {
+    background: linear-gradient(135deg, #f59e0b, #d97706); /* Naranja/Amarillo para cancelar/advertencia */
+}
+.btn-action.btn-cancel-action:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+/* --- New Action Button Styles for Titulaciones Pendientes (titulaciones_pendientes_rrhh.html) --- */
+
+/* Button for "Validar" */
+.btn-action.btn-success-action {
+    background: linear-gradient(135deg, #10b981, #059669); /* A stronger green than preselection for "validate" */
+}
+.btn-action.btn-success-action:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+/* Button for "Ver en Admin" (e.g., an external link/utility action) */
+.btn-action.btn-admin-link {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6); /* A lighter blue, distinct from primary */
+}
+.btn-action.btn-admin-link:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+/* Ensure existing btn-view-doc-small is consistent for the new column */
+.btn-action.btn-view-doc-small {
+    background: linear-gradient(135deg, #06b6d4, #0891b2); /* Info/Cyan color */
+    /* Adjust size if needed, but it should inherit from .btn-action already */
+}
+.btn-action.btn-view-doc-small:hover {
+    background: linear-gradient(135deg, #0891b2, #0e7490);
+}
+
+/* Botón de Editar */
+.btn-action.btn-edit {
+    background: linear-gradient(135deg, #f97316, #ea580c); /* Naranja vibrante */
+}
+.btn-action.btn-edit:hover {
+    background: linear-gradient(135deg, #ea580c, #c2410c);
+}
+
+/* Botón de Eliminar */
+.btn-action.btn-delete {
+    background: linear-gradient(135deg, #ef4444, #dc2626); /* Rojo */
+}
+.btn-action.btn-delete:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+/* Botón de Inscripción */
+.btn-action.btn-enroll-action {
+    background: linear-gradient(135deg, #22c55e, #16a34a); /* Verde para inscripción */
+}
+.btn-action.btn-enroll-action:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+/* Botón de Completado */
+.btn-action.btn-completed-action {
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6); /* Violeta a azul, destaca como acción final */
+    color: #fff;
+    box-shadow: 0 2px 8px 0 rgba(139, 92, 246, 0.08);
+}
+.btn-action.btn-completed-action:hover {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: #fff;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 4px 16px 0 rgba(139, 92, 246, 0.13);
+}
+
+.btn-action-confirm {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.btn-action-confirm:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea685 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    color: white;
+}
+
+.btn-action-confirm:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.btn-action-reject {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+.btn-action-reject:hover {
+    background: linear-gradient(135deg, #c82333 0%, #dc2626 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    color: white;
+}
+
+.btn-action-reject:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+/* Estilos para los iconos dentro de los botones */
+.btn-action-confirm i,
+.btn-action-reject i {
+    font-size: 0.875rem;
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 768px) {
+    .btn-action-confirm,
+    .btn-action-reject {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+    
+    .btn-action-confirm i,
+    .btn-action-reject i {
+        font-size: 0.8rem;
+    }
+}
+
+.btn-details {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.btn-details:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);
+    color: white;
+}
+
+/* Estilos para botones de icono */
+.btn-action-confirm i,
+.btn-action-reject i {
+    font-size: 0.875rem; /* Mantiene el tamaño del icono */
+    margin-right: 0;   /* Elimina el margen a la derecha si no hay texto */
+}
+
+/* Ajustes específicos para botones SOLO de icono */
+/* Cuando un botón solo tiene un icono, ajustamos su padding para que sea más cuadrado/compacto */
+.btn-action-confirm:has(i:only-child), /* Selecciona el botón si su único hijo es un icono */
+.btn-action-reject:has(i:only-child) {
+    padding: 0.5rem; /* Reduce el padding para que sea más centrado y cuadrado */
+    width: auto; /* Permite que el ancho se ajuste al contenido */
+    min-width: 32px; /* Un tamaño mínimo para que sea fácil de hacer clic */
+    height: 32px;    /* Hace que sea cuadrado */
+    display: flex;   /* Asegura que el icono esté centrado */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ajustes para pantallas pequeñas (ya los tenías, solo confirmamos que apliquen bien) */
+@media (max-width: 768px) {
+    .btn-action-confirm,
+    .btn-action-reject {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+    
+    /* Ajuste para botones solo con icono en pantallas pequeñas */
+    .btn-action-confirm:has(i:only-child),
+    .btn-action-reject:has(i:only-child) {
+        padding: 0.4rem; /* Un poco menos de padding para hacerlo más compacto en móvil */
+        min-width: 28px;
+        height: 28px;
+    }
+
+    .btn-action-confirm i,
+    .btn-action-reject i {
+        font-size: 0.8rem;
+    }
+}
+
+
+/* Estilo para el botón de "Ver Doc." */
+.btn-view-doc {
+    background: none;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-size: 0.85rem;
+    display: inline-flex; /* Añadido para mejor alineación de icono y texto */
+    align-items: center;
+    gap: 0.25rem; /* Pequeño espacio entre icono y texto */
+}
+
+.btn-view-doc:hover {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+    transform: translateY(-1px);
+}
+
+.no-data-message {
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px dashed rgba(226, 232, 240, 0.7);
+    border-radius: 0.75rem;
+    color: var(--secondary-color);
+    font-style: italic;
+    text-align: center;
+    margin-top: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}

@@ -22,4 +22,5 @@ EXPOSE 8000
 
 # Comando para ejecutar el servidor de desarrollo de Django cuando se inicie el contenedor.
 # En producción, usar un servidor como Gunicorn.
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "formacion_demo.wsgi:application", "--bind", "0.0.0.0:8000"]
