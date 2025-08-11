@@ -23,10 +23,12 @@ El objetivo principal es centralizar y optimizar los procesos relacionados con l
 
 ## Tecnologías Utilizadas
 
-| Componente         | Tecnología / Herramienta                                     |
+| Componente         | Tecnología / Herramienta                                    |
 |--------------------|-------------------------------------------------------------|
 | Backend            | Python 3.x, Django                                          |
-| Base de Datos      | SQLite (desarrollo), PostgreSQL/MySQL (producción)          |
+| Servidor web       | Gunicorn, Nginx                                             |
+| Orquestación       | Docker, Docker Compose                                      |
+| Base de Datos      | PostgreSQL                                                  |
 | Dependencias       | pip, requirements.txt                                       |
 | Variables Entorno  | python-decouple                                             |
 | Frontend           | HTML5, CSS3 (estilos personalizados), JavaScript (opcional) |
@@ -46,39 +48,10 @@ git clone https://github.com/jmelian/GestionFormacion.git
 cd GestionFormacion
 ```
 
-### 2. Crear y Activar el Entorno Virtual
+### 2. Configurar Variables de Entorno (.env)
+Crea un archivo llamado `.env` en la raíz de tu proyecto (al mismo nivel que `docker-compose.yml`).
 
-Es altamente recomendable usar un entorno virtual para aislar las dependencias de tu proyecto.
-
-```bash
-python -m venv venv
-```
-
-Activar el entorno virtual:
-
-- Windows (Command Prompt):
-    ```bash
-    venv\Scripts\activate
-    ```
-- Windows (PowerShell):
-    ```bash
-    .\venv\Scripts\Activate.ps1
-    ```
-- macOS / Linux:
-    ```bash
-    source venv/bin/activate
-    ```
-
-### 3. Instalar Dependencias
-Con el entorno virtual activado, instala todas las dependencias del proyecto usando `pip`:
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configurar Variables de Entorno (.env)
-Crea un archivo llamado `.env` en la raíz de tu proyecto (al mismo nivel que manage.py).
-
-Copia el siguiente contenido en tu archivo `.env` y reemplaza los valores de ejemplo con los tuyos:
+Copia el siguiente contenido en tu archivo `.env` y reemplaza los valores de ejemplo con los tuyos. Docker Compose usará estas variables para configurar los servicios:
 
 ```bash
 # .env
@@ -109,56 +82,61 @@ Para `SECRET_KEY`: Puedes generar una clave segura ejecutando en tu terminal (co
 ```bash
 python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
 ```
-
-## Base de Datos y Migraciones
-Aplica las migraciones de la base de datos para crear las tablas necesarias:
+### 3. Recolectar Archivos Estáticos
+Antes de iniciar el servidor, es necesario recolectar todos los archivos estáticos de Django en un solo lugar. Este comando construye la imagen de tu aplicación y ejecuta `collectstatic` en un contenedor temporal.
 ```bash
-python manage.py migrate
+docker-compose up -d --build
+docker-compose exec web python manage.py collectstatic --noinput
 ```
 
-## Crear un Superusuario
+### 4. Base de Datos y Migraciones
+Aplica las migraciones de la base de datos para crear las tablas necesarias en el contenedor de PostgreSQL:
+```bash
+docker-compose exec web python manage.py migrate
+```
+
+### 5. Crear un Superusuario
 Necesitarás un superusuario para acceder al panel de administración de Django:
 ```bash
-python manage.py createsuperuser
+docker-compose exec web python manage.py createsuperuser
 ```
 
-Sigue las instrucciones en la terminal para crear tu usuario y contraseña.
-
-Ejecutar el Servidor de Desarrollo
-Una vez que todo esté configurado, puedes iniciar el servidor de desarrollo de Django:
-```bash
-python manage.py runserver
-```
-
-El servidor estará disponible en `http://127.0.0.1:8000/` (o la dirección que te indique la terminal).
-
-
-## Configuración Inicial de la Aplicación
+### 6. Configuración Inicial de la Aplicación
 Para asegurar que tu aplicación tenga los grupos de usuarios y permisos necesarios desde el principio (ej. `RRHH`, `Formación`, `Coordinador`, `Dirección`), puedes cargar los datos iniciales proporcionados. Estos archivos definen la estructura de permisos y roles que la aplicación espera.
 
-### Función de los archivos:
+#### Función de los archivos:
 
 - `initial_groups.json`: Contiene la definición de los grupos de usuarios de Django (ej. 'RRHH', 'Formación').
 
 - `initial_permissions.json`: Contiene la definición de los permisos de Django (ej. 'Can add curso', 'Can view empleado'). Estos permisos son generados automáticamente por Django al ejecutar _makemigrations_ y _migrate_, pero este archivo asegura que estén disponibles si se necesitan cargar explícitamente o para auditoría.
 
-### Cómo cargar los datos iniciales:
+#### Cómo cargar los datos iniciales:
 
 Asegúrate de que los archivos `initial_groups.json` y `initial_permissions.json` se encuentren en la raíz de tu proyecto o en la carpeta fixtures de una de tus aplicaciones (ej. formacion/fixtures/).
 
 ```bash
 # Carga los grupos de usuarios
-python manage.py loaddata initial_groups.json
+docker-compose exec web python manage.py loaddata initial_groups.json
 
 # Carga los permisos (si los necesitas cargar explícitamente, aunque migrate suele crearlos)
-python manage.py loaddata initial_permissions.json
+docker-compose exec web python manage.py loaddata initial_permissions.json
 ```
 
->**Nota**: Estos archivos se pueden generar usando el comando _dumpdata_ de Django. Por ejemplo: `python manage.py dumpdata auth.Group --indent 2 > initial_groups.json`. Si encuentras problemas de codificación al generarlos, especialmente en Windows, puedes usar ´export PYTHONIOENCODING=utf-8´ antes del comando dumpdata.
+>**Nota**: Estos archivos se pueden generar usando el comando _dumpdata_ de Django. Por ejemplo: `exec web python manage.py dumpdata auth.Group --indent 2 > initial_groups.json`. Si encuentras problemas de codificación al generarlos, especialmente en Windows, puedes usar ´export PYTHONIOENCODING=utf-8´ antes del comando dumpdata.
+
+### 7. Ejecutar el Proyecto
+Con todos los pasos anteriores completados, tu proyecto ya debería estar en ejecución. Simplemente usa docker-compose up para iniciar todos los servicios:
+```bash
+docker-compose up
+```
+Tu proyecto estará disponible en `http://localhost/` y el servidor Nginx se encargará de dirigir el tráfico a tu aplicación. Si necesitas detener los servicios, usa:
+```bash
+docker-compose down
+```
 
 ## Acceso al Panel de Administración
 Puedes acceder al panel de administración de Django en:
-`http://127.0.0.1:8000/admin/`
+`http://localhost/admin/`
 
 Usa las credenciales del superusuario que creaste.
 
