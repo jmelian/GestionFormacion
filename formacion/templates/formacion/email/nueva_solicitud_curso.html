@@ -1,59 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nueva Solicitud de Curso</title>
+    <!-- Estilos generales que no se pueden poner en línea se mantienen aquí,
+    pero la mayoría de los estilos específicos de la estructura se han movido. -->
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { width: 80%; margin: 20px auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px; background-color: #f9f9f9; }
-        .header { background-color: #0056b3; color: white; padding: 10px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { margin-top: 20px; }
-        .detail-item { margin-bottom: 10px; }
-        .detail-item strong { display: inline-block; width: 180px; color: #555; }
-        .footer { margin-top: 30px; font-size: 0.9em; color: #777; text-align: center; }
-        .button {
-            display: inline-block;
-            padding: 10px 20px;
-            margin-top: 15px;
-            background-color: #28a745; /* Color verde */
-            color: white !important; /* !important para asegurar que el color no cambie */
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .button:hover {
-            background-color: #218838;
-        }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .button:hover { background-color: #218838 !important; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>Nueva Solicitud de Curso Recibida</h2>
-        </div>
-        <div class="content">
-            <p>Se ha enviado una nueva solicitud de curso a través del portal de Formación. Aquí están los detalles principales:</p>
-            
-            <div class="detail-item"><strong>Título del Curso:</strong> {{ solicitud.titulo_curso_solicitado }}</div>
-            <div class="detail-item"><strong>Solicitante:</strong> {{ solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</div>
-            <div class="detail-item"><strong>Departamento:</strong> {{ solicitud.departamento_solicitante.nombre|default:"N/A" }}</div>
-            <div class="detail-item"><strong>Fecha de Solicitud:</strong> {{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</div>
-            <div class="detail-item"><strong>Carácter:</strong> {{ solicitud.get_caracter_formacion_display }}</div>
-            <div class="detail-item"><strong>Nº Estimado Participantes:</strong> {{ solicitud.numero_participantes_estimado }}</div>
-            
-            <p>Para revisar todos los detalles de la solicitud y gestionarla, por favor, haz clic en el siguiente botón:</p>
-            
-            <a href="{{ solicitud_url }}" class="button">Ver Solicitud Completa</a>
-            
-            <p>O copia y pega este enlace en tu navegador:</p>
-            <p><small>{{ solicitud_url }}</small></p>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
 
-            <p>Gracias,</p>
-            <p>El Equipo de {{ dominio }}</p>
-        </div>
-        <div class="footer">
-            <p>Este es un mensaje automático. Por favor, no respondas a este email.</p>
-        </div>
-    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width: 100%; max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #ddd;">
+                    <tr>
+                        <td style="background-color: #0056b3; color: white; padding: 15px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h2 style="margin: 0; font-size: 24px;">Nueva Solicitud de Curso Recibida</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 25px;">
+                            <p style="margin-top: 0;">Se ha enviado una nueva solicitud de curso a través del portal de Formación. Aquí están los detalles principales:</p>
+                            
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top: 20px;">
+                                <tr>
+                                    <td style="padding-bottom: 10px; width: 200px;"><strong>Título del Curso:</strong></td>
+                                    <td style="padding-bottom: 10px;">{{ solicitud.titulo_curso_solicitado }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-bottom: 10px;"><strong>Solicitante:</strong></td>
+                                    <td style="padding-bottom: 10px;">{{ solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-bottom: 10px;"><strong>Departamento:</strong></td>
+                                    <td style="padding-bottom: 10px;">{{ solicitud.departamento_solicitante.nombre|default:"N/A" }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-bottom: 10px;"><strong>Fecha de Solicitud:</strong></td>
+                                    <td style="padding-bottom: 10px;">{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-bottom: 10px;"><strong>Carácter:</strong></td>
+                                    <td style="padding-bottom: 10px;">{{ solicitud.get_caracter_formacion_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-bottom: 10px;"><strong>Nº Estimado Participantes:</strong></td>
+                                    <td style="padding-bottom: 10px;">{{ solicitud.numero_participantes_estimado }}</td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin-top: 20px;">Para revisar todos los detalles de la solicitud y gestionarla, por favor, haz clic en el siguiente botón:</p>
+                            
+                            <div style="text-align: center; margin-top: 20px;">
+                                <a href="{{ solicitud_url }}" class="button" style="display: inline-block; padding: 12px 25px; margin-top: 15px; background-color: #28a745; color: white !important; text-decoration: none; border-radius: 5px; font-weight: bold;">Ver Solicitud Completa</a>
+                            </div>
+
+                            <p style="text-align: center; margin-top: 20px;"><small style="color: #777;">Si el botón no funciona, copia y pega este enlace:</small><br><a href="{{ solicitud_url }}" style="color: #0056b3; font-size: 14px; word-break: break-all;">{{ solicitud_url }}</a></p>
+
+                            <p style="margin-top: 30px;">Gracias,<br>El Equipo de {{ dominio }}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f9f9f9; padding: 15px; text-align: center; font-size: 0.9em; color: #777; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0;">Este es un mensaje automático. Por favor, no respondas a este email.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

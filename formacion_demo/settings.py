@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-import os
+import os, sys
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -155,6 +155,64 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = 'formacion:dashboard'
 LOGIN_URL = '/formacion/login/'
 LOGOUT_REDIRECT_URL = 'formacion:login'
+
+# --- Configuración del Servidor de Email ---
+
+# El backend de email que utilizará Django. 'smtp.EmailBackend' es el estándar.
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# El servidor SMTP que vas a utilizar (ej. para Gmail)
+EMAIL_HOST = config('EMAIL_HOST')
+
+# El puerto del servidor SMTP
+EMAIL_PORT = config('EMAIL_PORT')
+
+# Tu dirección de correo electrónico que se usará para enviar los emails
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+
+# Tu contraseña o, lo más recomendable, una "contraseña de aplicación" generada
+# en la configuración de seguridad de tu cuenta de email.
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+# Utilizar TLS (Transport Layer Security) para la conexión
+EMAIL_USE_TLS = True
+
+
+# LOGGING
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        # Define el formato que incluye la fecha, nivel, nombre y número de línea.
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s'
+        },
+    },
+    'handlers': {
+        # Configura el handler de consola para usar el formateador 'verbose'.
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+    },
+    'root': {
+        # El logger raíz usa el handler de consola por defecto.
+        # Es el que atraparía los logs si 'propagate' estuviera en True.
+        'level': 'INFO',
+        'handlers': ['console'],
+    },
+    'loggers': {
+        # Logger específico para la aplicación 'formacion'.
+        'formacion': {
+            'handlers': ['console'], # Usa el handler de consola.
+            'level': 'INFO',
+            'propagate': False, # ¡La clave para evitar la duplicación!
+                               # Esto evita que los logs de 'formacion'
+                               # se propaguen al logger raíz y se procesen de nuevo.
+        },
+    },
+}
+
 
 # --- NOMBRES DE GRUPOS DE USUARIO ---
 GRUPO_EMPLEADO = 'Empleado'

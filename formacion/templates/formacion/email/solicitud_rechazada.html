@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Curso Rechazada</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <tr>
+                        <td style="padding: 40px;">
+                            <h1 style="color: #f44336; text-align: center;">Tu Solicitud ha sido Rechazada</h1>
+                            <p style="font-size: 16px; color: #555555;">Hola,</p>
+                            <p style="font-size: 16px; color: #555555;">Lamentamos informarte que tu solicitud de curso ha sido rechazada.</p>
+                            
+                            <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                                <h3 style="color: #d32f2f; margin-top: 0;">Detalles de la Solicitud</h3>
+                                <p style="font-size: 16px; color: #555555;"><strong>Curso:</strong> {{ solicitud.titulo_curso_solicitado }}</p>
+                            </div>
+
+                            <p style="font-size: 16px; color: #555555; font-weight: bold;">Motivo del rechazo:</p>
+                            <p style="font-size: 16px; color: #555555; background-color: #f9f9f9; border-left: 3px solid #f44336; padding: 10px; border-radius: 3px;">
+                                {{ motivo_rechazo }}
+                            </p>
+
+                            <p style="font-size: 16px; color: #555555; margin-top: 20px;">Puedes contactar con el equipo de formación para más información.</p>
+                            <div style="text-align: center; margin-top: 30px;">
+                                <a href="{{ link_dashboard }}" style="background-color: #f44336; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Ir a mi Panel de Control</a>
+                            </div>
+                            <p style="font-size: 16px; color: #555555; margin-top: 40px;">Saludos cordiales,<br>El equipo de Formación</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
