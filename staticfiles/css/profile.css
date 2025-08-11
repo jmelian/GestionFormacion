@@ -1,0 +1,124 @@
+
+/* =========================
+   PERFIL DE USUARIO / DETALLES
+========================= */
+
+
+/* --- Nuevos estilos para la plantilla 'Mi Perfil Personal' --- */
+
+.profile-section-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.8));
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-section-card .section-title {
+    margin-bottom: 1.5rem; /* Más espacio debajo del título de la sección */
+}
+
+.profile-section-card h2 {
+    font-size: 1.33rem;
+    color: var(--brand-color);
+    font-weight: 700;
+    margin-bottom: 1.0rem;
+}
+
+.profile-detail-item {
+    display: flex;
+    align-items: flex-start; /* Alineación al inicio por si el texto es largo */
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+    color: var(--dark-text);
+}
+
+.profile-detail-item strong {
+    flex-shrink: 0; /* Evita que el strong se encoja */
+    width: 150px; /* Ancho fijo para las etiquetas, ajusta si es necesario */
+    color: var(--primary-color);
+    margin-right: 0.75rem; /* Espacio entre la etiqueta y el valor */
+    font-weight: 600;
+}
+
+.profile-detail-item span {
+    flex-grow: 1; /* Permite que el valor ocupe el resto del espacio */
+    color: var(--secondary-color);
+}
+
+/* Estilos para el contenedor de acciones del perfil */
+.profile-actions-card {
+    /* No usamos @extend, duplicamos los estilos para CSS plano */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.8));
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Alinear el contenido a la izquierda */
+    gap: 1rem; /* Espacio entre los elementos dentro de la tarjeta de acciones */
+}
+
+/* Para el párrafo de descripción de las acciones */
+.profile-actions-card p {
+    color: var(--secondary-color);
+    font-size: 1rem;
+    margin-bottom: 0.5rem; /* Espacio entre el párrafo y el botón */
+}
+
+.profile-actions-card .btn {
+    font-size: 1.04em;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.6em 1.5em;
+}
+
+
+
+/* Responsive adjustments for profile page */
+@media (max-width: 768px) {
+    .profile-section-card {
+        padding: 1.5rem;
+    }
+
+    .profile-detail-item {
+        flex-direction: column; /* Apila etiqueta y valor en pantallas pequeñas */
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .profile-detail-item strong {
+        width: auto; /* Desactiva el ancho fijo */
+        margin-bottom: 0.2rem; /* Pequeño espacio entre etiqueta y valor apilados */
+    }
+}
+
+
+
+.profile-detail-label {
+    font-weight: 600;
+    color: #444;
+    min-width: 120px;
+    margin-right: 1em;
+}
+
+.profile-detail-value {
+    color: #4b5563;
+    font-weight: 500;
+}
+
+
+.profile-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e0e7ff;
+    margin-right: 1.2em;
+}

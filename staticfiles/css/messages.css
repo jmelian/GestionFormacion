@@ -1,0 +1,78 @@
+
+/* =========================
+   MENSAJES / ALERTAS
+========================= */
+
+.messages {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+}
+
+.alert-modern {
+    border: none;
+    border-radius: 0.75rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-modern .btn-close {
+    font-size: 1.02em;
+    margin-left: auto;
+    opacity: 0.7;
+}
+
+.alert-success {
+    background: #bbf7d0;
+    color: #14532d;
+}
+.alert-info {
+    background: #f0f9ff;
+    color: #075985;
+}
+.alert-warning {
+    background: #fef9c3;
+    color: #b45309;
+}
+.alert-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.9));
+    color: white;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9));
+    color: white;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.9), rgba(217, 119, 6, 0.9));
+    color: white;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.9));
+    color: white;
+}
+
+.btn-close {
+    filter: brightness(0) invert(1);
+}
+
+@media (max-width: 768px) {
+    .messages {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}

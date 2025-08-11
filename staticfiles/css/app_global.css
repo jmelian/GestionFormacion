@@ -1,0 +1,1785 @@
+/* ==========================
+   VARIABLES Y RESET
+========================== */
+
+
+/* -- Estilos Globales desde base.html -- */
+
+:root {
+    --primary-color: #3b82f6;
+    --primary-dark: #2563eb;
+    --secondary-color: #64748b;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --light-bg: #f8fafc;
+    --dark-text: #1e293b;
+    --border-color: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: var(--dark-text);
+}
+
+.main-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navbar Styles */
+.navbar-custom {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    box-shadow: var(--shadow);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color) !important;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand:hover {
+    color: var(--primary-dark) !important;
+    transform: translateY(-1px);
+}
+
+.navbar-nav .nav-link {
+    color: var(--secondary-color) !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--primary-color) !important;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* Original .user-info - será ajustado por .user-profile-clickable y otros estilos más abajo */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(59, 130, 246, 0.1); /* Esto puede ser sobrescrito por .user-profile-clickable:hover */
+    border-radius: 2rem;
+    margin-right: 1rem;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.user-role {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.2rem 0.5rem;
+    border-radius: 1rem;
+}
+
+.notification-btn {
+    position: relative;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 50%;
+}
+
+.notification-btn:hover {
+    color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--danger-color);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    min-width: 1.2rem;
+    text-align: center;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.logout-btn {
+    background: linear-gradient(135deg, var(--danger-color), #dc2626);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 2rem 0;
+}
+
+.content-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Messages */
+.messages {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+}
+
+.alert-modern {
+    border: none;
+    border-radius: 0.75rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.9));
+    color: white;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9));
+    color: white;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.9), rgba(217, 119, 6, 0.9));
+    color: white;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.9));
+    color: white;
+}
+
+.btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* Footer */
+.footer {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border-color);
+    padding: 2rem 0;
+    margin-top: auto;
+}
+
+.footer-content {
+    text-align: center;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .user-info {
+        /* Los estilos de .user-profile-clickable tomarán precedencia */
+        flex-direction: row; /* Mantener en fila para el clickable */
+        gap: 0.5rem;
+        margin-right: 0;
+        margin-bottom: 0; /* Eliminar margin-bottom para que se alinee mejor en nav */
+        padding: 0; /* Eliminar padding de aquí, ya lo tiene user-profile-clickable */
+        background: transparent; /* Eliminar el background de user-info para que se vea el del link */
+    }
+    
+    .messages {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    /* Ajustes específicos para el nav en móvil */
+    .navbar-collapse .d-flex.align-items-center.flex-wrap {
+        flex-direction: column; /* Apila los elementos de la derecha */
+        align-items: flex-start !important; /* Alinea a la izquierda en móvil */
+        padding-top: 1rem;
+    }
+
+    .notification-btn, .logout-btn, .user-profile-clickable {
+        margin-left: 0 !important; /* Elimina el margen izquierdo para mejor alineación */
+        margin-bottom: 0.5rem; /* Espacio entre elementos apilados */
+        width: 100%; /* Ocupa todo el ancho disponible */
+        justify-content: flex-start; /* Alinea el contenido a la izquierda */
+        padding-left: 1rem; /* Padding para que el texto no esté pegado al borde */
+    }
+
+    .logout-btn {
+        margin-bottom: 1rem; /* Un poco más de espacio al final */
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--light-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--secondary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+
+/* -- Estilos comunes para headers de página  -- */
+.page-header {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.page-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.page-description {
+    color: #64748b;
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+/* Estilos comunes para contenedores de filtros/tarjetas */
+.filters-container {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.filters-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+}
+
+.filter-group {
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease; /* Transición para el efecto de foco */
+}
+
+/* Efecto de "levantar" el grupo al enfocar un input/select dentro */
+.filter-group:focus-within {
+    transform: translateY(-5px);
+}
+
+.filter-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-select-modern, .form-control-modern {
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.form-select-modern:focus, .form-control-modern:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background-color: var(--light-background);
+    color: var(--dark-text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+
+/* Si hay estilos específicos para selects */
+.form-control-select { /* Puedes usar esta clase si tus selects necesitan estilos distintos a los inputs */
+    /* Estilos específicos para select */
+}
+
+
+/* Estilos comunes para botones */
+.btn-filter {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.btn-clear {
+    background: linear-gradient(135deg, #64748b, #475569);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-clear:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.3);
+}
+
+/* Estilos para el botón btn-primary (usado en perfil) */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none; /* Importante para que los enlaces con esta clase se vean como botones */
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    color: white; /* Asegura que el texto permanezca blanco */
+}
+
+/* Estilos para el botón btn-secondary (usado en perfil) */
+.btn-secondary {
+    background: linear-gradient(135deg, var(--secondary-color), #475569);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.3);
+    color: white;
+}
+
+
+/* Estilos comunes para tablas */
+.table-container {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+.table-modern {
+    background: transparent;
+    border: none;
+    margin: 0;
+    width: 100%; /* Asegura que la tabla ocupe el 100% del contenedor */
+    border-collapse: separate;
+}
+
+.table-modern thead th {
+    border: none;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    color: #374151;
+    font-weight: 600;
+    padding: 1rem;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-modern tbody td {
+    border: none;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    transition: all 0.3s ease;
+    vertical-align: middle;
+    align-items: center;
+    height: auto;
+    justify-content: center;
+}
+
+.table-modern tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table-modern tbody tr:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Nuevos Estilos para Estado de Cursos (estado_cursos.html) --- */
+
+.table-responsive-modern {
+    overflow-x: auto; /* Permite el scroll horizontal */
+    -webkit-overflow-scrolling: touch; /* Mejora el scroll en dispositivos táctiles */
+    padding-bottom: 0.5rem; /* Espacio para la barra de scroll */
+}
+
+/* Centrar contenido en algunas celdas de la tabla */
+.table-modern .text-center {
+    text-align: center;
+}
+
+/* Centrar los botones de acción en la columna */
+.table-actions-center {
+    display: flex;
+    justify-content: center; /* Centra los botones horizontalmente */
+    align-items: center;
+    gap: 0.5rem; /* Espacio entre botones */
+    min-width: 120px; /* Asegura un mínimo de ancho para la columna de acciones */
+    flex-wrap: wrap; /* Permite que los botones se envuelvan si el espacio es muy reducido */
+}
+
+/* --- ESTILOS DE BOTONES DE ACCIÓN MEJORADOS (ACTUALIZADO) --- */
+
+/* Base style for all action buttons in tables */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px; /* Tamaño fijo para los botones, se ven más consistentes */
+    height: 38px;
+    padding: 0; /* Sin padding interno, el icono ocupa todo el espacio */
+    border-radius: 0.6rem; /* Bordes suaves */
+    font-size: 1.05rem; /* Tamaño del icono */
+    transition: all 0.2s ease; /* Transición suave para hover */
+    text-decoration: none;
+    color: white; /* **Asegura que el color del icono sea blanco para que contraste con fondos oscuros** */
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para profundidad */
+    flex-shrink: 0; /* Evita que el botón se encoja en espacios reducidos */
+}
+
+.btn-action:hover {
+    transform: translateY(-2px); /* Efecto de "levantamiento" al pasar el ratón */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada en hover */
+    color: white; /* Asegura el color del icono en hover */
+    opacity: 0.9; /* Pequeña opacidad para el efecto */
+}
+
+/* Specific colors for action buttons (re-evaluated for better distinction) */
+
+/* Botón para "Preselecciones" (acción de revisión/gestión) */
+.btn-action.btn-action-preselection {
+    background: linear-gradient(135deg, #22c55e, #16a34a); /* Un verde distintivo para "revisar/aprobar" */
+}
+.btn-action.btn-action-preselection:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+/* Botón para "Participantes" (acción de ver detalles/lista) */
+.btn-action.btn-action-participants {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); /* Tu azul primario */
+}
+.btn-action.btn-action-participants:hover {
+    background: linear-gradient(135deg, var(--primary-dark), #1f50c0);
+}
+
+/* Botón deshabilitado */
+.btn-action.btn-action-disabled {
+    background: linear-gradient(135deg, var(--secondary-color), #475569);
+    cursor: not-allowed;
+    opacity: 0.6; /* Un poco más opaco para indicar deshabilitado */
+    transform: none; /* Sin efecto hover para botones deshabilitados */
+    box-shadow: none;
+}
+.btn-action.btn-action-disabled:hover {
+    background: linear-gradient(135deg, var(--secondary-color), #475569); /* Mismo fondo en hover para deshabilitado */
+}
+
+/* Botón de Cancelar Acción */
+.btn-action.btn-cancel-action {
+    background: linear-gradient(135deg, #f59e0b, #d97706); /* Naranja/Amarillo para cancelar/advertencia */
+}
+.btn-action.btn-cancel-action:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+/* --- New Action Button Styles for Titulaciones Pendientes (titulaciones_pendientes_rrhh.html) --- */
+
+/* Button for "Validar" */
+.btn-action.btn-success-action {
+    background: linear-gradient(135deg, #10b981, #059669); /* A stronger green than preselection for "validate" */
+}
+.btn-action.btn-success-action:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+/* Button for "Ver en Admin" (e.g., an external link/utility action) */
+.btn-action.btn-admin-link {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6); /* A lighter blue, distinct from primary */
+}
+.btn-action.btn-admin-link:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+/* Ensure existing btn-view-doc-small is consistent for the new column */
+.btn-action.btn-view-doc-small {
+    background: linear-gradient(135deg, #06b6d4, #0891b2); /* Info/Cyan color */
+    /* Adjust size if needed, but it should inherit from .btn-action already */
+}
+.btn-action.btn-view-doc-small:hover {
+    background: linear-gradient(135deg, #0891b2, #0e7490);
+}
+
+/* Botón de Editar */
+.btn-action.btn-edit {
+    background: linear-gradient(135deg, #f97316, #ea580c); /* Naranja vibrante */
+}
+.btn-action.btn-edit:hover {
+    background: linear-gradient(135deg, #ea580c, #c2410c);
+}
+
+/* Botón de Eliminar */
+.btn-action.btn-delete {
+    background: linear-gradient(135deg, #ef4444, #dc2626); /* Rojo */
+}
+.btn-action.btn-delete:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+/* Botón de Inscripción */
+.btn-action.btn-enroll-action {
+    background: linear-gradient(135deg, #22c55e, #16a34a); /* Verde para inscripción */
+}
+.btn-action.btn-enroll-action:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+/* Botón de Completado */
+.btn-action.btn-completed-action {
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6); /* Violeta a azul, destaca como acción final */
+    color: #fff;
+    box-shadow: 0 2px 8px 0 rgba(139, 92, 246, 0.08);
+}
+.btn-action.btn-completed-action:hover {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: #fff;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 4px 16px 0 rgba(139, 92, 246, 0.13);
+}
+
+/* Ajuste general para la última columna de la tabla si es necesario */
+.table-modern th:last-child,
+.table-modern td:last-child {
+    min-width: 150px; /* Ajusta según el contenido, asegura espacio para los botones */
+}
+
+/* Media query para ajustar el min-width en pantallas más pequeñas si la tabla sigue siendo muy ancha */
+@media (max-width: 992px) { /* Por ejemplo, para tabletas */
+    .table-modern th,
+    .table-modern td {
+        padding: 0.8rem 0.6rem; /* Reducir un poco el padding en celdas */
+        font-size: 0.9rem; /* Un poco más pequeño el texto de la tabla */
+    }
+    .table-actions-center {
+        gap: 0.3rem; /* Menor espacio entre botones en pantallas medianas */
+    }
+}
+
+@media (max-width: 768px) { /* Para móviles */
+    .table-modern th,
+    .table-modern td {
+        padding: 0.6rem 0.4rem; /* Más reducción de padding */
+        font-size: 0.85rem;
+    }
+    .btn-action {
+        width: 36px; /* Botones de acción un poco más pequeños */
+        height: 36px;
+        font-size: 1.05rem; /* Tamaño del icono correspondiente para botones más pequeños */
+    }
+    .table-actions-center {
+        min-width: 100px; /* Ajustar el mínimo de ancho para la columna de acciones */
+    }
+}
+
+.sort-link {
+    color: #374151;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.sort-link:hover {
+    color: #3b82f6;
+}
+
+.sort-arrow {
+    font-size: 0.8rem;
+    color: #3b82f6;
+}
+
+/* Estilos comunes para badges y etiquetas */
+.summary-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin: 0.25rem;
+}
+
+.summary-badge.courses {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.summary-badge.qualifications {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.btn-details {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.btn-details:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);
+    color: white;
+}
+
+/* Estilos comunes para estado vacío */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--dark-text); /* Cambiado a un color más oscuro y legible */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 244, 248, 0.95)); /* Fondo más sólido y claro */
+    border: 1px solid rgba(220, 226, 232, 0.5); /* Borde más visible */
+    border-radius: 1rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); /* Una sombra ligera para que se "levante" */
+    margin-top: 2rem; /* Espacio superior para separarlo de otros elementos */
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color); /* Usar el color primario para el icono, lo hará destacar */
+    opacity: 0.8; /* Ligeramente transparente */
+}
+
+.empty-state p {
+    font-size: 1.1rem; /* Un poco más grande para mejor legibilidad */
+    line-height: 1.6; /* Mejor interlineado */
+    font-weight: 500; /* Hace el texto un poco más fuerte */
+    color: var(--dark-text); /* Asegura que el texto sea oscuro */
+}
+
+.department-tag {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+/* Estilos comunes responsivos */
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    .filters-container {
+        padding: 1rem;
+    }
+    
+    .table-container {
+        padding: 1rem;
+    }
+    
+    .table-modern thead th,
+    .table-modern tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Animaciones comunes */
+.table-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.filters-container {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.page-header {
+    animation: fadeInUp 0.2s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* --- Estilos para badges de estado (de empleado_formacion_detalle) --- */
+.status-badge {
+    display: inline-block;
+    padding: 0.3em 0.6em;
+    font-size: 0.85em;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.375rem; /* Bootstrap's .rounded-pill is typically 50rem, this is more subtle */
+    color: #fff; /* Default text color */
+}
+
+/* Badges con fondos fuertes y texto blanco */
+.status-badge.status-primary { /* Usado para 'Plan Anual' */
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+}
+.status-badge.status-secondary { /* Usado para 'Proyecto', 'No disponible', 'Inscrito', 'Finalizado', 'Rechazado' */
+    background: linear-gradient(135deg, var(--secondary-color), #475569);
+    color: white;
+}
+.status-badge.status-success {
+    background: linear-gradient(135deg, var(--success-color), #059669); /* Using CSS variables */
+}
+
+.status-badge.status-warning {
+    background: linear-gradient(135deg, var(--warning-color), #d97706); /* Using CSS variables */
+}
+
+.status-badge.status-danger {
+    background: linear-gradient(135deg, var(--danger-color), #dc2626); /* Using CSS variables */
+}
+
+.status-badge.status-info {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* Para el estado 'Completado' en Mis Cursos */
+.status-badge.status-completed {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed); /* Morado o color distintivo */
+    color: white;
+}
+
+/* Badges de éxito para fondos claros (e.g., plazas disponibles) */
+.status-badge.status-success-inverse {
+    background-color: #d1fae5; /* Verde muy claro */
+    color: #065f46; /* Texto verde oscuro */
+    border: 1px solid #a7f3d0;
+}
+
+/* Badges de peligro para fondos claros (e.g., plazas agotadas) */
+.status-badge.status-danger-inverse {
+    background-color: #fee2e2; /* Rojo muy claro */
+    color: #991b1b; /* Texto rojo oscuro */
+    border: 1px solid #fecaca;
+}
+
+/* Estilo para el header de la sección de detalles del empleado */
+.section-header {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+    backdrop-filter: blur(10px);
+    border-radius: 0.75rem; /* Slightly smaller border-radius than page-header */
+    padding: 1.5rem 2rem; /* Slightly less padding */
+    margin-bottom: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Lighter shadow */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-title {
+    font-size: 1.8rem; /* Slightly smaller than page-title */
+    font-weight: 700;
+    color: var(--dark-text); /* Use dark text color instead of gradient for sub-headings */
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-description {
+    color: var(--secondary-color);
+    font-size: 1rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+}
+
+.employee-detail-item {
+    font-size: 1rem;
+    color: var(--dark-text);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.employee-detail-item strong {
+    color: var(--primary-color);
+}
+
+/* Botón de volver */
+.btn-back {
+    background: linear-gradient(135deg, #64748b, #475569); /* Grey gradient from btn-clear */
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex; /* Use inline-flex to center icon and text */
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.3);
+    color: white; /* Ensure text color remains white on hover */
+}
+
+
+/* Estilo para el botón de "Ver Doc." */
+.btn-view-doc {
+    background: none;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-size: 0.85rem;
+    display: inline-flex; /* Añadido para mejor alineación de icono y texto */
+    align-items: center;
+    gap: 0.25rem; /* Pequeño espacio entre icono y texto */
+}
+
+.btn-view-doc:hover {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Estilo para "No hay cursos/titulaciones" */
+.no-data-message {
+    padding: 1.5rem;
+    /* Cambiado de rgba(248, 250, 252, 0.7) a un blanco más sólido con opacidad */
+    background: rgba(255, 255, 255, 0.9); /* Blanco más claro y opaco */
+    border: 1px dashed rgba(226, 232, 240, 0.7);
+    border-radius: 0.75rem;
+    color: var(--secondary-color); /* Mantén este color de texto si te gusta */
+    font-style: italic;
+    text-align: center;
+    margin-top: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Añade una sombra sutil para darle profundidad */
+}
+
+/* Responsive adjustments for tables on smaller screens */
+@media (max-width: 768px) {
+    .section-header {
+        padding: 1rem 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+    }
+
+    .employee-detail-item {
+        font-size: 0.95rem;
+    }
+    
+    /* Ensure table cells are readable on small screens */
+    .table-modern tbody td {
+        word-break: break-word;
+        /* Padding ya definido en la regla general para td, no duplicar a menos que sea un ajuste específico */
+    }
+}
+
+/* Regla para la columna de documento que se veía cortada */
+.table-modern th:last-child,
+.table-modern td:last-child {
+    min-width: 120px; /* Ajusta este valor si 40px era demasiado pequeño */
+}
+
+
+/* --- Estilos para el componente de usuario clicable en la cabecera --- */
+
+.user-profile-clickable {
+    text-decoration: none; /* Elimina el subrayado predeterminado del enlace */
+    color: inherit; /* Hereda el color del texto de su contenedor padre (navbar-custom) */
+    cursor: pointer; /* Muestra el cursor de "mano" para indicar que es clicable */
+    display: flex; /* Permite alinear el contenido (icono y div de info) */
+    align-items: center; /* Centra verticalmente el icono y el texto */
+    gap: 0.5rem; /* Espacio entre el icono de persona y el div de info */
+    padding: 0.5rem 0.75rem; /* Añade un área clicable más generosa */
+    border-radius: 0.5rem; /* Esquinas ligeramente redondeadas para el área clicable */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transiciones suaves para hover */
+    margin-left: 1rem; /* Separa un poco del botón de notificaciones */
+}
+
+.user-profile-clickable:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Fondo sutil al pasar el ratón */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Sombra suave para un efecto de "elevación" */
+}
+
+/* Ajustes para el contenido dentro de .user-info si es necesario */
+/* Se ajusta la regla original .user-info para que funcione con el clickable */
+.user-info {
+    display: flex; /* Para alinear el icono y el div del texto del usuario */
+    align-items: center;
+    /* Reducimos el gap de 1rem a 0.75rem para que el icono de persona y el div de texto se junten un poco */
+    gap: 0.75rem; /* Espacio entre el icono bi-person-circle y el div que contiene nombre/rol */
+    /* Eliminamos padding, background y border-radius de aquí para que los tome de .user-profile-clickable */
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    margin-right: 0; /* Asegura que no haya margen extra aquí */
+}
+
+
+.user-info .user-name {
+    font-weight: 600; /* Hace el nombre un poco más prominente */
+    color: var(--dark-text); /* Asegura el color de texto */
+    line-height: 1.2; /* Ajusta la altura de línea */
+}
+
+.user-info .user-role {
+    font-size: 0.85rem; /* Se ajusta de 0.8rem a 0.85rem para un poco más de legibilidad */
+    color: var(--secondary-color); /* Color más suave para el rol */
+    line-height: 1.2;
+    /* Eliminamos background, padding y border-radius de aquí, si estaban duplicados,
+       ya que el .user-profile-clickable o el diseño general del nav los manejará. */
+    background: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+
+/* --- Nuevos estilos para la plantilla 'Mi Perfil Personal' --- */
+
+.profile-section-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.8));
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-section-card .section-title {
+    margin-bottom: 1.5rem; /* Más espacio debajo del título de la sección */
+}
+
+.profile-detail-item {
+    display: flex;
+    align-items: flex-start; /* Alineación al inicio por si el texto es largo */
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+    color: var(--dark-text);
+}
+
+.profile-detail-item strong {
+    flex-shrink: 0; /* Evita que el strong se encoja */
+    width: 150px; /* Ancho fijo para las etiquetas, ajusta si es necesario */
+    color: var(--primary-color);
+    margin-right: 0.75rem; /* Espacio entre la etiqueta y el valor */
+    font-weight: 600;
+}
+
+.profile-detail-item span {
+    flex-grow: 1; /* Permite que el valor ocupe el resto del espacio */
+    color: var(--secondary-color);
+}
+
+/* Estilos para el contenedor de acciones del perfil */
+.profile-actions-card {
+    /* No usamos @extend, duplicamos los estilos para CSS plano */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.8));
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Alinear el contenido a la izquierda */
+    gap: 1rem; /* Espacio entre los elementos dentro de la tarjeta de acciones */
+}
+
+/* Para el párrafo de descripción de las acciones */
+.profile-actions-card p {
+    color: var(--secondary-color);
+    font-size: 1rem;
+    margin-bottom: 0.5rem; /* Espacio entre el párrafo y el botón */
+}
+
+/* Responsive adjustments for profile page */
+@media (max-width: 768px) {
+    .profile-section-card {
+        padding: 1.5rem;
+    }
+
+    .profile-detail-item {
+        flex-direction: column; /* Apila etiqueta y valor en pantallas pequeñas */
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .profile-detail-item strong {
+        width: auto; /* Desactiva el ancho fijo */
+        margin-bottom: 0.2rem; /* Pequeño espacio entre etiqueta y valor apilados */
+    }
+}
+
+/* --- Estilos para Páginas de Autenticación (Login, Registro, etc.) --- */
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Ocupa el alto completo de la ventana */
+    padding: 2rem 1rem; /* Padding para evitar que el contenido toque los bordes en móviles */
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end)); /* Fondo con degradado general de tu base */
+    background-attachment: fixed; /* Mantiene el fondo fijo al hacer scroll */
+    overflow-y: auto; /* Permite scroll si el contenido es más alto que la ventana */
+}
+
+.auth-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+    backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    max-width: 450px; /* Ancho máximo de la tarjeta de login */
+    width: 100%;
+    text-align: center;
+    animation: fadeInScale 0.6s ease-out forwards; /* Animación de entrada */
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.auth-title {
+    font-size: 2rem;
+    color: var(--primary-dark);
+    margin-bottom: 2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-title i {
+    font-size: 2.2rem; /* Tamaño del icono */
+    color: var(--primary-color);
+}
+
+.auth-form {
+    width: 100%;
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.5rem; /* Espacio entre grupos de formulario */
+    text-align: left;
+}
+
+.auth-form .form-label {
+    display: block; /* Asegura que la etiqueta esté en su propia línea */
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+    color: var(--dark-text);
+    font-size: 0.95rem;
+}
+
+.auth-form input[type="text"],
+.auth-form input[type="password"],
+.auth-form input[type="email"] { /* Añade otros tipos de input si los usas */
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background-color: var(--light-background);
+    color: var(--dark-text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.auth-form input[type="text"]:focus,
+.auth-form input[type="password"]:focus,
+.auth-form input[type="email"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* Sombra de enfoque similar a los botones */
+    outline: none;
+}
+
+/* Botón primario de ancho completo */
+.btn-primary-full-width {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary-full-width:hover {
+    background: linear-gradient(135deg, var(--primary-dark), #1f50c0);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary-full-width i {
+    font-size: 1.25rem;
+}
+
+.auth-helper-text {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+    margin-top: 2rem;
+}
+
+.auth-helper-text small {
+    display: block; /* Para asegurar que el small ocupe su propia línea si es necesario */
+}
+
+/* Media Queries para responsividad */
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 1.5rem;
+        margin: 0 1rem; /* Añadir un poco de margen en los lados en móviles */
+    }
+    .auth-title {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .auth-title i {
+        font-size: 2rem;
+    }
+    .btn-primary-full-width {
+        font-size: 1rem;
+        padding: 0.8rem 1.2rem;
+    }
+}
+
+/* --- Estilos para Tarjetas de Formulario (como en añadir/editar titulación) --- */
+
+.form-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+    backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    margin-top: 2rem; /* Espacio superior para separarlo del header */
+    animation: fadeInScale 0.6s ease-out forwards;
+}
+
+/* Base de Formulario Moderno */
+.modern-form {
+    width: 100%;
+}
+
+.modern-form .form-group {
+    margin-bottom: 1.5rem; /* Espacio entre cada campo del formulario */
+}
+
+.modern-form .form-label {
+    display: block; /* Asegura que la etiqueta esté en su propia línea */
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+    color: var(--dark-text);
+    font-size: 0.95rem;
+}
+
+/* Estilos para campos de input y select */
+.modern-form input[type="text"],
+.modern-form input[type="number"],
+.modern-form input[type="email"],
+.modern-form input[type="date"],
+.modern-form input[type="file"],
+.modern-form select,
+.modern-form textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background-color: var(--light-background);
+    color: var(--dark-text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.modern-form input[type="text"]:focus,
+.modern-form input[type="number"]:focus,
+.modern-form input[type="email"]:focus,
+.modern-form input[type="date"]:focus,
+.modern-form input[type="file"]:focus,
+.modern-form select:focus,
+.modern-form textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+
+/* Estilos para mensajes de ayuda de campo */
+.form-text-help {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+    margin-top: 0.4rem;
+}
+
+/* Estilos para mensajes de error de campo */
+.form-error-message {
+    font-size: 0.85rem;
+    color: #ef4444; /* Un rojo vibrante para errores */
+    margin-top: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.form-error-message i {
+    font-size: 1rem;
+}
+
+.form-error-message-nonfield p {
+    margin: 0;
+}
+
+.form-group.has-error .form-label {
+    color: #ef4444; /* Etiqueta roja si hay error */
+}
+
+.form-group.has-error input,
+.form-group.has-error select,
+.form-group.has-error textarea {
+    border-color: #ef4444; /* Borde rojo si hay error */
+}
+
+/* Contenedor de botones del formulario */
+.form-actions {
+    display: flex;
+    justify-content: flex-end; /* Alinea los botones a la derecha */
+    gap: 1rem; /* Espacio entre botones */
+    margin-top: 2rem; /* Espacio superior */
+}
+
+/* Botones de acción principales (Guardar) */
+.btn-primary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary-action:hover {
+    background: linear-gradient(135deg, var(--primary-dark), #1f50c0);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary-action i {
+    font-size: 1.15rem;
+}
+
+/* Botones de acción secundarios (Cancelar) */
+.btn-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, var(--secondary-color), #475569);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(71, 85, 105, 0.2);
+    text-decoration: none; /* Para enlaces con estilo de botón */
+}
+
+.btn-secondary-action:hover {
+    background: linear-gradient(135deg, #475569, #334155);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(71, 85, 105, 0.3);
+}
+
+.btn-secondary-action i {
+    font-size: 1.15rem;
+}
+
+.btn-secondary-action-small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1rem; /* Más pequeño que el btn-secondary-action normal */
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, var(--secondary-color), #475569);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(71, 85, 105, 0.2);
+    text-decoration: none;
+}
+
+.btn-secondary-action-small:hover {
+    background: linear-gradient(135deg, #475569, #334155);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(71, 85, 105, 0.3);
+}
+
+.btn-secondary-action-small i {
+    font-size: 1rem;
+}
+
+/* Media Queries para responsividad */
+@media (max-width: 768px) {
+    .form-card {
+        padding: 1.5rem;
+    }
+    .form-actions {
+        flex-direction: column; /* Apila los botones en pantallas pequeñas */
+        align-items: stretch; /* Estira los botones a lo ancho */
+        gap: 0.8rem;
+    }
+    .btn-primary-action,
+    .btn-secondary-action {
+        width: 100%; /* Botones de ancho completo */
+        padding: 0.7rem 1.2rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* Estilos para las secciones del dashboard */
+.dashboard-section {
+    margin-bottom: 3rem; /* Espacio entre secciones */
+}
+
+.dashboard-section:last-child {
+    margin-bottom: 0; /* No hay margen inferior en la última sección */
+}
+
+.section-title {
+    font-size: 1.8rem; /* Tamaño del título de la sección */
+    color: var(--dark-text);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.section-title i {
+    font-size: 1.6rem;
+    margin-right: 0.75rem;
+    color: var(--primary-color); /* Color del icono del título */
+}
+
+.section-description {
+    font-size: 1.05rem;
+    color: #64748b; /* Un gris secundario para la descripción */
+    margin-bottom: 2rem;
+    max-width: 800px;
+}
+
+/* Estilos para las tarjetas del dashboard (si no están ya definidos o necesitas ajustarlos) */
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: var(--dark-text);
+    transition: all 0.3s ease;
+    height: 100%; /* Para que todas las tarjetas en una fila tengan la misma altura */
+    border: 1px solid var(--border-color);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    background-color: var(--light-bg);
+    text-decoration: none; /* Asegura que el subrayado desaparezca al pasar el ratón */
+}
+
+.card-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark-text); /* Asegura que el título sea legible */
+}
+
+.card-description {
+    font-size: 0.95rem;
+    color: #64748b; /* Un gris más claro para la descripción */
+    flex-grow: 1; /* Permite que la descripción ocupe el espacio restante */
+}
+
+/* Variantes de tarjetas */
+.primary-card .card-icon { color: var(--primary-color); }
+.success-card .card-icon { color: var(--success-color); }
+.warning-card .card-icon { color: var(--warning-color); }
+.danger-card .card-icon { color: var(--danger-color); }
+.info-card .card-icon { color: var(--secondary-color); } /* Usar secondary-color para info */
+
+/* Ajustes para las filas de Bootstrap (si no están ya en tu CSS global) */
+.row.g-4 > .col {
+    padding: 1rem; /* Espacio entre las tarjetas */
+}
+
+.btn-action-confirm {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.btn-action-confirm:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea685 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    color: white;
+}
+
+.btn-action-confirm:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.btn-action-reject {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+.btn-action-reject:hover {
+    background: linear-gradient(135deg, #c82333 0%, #dc2626 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    color: white;
+}
+
+.btn-action-reject:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+/* Estilos para los iconos dentro de los botones */
+.btn-action-confirm i,
+.btn-action-reject i {
+    font-size: 0.875rem;
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 768px) {
+    .btn-action-confirm,
+    .btn-action-reject {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+    
+    .btn-action-confirm i,
+    .btn-action-reject i {
+        font-size: 0.8rem;
+    }
+}
+
+/* Ajuste para el contenedor de acciones */
+.table-actions-center {
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Estrechar la columna de acciones */
+.action-column-width {
+    width: 200px;
+    max-width: 200px;
+}
+
+/* Mejora del espaciado entre botones */
+.me-2 {
+    margin-right: 8px !important;
+}
+
+/* Estilos para botones de icono */
+.btn-action-confirm i,
+.btn-action-reject i {
+    font-size: 0.875rem; /* Mantiene el tamaño del icono */
+    margin-right: 0;   /* Elimina el margen a la derecha si no hay texto */
+}
+
+/* Ajustes específicos para botones SOLO de icono */
+/* Cuando un botón solo tiene un icono, ajustamos su padding para que sea más cuadrado/compacto */
+.btn-action-confirm:has(i:only-child), /* Selecciona el botón si su único hijo es un icono */
+.btn-action-reject:has(i:only-child) {
+    padding: 0.5rem; /* Reduce el padding para que sea más centrado y cuadrado */
+    width: auto; /* Permite que el ancho se ajuste al contenido */
+    min-width: 32px; /* Un tamaño mínimo para que sea fácil de hacer clic */
+    height: 32px;    /* Hace que sea cuadrado */
+    display: flex;   /* Asegura que el icono esté centrado */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ajustes para pantallas pequeñas (ya los tenías, solo confirmamos que apliquen bien) */
+@media (max-width: 768px) {
+    .btn-action-confirm,
+    .btn-action-reject {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+    
+    /* Ajuste para botones solo con icono en pantallas pequeñas */
+    .btn-action-confirm:has(i:only-child),
+    .btn-action-reject:has(i:only-child) {
+        padding: 0.4rem; /* Un poco menos de padding para hacerlo más compacto en móvil */
+        min-width: 28px;
+        height: 28px;
+    }
+
+    .btn-action-confirm i,
+    .btn-action-reject i {
+        font-size: 0.8rem;
+    }
+}
+
+/* For the full-area link on dashboard cards */
+.dashboard-card {
+    position: relative; /* Needed for absolute positioning of child link */
+    overflow: hidden; /* Ensures child doesn't spill out */
+}
+
+.dashboard-card .card-link-full-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Ensures it's above other content in the card */
+    /* Optional: Add hover styles if you want a visual indication */
+    /* background-color: rgba(0, 0, 0, 0.05); */
+}
+
+/* Adjust existing card-link if it's visually overlapping the full-area link */
+.dashboard-card .card-link {
+    position: relative; /* Ensure it stays above the full-area link */
+    z-index: 2; /* Make sure this is higher than card-link-full-area */
+    /* You might need to adjust margin/padding if the button looks off */
+}
+
