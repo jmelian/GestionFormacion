@@ -116,6 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
+DEFAULT_CHARSET = 'utf-8'
 
 TIME_ZONE = 'UTC'
 
@@ -125,7 +126,7 @@ USE_TZ = True
 TIME_ZONE = config('TIME_ZONE')
 
 
-LANGUAGE_CODE = 'es'
+LANGUAGE_CODE = 'es-es'
 
 USE_L10N = True
 
