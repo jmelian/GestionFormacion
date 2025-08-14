@@ -66,7 +66,8 @@ ALLOWED_HOSTS=127.0.0.1,localhost # Separa por comas, sin espacios
 # DB_NAME=nombre_de_tu_bd
 # DB_USER=usuario_bd
 # DB_PASSWORD=contraseña_bd
-# DB_HOST=localhost
+# DB_HOST_LOCAL=localhost
+# DB_HOST_DOCKER=db
 # DB_PORT=5432
 
 # Configuración de Email 

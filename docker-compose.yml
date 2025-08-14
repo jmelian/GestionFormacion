@@ -9,8 +9,8 @@ services:
     # Expone el puerto 8000 para que Nginx se conecte
     expose:
       - 8000
-    env_file:
-      - ./.dockerenv # Carga las variables de entorno desde el archivo .env.
+    environment:
+      - DB_HOST=${DB_HOST_DOCKER}
     depends_on:
       - db # Asegura que el servicio 'db' esté corriendo antes de iniciar 'web'.
     # Nombre del servicio

@@ -78,18 +78,23 @@ WSGI_APPLICATION = 'formacion_demo.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# Lógica para determinar el HOST de la base de datos
+DB_HOST = config('DB_HOST_DOCKER', default=None)
+if not DB_HOST:
+    # Si DB_HOST_DOCKER no existe, asumimos que estamos en local.
+    DB_HOST = config('DB_HOST_LOCAL', default='localhost')
+
+# Configuración de la base de datos
 DATABASES = {
     'default': {
         'ENGINE': config('DB_ENGINE'),
         'NAME': config('DB_NAME'),
-        'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', 'localhost'),
-        'PORT': config('DB_PORT', ''),
+        'HOST': DB_HOST,  # Aquí se usa la variable ya definida.
+        'PORT': config('DB_PORT'),
     }
 }
-
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
