@@ -1,12 +1,11 @@
 # docker-compose.yml
 
-version: '3.8'
-
 services:
   web:
     build: . # Docker construirá la imagen usando el Dockerfile en el directorio actual.
     volumes:
       - .:/app # Monta el directorio local en el contenedor para desarrollo en tiempo real.
+    #  - ./datos:/app/datos
     # Expone el puerto 8000 para que Nginx se conecte
     expose:
       - 8000
@@ -37,7 +36,7 @@ services:
 
   db:
     # Usa la imagen oficial de PostgreSQL
-    image: postgres:15
+    image: postgres:17
     # Variables de entorno para la base de datos
     environment:
       POSTGRES_DB: ${DB_NAME}

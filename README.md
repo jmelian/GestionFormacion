@@ -140,6 +140,17 @@ Puedes acceder al panel de administración de Django en:
 
 Usa las credenciales del superusuario que creaste.
 
+## Backup
+
+### Generar un backup de los datos
+```bash
+docker-compose exec web python manage.py dumpdata --indent 2 | Out-File -Encoding utf8 datos_modelo.json
+```
+
+### Restaurar un backup de los datos
+```bash
+docker-compose exec web python manage.py loaddata datos_modelo.json
+```
 
 ## Licencia
 Este proyecto está bajo la [Licencia Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). Consulta el archivo `LICENSE` para más detalles.
