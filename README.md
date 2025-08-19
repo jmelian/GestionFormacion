@@ -145,12 +145,13 @@ Usa las credenciales del superusuario que creaste.
 
 ### Generar un backup de los datos
 ```bash
-docker-compose exec web python manage.py dumpdata --indent 2 | Out-File -Encoding utf8 datos_modelo.json
+docker-compose exec web sh -c "python manage.py dumpdata --indent 2 > /app/datos/backup_temp.json"
 ```
+> NOTA: El archivo queda dentro del contenedor y no se corrompe al pasar a la terminal 
 
 ### Restaurar un backup de los datos
 ```bash
-docker-compose exec web python manage.py loaddata datos_modelo.json
+docker-compose exec web python manage.py loaddata backup_temp.json
 ```
 
 ## Licencia
