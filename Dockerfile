@@ -22,6 +22,9 @@ COPY . .
 
 # Crea un usuario no-root
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Crea el directorio media y configura los permisos correctos
+RUN mkdir -p /app/media
+RUN chown -R appuser:appgroup /app/media
 USER appuser
 
 # Expone el puerto 8000 para que el contenedor pueda recibir tráfico externo.
