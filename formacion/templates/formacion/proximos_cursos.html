@@ -46,21 +46,25 @@
                                 <td class="text-center">
                                     {{ curso.fecha_inicio|date:"d/m/Y" }} → {{ curso.fecha_fin|date:"d/m/Y" }}
                                 </td>
-                                <td class="text-center">{{ curso.duracion_horas }} h</td>
+                                <td class="text-center">
+                                    {% if curso.duracion_horas %}
+                                        {{ curso.duracion_horas }} h
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
                                 <td>{{ curso.get_modalidad_display }}</td> {# Usar get_FOO_display #}
                                 <td>{{ curso.get_tipo_display }}</td> {# Usar get_FOO_display #}
                                 <td>{{ curso.proveedor.nombre }}</td> {# Acceder al nombre del proveedor #}
                                 <td class="text-center">
-                                    {% if curso.origen == 'plan_anual' %}
-                                        <span class="status-badge status-primary"><i class="bi bi-calendar-check me-1"></i> Plan Anual</span>
-                                    {% elif curso.origen == 'formacion_obligatoria' %}
+                                    {% if curso.es_obligatorio %}
                                         <span class="status-badge status-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Obligatoria</span>
-                                    {% elif curso.origen == 'formacion_puntual' %}
-                                        <span class="status-badge status-info"><i class="bi bi-lightning-fill me-1"></i> Puntual</span>
-                                    {% elif curso.origen == 'proyecto' %}
+                                    {% endif %}
+                                    {% if curso.proyecto_id %}
                                         <span class="status-badge status-secondary"><i class="bi bi-puzzle-fill me-1"></i> Proyecto</span>
-                                    {% else %}
-                                        N/A
+                                    {% endif %}
+                                    {% if not curso.es_obligatorio and not curso.proyecto_id %}
+                                        <span class="status-badge status-primary"><i class="bi bi-calendar-check me-1"></i> Plan Anual</span>
                                     {% endif %}
                                 </td>
                                 <td class="text-center">{{ curso.plazas_totales }}</td>
