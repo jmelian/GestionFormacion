@@ -88,15 +88,15 @@ if not DB_HOST:
 DATABASES = {
     'default': {
         'ENGINE': config('DB_ENGINE'),
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
+        'NAME': config('POSTGRES_DB'),
+        'USER': config('POSTGRES_USER'),
+        'PASSWORD': config('POSTGRES_PASSWORD'),
         'HOST': DB_HOST,  # Aquí se usa la variable ya definida.
         'PORT': config('DB_PORT'),
     }
 }
 
-MEDIA_URL = '/media/'
+MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Password validation
@@ -146,12 +146,16 @@ STATIC_URL = 'static/'
 
 # Directorio donde Django buscará archivos estáticos durante el desarrollo.
 # Asegúrate de que esta ruta sea correcta para tu proyecto.
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'formacion/static/'),
-]
+#STATICFILES_DIRS = [
+#    os.path.join(BASE_DIR, 'formacion/static/'),
+#]
 
 # Directorio donde se recolectarán los archivos estáticos para producción.
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
+
+# Sección de seguridad
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

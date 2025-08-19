@@ -1,52 +1,51 @@
-# docker-compose.yml
-
 services:
   web:
-    build: . # Docker construirá la imagen usando el Dockerfile en el directorio actual.
+    build: .
+    # El comando "sh -c ..." ejecuta los dos comandos en secuencia.
+    # El primero es para recopilar los archivos estáticos en la ruta de STATIC_ROOT.
+    # El segundo inicia el servidor Gunicorn.
+    command: sh -c "python manage.py collectstatic --no-input && gunicorn formacion_demo.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     volumes:
-      - .:/app # Monta el directorio local en el contenedor para desarrollo en tiempo real.
-    #  - ./datos:/app/datos
-    # Expone el puerto 8000 para que Nginx se conecte
+      # Los volúmenes con nombres persisten los datos de staticfiles y media.
+      - static_volume:/vol/web/staticfiles
+      - media_volume:/vol/web/media
     expose:
       - 8000
-    environment:
-      - DB_HOST=${DB_HOST_DOCKER}
+    env_file:
+      - .env
     depends_on:
-      - db # Asegura que el servicio 'db' esté corriendo antes de iniciar 'web'.
-    # Nombre del servicio
+      db:
+          condition: service_healthy
     container_name: django_app
-  
+
   nginx:
-      # Usa la imagen oficial de Nginx
-      image: nginx:latest
-      # Mapea el puerto 80 del host al 80 del contenedor
-      ports:
-        - "80:80"
-      # Monta el archivo de configuración de Nginx
-      volumes:
-        - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-        # Monta los directorios static y media para que Nginx pueda acceder a ellos
-        - ./staticfiles:/vol/web/staticfiles
-        - ./media:/vol/web/media
-      # Depende del servicio web
-      depends_on:
-        - web
-      # Nombre del servicio
-      container_name: nginx_proxy
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      # Nginx accede a los mismos volúmenes nombrados para servir los archivos
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/vol/web/staticfiles
+      - media_volume:/vol/web/media
+    depends_on:
+      - web
+    container_name: nginx_proxy
 
   db:
-    # Usa la imagen oficial de PostgreSQL
     image: postgres:17
-    # Variables de entorno para la base de datos
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    # Monta un volumen para persistir los datos de la DB
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    # Nombre del servicio
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
     container_name: postgres_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   postgres_data:
+  static_volume:
+  media_volume:
