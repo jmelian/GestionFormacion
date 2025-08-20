@@ -1,5 +1,5 @@
 # formacion/views.py
-import datetime
+import datetime, os, mimetypes
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -21,6 +21,7 @@ from django.utils.html import strip_tags
 from django import forms
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.transaction import TransactionManagementError
+from django.http import FileResponse, Http404, HttpResponseForbidden
 import logging
 
 
@@ -3172,3 +3173,43 @@ def detalle_participacion(request, participacion_id):
     }
     return render(request, 'formacion/detalle_participacion.html', context)
 
+@login_required
+def serve_protected_titulacion(request, filename):
+    """
+    Vista para servir un archivo de titulación de forma segura.
+    Verifica que el usuario está autenticado y que el archivo le pertenece.
+    """
+    try:
+        # Busca la titulación en la base de datos por el nombre del archivo.
+        # Asume que el campo 'archivo' en el modelo ya contiene la ruta relativa
+        # 'titulaciones/nombre_del_archivo.pdf'.
+        # Busca la titulación por el nombre de archivo en el campo 'documento_adjunto'.
+        titulacion = get_object_or_404(Titulacion, documento_adjunto__endswith=filename)
+    except Http404:
+        # Si la titulación no existe en la base de datos, devuelve un 404
+        # (El log en este caso ya ha sido gestionado por el manejador de excepciones de Django)
+        logger.error(f"Intento de acceso a un archivo no registrado: {filename}")
+        raise Http404("El archivo solicitado no existe o no está registrado.")
+
+    # Verifica si el empleado asociado a la titulación es el usuario actual.
+    if titulacion.empleado != request.user:
+        # Si el usuario no es el propietario, niega el acceso.
+        logger.error(f"Intento de acceso no autorizado al archivo {filename} por el usuario {request.user.username}.")
+        return HttpResponseForbidden("No tienes permiso para ver este archivo.")
+
+    # Utiliza la ruta del archivo del campo del modelo para garantizar que es correcta.
+    file_path = titulacion.documento_adjunto.path
+
+    if os.path.exists(file_path):
+        mime_type, _ = mimetypes.guess_type(file_path)
+        if not mime_type:
+            mime_type = 'application/octet-stream'
+            
+        response = FileResponse(open(file_path, 'rb'), content_type=mime_type)
+        response['Content-Disposition'] = f'inline; filename="{os.path.basename(file_path)}"'
+        return response
+    else:
+        # El archivo no se encontró físicamente, lo que es un problema serio.
+        logger.error(f"Archivo físico no encontrado para la titulación '{titulacion.id}': {file_path}")
+        raise Http404("El archivo físico no existe en el servidor.")
+    

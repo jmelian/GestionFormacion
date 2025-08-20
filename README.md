@@ -83,11 +83,9 @@ Para `SECRET_KEY`: Puedes generar una clave segura ejecutando en tu terminal (co
 ```bash
 python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
 ```
-### 3. Recolectar Archivos Estáticos
-Antes de iniciar el servidor, es necesario recolectar todos los archivos estáticos de Django en un solo lugar. Este comando construye la imagen de tu aplicación y ejecuta `collectstatic` en un contenedor temporal.
+### 3. Iniciar el servidor
 ```bash
 docker-compose up -d --build
-docker-compose exec web python manage.py collectstatic --noinput
 ```
 
 ### 4. Base de Datos y Migraciones
@@ -125,12 +123,12 @@ docker-compose exec web python manage.py loaddata initial_permissions.json
 
 >**Nota**: Estos archivos se pueden generar usando el comando _dumpdata_ de Django. Por ejemplo: `exec web python manage.py dumpdata auth.Group --indent 2 > initial_groups.json`. Si encuentras problemas de codificación al generarlos, especialmente en Windows, puedes usar ´export PYTHONIOENCODING=utf-8´ antes del comando dumpdata.
 
-### 7. Ejecutar el Proyecto
+## Ejecución del Proyecto
 Con todos los pasos anteriores completados, tu proyecto ya debería estar en ejecución. Simplemente usa docker-compose up para iniciar todos los servicios:
 ```bash
 docker-compose up
 ```
-Tu proyecto estará disponible en `http://localhost/` y el servidor Nginx se encargará de dirigir el tráfico a tu aplicación. Si necesitas detener los servicios, usa:
+Tu proyecto estará disponible en `http://localhost/formacion` y el servidor Nginx se encargará de dirigir el tráfico a tu aplicación. Si necesitas detener los servicios, usa:
 ```bash
 docker-compose down
 ```

@@ -20,17 +20,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia el resto de tu código de la aplicación.
 COPY . .
 
-# Crea un usuario no-root
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-# Crea el directorio media y configura los permisos correctos
-RUN mkdir -p /app/media
-RUN chown -R appuser:appgroup /app/media
-USER appuser
-
 # Expone el puerto 8000 para que el contenedor pueda recibir tráfico externo.
 EXPOSE 8000
 
 # El comando principal que se ejecutará al iniciar el contenedor.
-# Inicia el servidor Gunicorn.
+# Será sobrescrito por docker-compose.
 CMD ["gunicorn", "formacion_demo.wsgi:application", "--bind", "0.0.0.0:8000"]
-

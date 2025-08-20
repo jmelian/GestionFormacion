@@ -29,3 +29,12 @@ def has_participation(user, course):
         empleado=user,
         curso=course
     ).exclude(estado__in=['cancelado', 'rechazado']).exists()
+
+
+@register.filter
+def split(value, arg):
+    """
+    Divide una cadena por el argumento dado.
+    Ejemplo de uso en plantilla: {{ 'a/b/c'|split:'/' }} devolverá ['a', 'b', 'c'].
+    """
+    return value.split(arg)
