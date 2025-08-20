@@ -96,8 +96,8 @@ DATABASES = {
     }
 }
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/vol/web/media/'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -142,7 +142,7 @@ AUTH_USER_MODEL = 'formacion.Empleado'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Directorio donde Django buscará archivos estáticos durante el desarrollo.
 # Asegúrate de que esta ruta sea correcta para tu proyecto.
@@ -151,7 +151,7 @@ STATIC_URL = 'static/'
 #]
 
 # Directorio donde se recolectarán los archivos estáticos para producción.
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
+STATIC_ROOT = '/vol/web/staticfiles/'
 
 # Sección de seguridad
 SESSION_COOKIE_SECURE = True

@@ -36,7 +36,7 @@ urlpatterns = [
     path('perfil/titulaciones/<int:pk>/delete/', views.mi_titulacion_delete, name='mi_titulacion_delete'),
     path('titulaciones-pendientes/', views.titulaciones_pendientes_rrhh, name='titulaciones_pendientes_rrhh'),
     path('titulaciones/<int:titulacion_id>/', views.detalle_titulacion, name='detalle_titulacion'),
-
+    path('media/protected/titulaciones/<str:filename>/', views.serve_protected_titulacion, name='serve_protected_titulacion'),
     # URLs relacionadas con Cursos
     path('gestion-de-cursos/', views.gestion_cursos_list, name='gestion_cursos_list'),
     path('mis-cursos/', views.mis_cursos, name='mis_cursos'),

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formacion_filters %}
 
 {% block title %}Mis Titulaciones y Certificaciones{% endblock %}
 
@@ -105,9 +106,11 @@
                                     </button>
                                 {% endif %}
                                 {% if titulacion.documento_adjunto %}
-                                    <a href="{{ titulacion.documento_adjunto.url }}" target="_blank" class="btn-action btn-view-doc-small" title="Ver Documento">
+                                    {% with file_name=titulacion.documento_adjunto.name|split:"/"|last %}
+                                    <a href="{% url 'formacion:serve_protected_titulacion' filename=file_name %}" target="_blank" class="btn-action btn-view-doc-small" title="Ver Documento">
                                         <i class="bi bi-file-earmark-text-fill"></i>
                                     </a>
+                                    {% endwith %}
                                 {% endif %}
                                 {# Botón de Ver Detalles (si tienes una vista de detalle para el empleado) #}
                                 <a href="{% url 'formacion:detalle_titulacion' titulacion.pk %}" class="btn-action btn-details" title="Ver Detalles">
