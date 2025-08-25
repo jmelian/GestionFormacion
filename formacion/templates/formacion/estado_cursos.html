@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formacion_tags %}
 
 {% block title %}Estado de Cursos{% endblock %}
 
@@ -15,82 +16,96 @@
         </div>
     </div>
 
-    {# Formulario para el filtro de cursos terminados #}
-    <div class="filter-controls mb-3">
-        <form method="GET" action="{% url 'formacion:estado_cursos' %}" class="d-flex align-items-center">
+    <form method="GET" id="filtersForm" action="{% url 'formacion:estado_cursos' %}">
+        <div class="filter-controls mb-3">
             <label class="form-check-label me-2">
-                <input type="checkbox" class="form-check-input" name="show_finished" value="true" {% if show_finished_courses %}checked{% endif %} onchange="this.form.submit()">
+                <input type="checkbox" class="form-check-input" name="show_finished" value="true" {% if show_finished_courses %}checked{% endif %} onchange="document.getElementById('filtersForm').submit()">
                 Mostrar cursos terminados
             </label>
-            {# Opcional: un botón de reset si hay más filtros en el futuro #}
-            {# <a href="{% url 'formacion:estado_cursos' %}" class="btn btn-sm btn-outline-secondary">Limpiar Filtros</a> #}
-        </form>
-    </div>
+        </div>
 
+        <input type="hidden" name="sort_by" value="{{ sort_by }}">
+        <input type="hidden" name="direction" value="{{ direction }}">
+        <input type="hidden" name="page" value="{{ page_obj.number }}">
+        <input type="hidden" name="page_size" value="{{ page_size }}">
 
-    {% if datos_cursos %}
-        <div class="table-container">
-            <div class="table-responsive-modern">
-                <table class="table-modern">
-                    <thead>
-                        <tr>
-                            <th>Curso</th>
-                            <th class="text-center">Plazas Totales</th>
-                            <th class="text-center">Plazas Disponibles</th>
-                            <th class="text-center">Participación</th> {# Nueva columna para el resumen #}
-                            <th>Fecha Inicio</th>
-                            <th>Fecha Fin</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for data in datos_cursos %}
-                        <tr>
-                            <td>{{ data.nombre }}</td>
-                            <td class="text-center"><span class="summary-badge">{{ data.plazas_totales }}</span></td>
-                            <td class="text-center"><span class="summary-badge courses">{{ data.plazas_disponibles }}</span></td>
-                            <td>{{ data.participacion_resumen }}</td> {# Mostrar el resumen de participación #}
-                            <td>{{ data.fecha_inicio|date:"d/m/Y" }}</td>
-                            <td>{{ data.fecha_fin|date:"d/m/Y" }}</td>
-                            <td class="table-actions-center">
-                                {% if data.num_pendientes_validar > 0 %}
-                                    <a href="{% url 'formacion:gestionar_preselecciones_curso' data.id %}" class="btn-action btn-action-preselection" title="Gestionar Preselecciones">
+        {% if datos_cursos %}
+            <div class="table-container">
+                <div class="table-responsive-modern">
+                    <table class="table-modern sortable-table">
+                        <thead>
+                            <tr>
+                                <th class="sticky-th sortable-th" data-sort-by="nombre">
+                                    Nombre del Curso <span class="sort-icon-container">{% if sort_by == 'nombre' %}<i class="bi bi-arrow-down-up ms-2 {% if direction == 'desc' %}bi-sort-alpha-down-alt{% else %}bi-sort-alpha-up{% endif %}"></i>{% endif %}</span>
+                                </th>
+                                <th class="sticky-th text-center sortable-th" data-sort-by="fecha_inicio">
+                                    Fecha de Inicio <span class="sort-icon-container">{% if sort_by == 'fecha_inicio' %}<i class="bi bi-arrow-down-up ms-2 {% if direction == 'desc' %}bi-sort-numeric-down-alt{% else %}bi-sort-numeric-up{% endif %}"></i>{% endif %}</span>
+                                </th>
+                                <th class="sticky-th text-center sortable-th" data-sort-by="fecha_fin">
+                                    Fecha de Finalización <span class="sort-icon-container">{% if sort_by == 'fecha_fin' %}<i class="bi bi-arrow-down-up ms-2 {% if direction == 'desc' %}bi-sort-numeric-down-alt{% else %}bi-sort-numeric-up{% endif %}"></i>{% endif %}</span>
+                                </th>
+                                <th class="sticky-th text-center sortable-th" data-sort-by="plazas_totales">
+                                    Plazas Totales <span class="sort-icon-container">{% if sort_by == 'plazas_totales' %}<i class="bi bi-arrow-down-up ms-2 {% if direction == 'desc' %}bi-sort-numeric-down-alt{% else %}bi-sort-numeric-up{% endif %}"></i>{% endif %}</span>
+                                </th>
+                                <th class="sticky-th text-center sortable-th" data-sort-by="plazas_disponibles">
+                                    Plazas Disponibles <span class="sort-icon-container">{% if sort_by == 'plazas_disponibles' %}<i class="bi bi-arrow-down-up ms-2 {% if direction == 'desc' %}bi-sort-numeric-down-alt{% else %}bi-sort-numeric-up{% endif %}"></i>{% endif %}</span>
+                                </th>
+                                <th class="sticky-th text-center">Estado de Participación</th>
+                                <th class="sticky-th text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for curso_data in datos_cursos %}
+                            <tr>
+                                <td>{{ curso_data.nombre }}</td>
+                                <td class="text-center">{{ curso_data.fecha_inicio|default_if_none:"N/A"|date:"d/m/Y" }}</td>
+                                <td class="text-center">{{ curso_data.fecha_fin|default_if_none:"N/A"|date:"d/m/Y" }}</td>
+                                <td class="text-center">{{ curso_data.plazas_totales }}</td>
+                                <td class="text-center">{{ curso_data.plazas_disponibles }}</td>
+                                <td>{{ curso_data.participacion_resumen }}</td>
+                                <td class="table-actions-center-wrap">
+                                    {% if curso_data.num_pendientes_validar > 0 %}
+                                    <a href="{% url 'formacion:gestionar_preselecciones_curso' curso_data.id %}" class="btn-action btn-action-preselection" title="Gestionar Preselecciones">
                                         <i class="bi bi-ui-checks"></i>
-                                        {# Opcional: Mostrar el número de pendientes aquí si es importante visualmente #}
-                                        {% if data.num_pendientes_validar > 0 %}<span class="action-badge">{{ data.num_pendientes_validar }}</span>{% endif %}
+                                        <span class="action-badge">{{ curso_data.num_pendientes_validar }}</span>
                                     </a>
-                                {% else %}
+                                    {% else %}
                                     <button class="btn-action btn-action-disabled" disabled title="No hay preselecciones pendientes">
                                         <i class="bi bi-ui-checks"></i>
                                     </button>
-                                {% endif %}
-                                <a href="{% url 'formacion:listar_participantes_curso' data.id %}" class="btn-action btn-action-participants" title="Ver Participantes">
-                                    <i class="bi bi-people-fill"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7"> {# Ajustar colspan al nuevo número de columnas (7) #}
-                                <div class="empty-state">
-                                    <i class="bi bi-journal-x"></i>
-                                    <p>No hay cursos disponibles con los filtros aplicados.</p>
-                                    <p>Por favor, añade nuevos cursos para ver su estado aquí.</p>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                    {% endif %}
+                                    <a href="{% url 'formacion:listar_participantes_curso' curso_data.id %}" class="btn-action btn-action-participants" title="Ver Participantes">
+                                        <i class="bi bi-people-fill"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <i class="bi bi-journal-x"></i>
+                                        <p>No hay cursos disponibles con los filtros aplicados.</p>
+                                        <p>Por favor, añade nuevos cursos para ver su estado aquí.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-    {% else %}
-        <div class="empty-state">
-            <i class="bi bi-journal-x"></i>
-            <p>No hay cursos para mostrar o un problema con la carga de datos.</p>
-        </div>
-    {% endif %}
 
+            {% include 'formacion/includes/pagination_controls2.html' %}
+            
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-journal-x"></i>
+                <p>No hay cursos para mostrar o un problema con la carga de datos.</p>
+            </div>
+        {% endif %}
+
+    </form>
+    
     <div class="d-flex justify-content-start mt-4">
         <a href="{% url 'formacion:dashboard' %}" class="btn-back">
             <i class="bi bi-arrow-left"></i> Volver al Dashboard
@@ -99,4 +114,46 @@
 
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Lógica para manejar la ordenación de las columnas de la tabla.
+        const sortableHeaders = document.querySelectorAll('.sortable-th');
+        const filtersForm = document.getElementById('filtersForm');
+
+        if (filtersForm) {
+            sortableHeaders.forEach(header => {
+                header.style.cursor = 'pointer'; // Opcional, mejora la experiencia del usuario.
+                header.addEventListener('click', function() {
+                    const sortField = this.getAttribute('data-sort-by');
+                    const currentSortByInput = filtersForm.querySelector('input[name="sort_by"]');
+                    const currentDirectionInput = filtersForm.querySelector('input[name="direction"]');
+                    const currentPageInput = filtersForm.querySelector('input[name="page"]');
+
+                    let currentSortBy = currentSortByInput ? currentSortByInput.value : '';
+                    let currentDirection = currentDirectionInput ? currentDirectionInput.value : 'asc';
+                    
+                    if (currentSortBy === sortField) {
+                        currentDirection = (currentDirection === 'asc') ? 'desc' : 'asc';
+                    } else {
+                        currentDirection = 'asc';
+                    }
+
+                    // Actualizar los campos ocultos
+                    currentSortByInput.value = sortField;
+                    currentDirectionInput.value = currentDirection;
+
+                    // Reiniciar la paginación a la primera página al cambiar la ordenación
+                    if (currentPageInput) {
+                        currentPageInput.value = 1;
+                    }
+                    
+                    filtersForm.submit();
+                });
+            });
+        }
+    });
+</script>
 {% endblock %}

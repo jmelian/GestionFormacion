@@ -444,34 +444,40 @@ def titulaciones_pendientes_rrhh(request):
         items_per_page = 10
         paginator = Paginator(titulaciones_queryset, items_per_page)
         page_number = request.GET.get('page')
+
+
+        # --- PAGINACIÓN ---
         
         try:
-            page_obj = paginator.page(page_number)
-        except PageNotAnInteger:
-            # Si el parámetro 'page' no es un entero, mostramos la primera página.
-            page_obj = paginator.page(1)
-        except EmptyPage:
-            # Si la página solicitada está fuera de rango, mostramos la última página.
-            page_obj = paginator.page(paginator.num_pages)
+            # Se obtiene el tamaño de página de la URL, por defecto 10
+            page_size = int(request.GET.get('page_size', 10))
+        except ValueError:
+            # En caso de que el valor no sea un entero válido
+            page_size = 10
+
+        # Se obtiene el número de página de la URL, por defecto 1
+        page = request.GET.get('page', 1)
+
+        # Se crea el objeto Paginator con el queryset y el tamaño de página
+        paginator = Paginator(titulaciones_queryset, page_size)
+
+        # Se obtiene el objeto de la página, manejando automáticamente los errores
+        page_obj = paginator.get_page(page)
 
     except Exception as e:
-        # Capturamos cualquier error en la consulta a la base de datos o en la paginación.
         logger.error(f"Error al obtener la lista de titulaciones pendientes para el usuario '{request.user.username}': {e}", exc_info=True)
         messages.error(request, 'Ocurrió un error al cargar la lista de titulaciones pendientes.')
         return redirect('formacion:dashboard')
 
-    # Guardamos los parámetros de la URL para que la paginación y el orden funcionen correctamente.
-    query_params = request.GET.copy()
-    if 'page' in query_params:
-        del query_params['page']
-
+    # Se prepara el contexto con los mismos nombres de variable
     context = {
         'titulaciones': page_obj,
         'page_obj': page_obj,
-        'query_params': query_params,
+        'page_size': page_size,
         'sort_by': sort_by,
         'direction': direction,
     }
+
     return render(request, 'formacion/titulaciones_pendientes_rrhh.html', context)
 
 
@@ -1381,7 +1387,8 @@ def empleados_con_formacion(request):
     logger.info(f"El usuario '{usuario_actual.username}' accedió a la vista de empleados con formación.")
 
     # Inicializamos el queryset principal.
-    empleados_qs = Empleado.objects.all()
+    # empleados_qs = Empleado.objects.all()
+    empleados_qs = Empleado.objects.filter(groups__name=settings.GRUPO_EMPLEADO)
 
     # --- Filtro por Departamento ---
     departamento_id = request.GET.get('departamento')
@@ -1422,10 +1429,8 @@ def empleados_con_formacion(request):
     
     if direction == 'desc':
         sort_field = f'-{sort_field}'
-        
     try:
         empleados_qs = empleados_qs.order_by(sort_field)
-        logger.info(f"Ordenando por campo '{sort_by}' en dirección '{direction}'.")
     except (OperationalError, DatabaseError) as db_error:
         logger.error(f"Error de base de datos al intentar ordenar los empleados: {db_error}", exc_info=True)
         # Se ignora la ordenación y se continúa con el queryset sin ordenar.
@@ -1453,8 +1458,21 @@ def empleados_con_formacion(request):
         'Departamento': 'departamento__nombre',
     }
 
+    # --- PAGINACIÓN ---
+    try:
+        page_size = int(request.GET.get('page_size', 10))  # valor por defecto 10
+    except ValueError:
+        page_size = 10
+    page = request.GET.get('page', 1)
+
+    paginator = Paginator(empleados_qs, page_size)
+    page_obj = paginator.get_page(page)
+
     context = {
-        'empleados': empleados_qs,
+        # 'empleados': empleados_qs,
+        # 'empleados': page_obj.object_list,
+        'page_obj': page_obj,  # Pasa el objeto de página completo
+        'page_size': page_size,
         'departamentos': departamentos,
         'selected_departamento': selected_departamento,
         'sort_by': sort_by,
@@ -1973,18 +1991,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 def estado_cursos(request):
     """
     Vista que muestra el estado de todos los cursos.
-
-    Permite a los usuarios de los grupos 'Formacion', 'RRHH' y 'Direccion' ver un resumen
-    de la participación en cada curso, incluyendo el estado de los participantes
-    (aceptados, asistidos, completados, etc.) y las plazas disponibles.
-    También permite filtrar entre cursos activos y terminados.
+    Permite filtrar, ordenar y paginar los resultados.
     """
-    # Log de acceso a la vista
     logger.info(f"El usuario '{request.user.username}' está intentando acceder a la vista de estado de cursos.")
 
-    # --- Comprobación de permisos detallada ---
-    # Los decoradores ya manejan el redireccionamiento, pero esta lógica queda como una capa extra
-    # por si se modificara el decorador en el futuro.
     grupos_permitidos = [settings.GRUPO_FORMACION, settings.GRUPO_RRHH, settings.GRUPO_DIRECCION]
     if not request.user.groups.filter(name__in=grupos_permitidos).exists() and not request.user.is_superuser:
         messages.error(request, "No tienes permisos para acceder a esta página.")
@@ -1993,18 +2003,11 @@ def estado_cursos(request):
 
     logger.info(f"Acceso concedido a '{request.user.username}'.")
 
-    # --- Lógica de filtrado de cursos ---
-    # Obtiene el parámetro de la URL para decidir si mostrar cursos terminados o no.
-    # El valor por defecto es 'false'.
+    # --- Lógica de Filtrado, Ordenación y Paginación ---
     show_finished_courses = request.GET.get('show_finished', 'false').lower() == 'true'
-
     cursos_queryset = Curso.objects.all()
 
-    # Si el usuario no ha marcado la opción 'show_finished', se filtran los cursos.
     if not show_finished_courses:
-        # Se filtra por los cursos cuya fecha de finalización es nula (aún no tienen fecha)
-        # o cuya fecha de finalización es igual o posterior al día de hoy.
-        # Esto nos da los cursos "activos" o "pendientes".
         cursos_queryset = cursos_queryset.filter(
             Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=timezone.now().date())
         )
@@ -2012,42 +2015,54 @@ def estado_cursos(request):
     else:
         logger.debug("Mostrando todos los cursos, incluidos los finalizados.")
 
-    # Ordena los cursos por fecha de inicio y nombre para una visualización consistente.
-    cursos = cursos_queryset.order_by('fecha_inicio', 'nombre')
-    logger.info(f"Se han encontrado {cursos.count()} cursos para mostrar.")
+    # Mapeo de campos para la ordenación
+    ORDERABLE_FIELDS = {
+        'nombre': 'nombre',
+        'fecha_inicio': 'fecha_inicio',
+        'fecha_fin': 'fecha_fin',
+        'plazas_totales': 'plazas_totales',
+        'plazas_disponibles': 'plazas_disponibles',
+        # Puedes añadir otros campos si es necesario
+    }
+    
+    sort_by = request.GET.get('sort_by', 'fecha_inicio')
+    direction = request.GET.get('direction', 'asc')
+    order_field = ORDERABLE_FIELDS.get(sort_by, 'fecha_inicio')
+    
+    if direction == 'desc':
+        order_field = f'-{order_field}'
+    
+    cursos_queryset = cursos_queryset.order_by(order_field)
 
-    # --- Procesamiento de datos de cada curso ---
+    # Lógica de paginación
+    try:
+        page_size = int(request.GET.get('page_size', 10))
+    except (ValueError, TypeError):
+        page_size = 10
+    
+    page = request.GET.get('page', 1)
+    paginator = Paginator(cursos_queryset, page_size)
+    page_obj = paginator.get_page(page)
+
+    # Procesar solo los cursos de la página actual
     datos_cursos_con_estado = []
-    for curso in cursos:
-        # Contadores de participantes por estado usando `count()` para eficiencia.
+    for curso in page_obj.object_list:
         aceptados = Participacion.objects.filter(curso=curso, estado='aceptado').count()
         asistidos = Participacion.objects.filter(curso=curso, estado='asistido').count()
         completados = Participacion.objects.filter(curso=curso, estado='completado').count()
-        cancelados = Participacion.objects.filter(curso=curso, estado='cancelado').count()
-        rechazados = Participacion.objects.filter(curso=curso, estado='rechazado').count()
-
-        # Conteo de preselecciones que esperan ser validadas.
         pendientes_validar = Preseleccion.objects.filter(curso=curso).count()
 
-        # Construye un resumen de participación para una visualización compacta.
         participacion_resumen_parts = []
-        if aceptados > 0:
-            participacion_resumen_parts.append(f"Acept: {aceptados}")
-        if asistidos > 0:
-            participacion_resumen_parts.append(f"Asist: {asistidos}")
-        if completados > 0:
-            participacion_resumen_parts.append(f"Comp: {completados}")
-        if pendientes_validar > 0:
-            participacion_resumen_parts.append(f"Pend: {pendientes_validar}")
+        if aceptados > 0: participacion_resumen_parts.append(f"Acept: {aceptados}")
+        if asistidos > 0: participacion_resumen_parts.append(f"Asist: {asistidos}")
+        if completados > 0: participacion_resumen_parts.append(f"Comp: {completados}")
+        if pendientes_validar > 0: participacion_resumen_parts.append(f"Pend: {pendientes_validar}")
 
         if not participacion_resumen_parts:
             participacion_resumen = "Sin participación activa"
         else:
             participacion_resumen = ", ".join(participacion_resumen_parts)
 
-        logger.debug(f"Procesando curso '{curso.nombre}'. Resumen de participación: '{participacion_resumen}'.")
-
-        # Prepara el diccionario de datos para el contexto.
         curso_data = {
             'id': curso.id,
             'nombre': curso.nombre,
@@ -2060,14 +2075,16 @@ def estado_cursos(request):
         }
         datos_cursos_con_estado.append(curso_data)
 
-    # --- Renderizado de la plantilla ---
     context = {
-        'datos_cursos': datos_cursos_con_estado,
+        'page_obj': page_obj,
+        'page_size': page_size,
+        'datos_cursos': datos_cursos_con_estado, # La plantilla iterará sobre esta lista
         'show_finished_courses': show_finished_courses,
+        'sort_by': sort_by,
+        'direction': direction,
     }
 
-    logger.info(f"Renderizando la plantilla 'estado_cursos.html' con {len(datos_cursos_con_estado)} cursos en el contexto.")
-
+    logger.info(f"Renderizando la plantilla 'estado_cursos.html' con {len(datos_cursos_con_estado)} cursos en la página actual.")
     return render(request, 'formacion/estado_cursos.html', context)
 
 
@@ -3005,30 +3022,65 @@ def marcar_completado(request, participacion_id):
 def gestion_cursos_list(request):
     """
     Vista para que RRHH liste todos los cursos para su gestión.
-    Con opción de filtrar cursos terminados.
+    Con opciones de filtrado, ordenación y paginación.
     """
     # Lógica de filtrado de cursos terminados
     show_finished_courses = request.GET.get('show_finished', 'false').lower() == 'true'
 
-    # Registro de la acción de acceso a la vista
-    logger.info(f"El usuario '{request.user.username}' (RRHH) ha accedido a la lista de gestión de cursos. Mostrar cursos terminados: {show_finished_courses}.")
+    # Lógica de ordenación
+    sort_by = request.GET.get('sort_by', 'created_at') # 'created_at' como campo por defecto
+    direction = request.GET.get('direction', 'desc') # 'desc' por defecto para 'created_at'
+
+    # Lógica de paginación
+    page_number = request.GET.get('page', 1)
+    page_size = request.GET.get('page_size', 10)
 
     cursos_queryset = Curso.objects.all()
 
-    # Si NO se pide mostrar los terminados, filtramos los que no han terminado
+    # Filtramos si no se piden cursos terminados
     if not show_finished_courses:
         cursos_queryset = cursos_queryset.filter(
             Q(fecha_fin__isnull=True) | Q(fecha_fin__gte=timezone.now().date())
         )
 
-    # Ordena los cursos. Mantenemos el orden por '-created_at' como base
-    cursos = cursos_queryset.order_by('-created_at')
+    # Aplicamos la ordenación a la queryset
+    valid_sort_fields = ['nombre', 'tipo', 'proveedor', 'fecha_inicio', 'fecha_fin', 'duracion_horas', 'created_at']
+    if sort_by in valid_sort_fields:
+        if direction == 'desc':
+            cursos_queryset = cursos_queryset.order_by(f'-{sort_by}')
+        else:
+            cursos_queryset = cursos_queryset.order_by(sort_by)
+    else:
+        # Si el campo no es válido, volvemos a la ordenación por defecto
+        cursos_queryset = cursos_queryset.order_by('-created_at')
+
+    # Aplicamos la paginación a la queryset ordenada
+    paginator = Paginator(cursos_queryset, page_size)
+    page_obj = paginator.get_page(page_number)
+
+    # Lógica para determinar la dirección del siguiente clic en la plantilla
+    ordenacion_siguiente = {
+        'nombre': 'asc' if sort_by != 'nombre' or direction == 'desc' else 'desc',
+        'tipo': 'asc' if sort_by != 'tipo' or direction == 'desc' else 'desc',
+        'proveedor': 'asc' if sort_by != 'proveedor' or direction == 'desc' else 'desc',
+        'fecha_inicio': 'asc' if sort_by != 'fecha_inicio' or direction == 'desc' else 'desc',
+        'fecha_fin': 'asc' if sort_by != 'fecha_fin' or direction == 'desc' else 'desc',
+        'duracion_horas': 'asc' if sort_by != 'duracion_horas' or direction == 'desc' else 'desc',
+    }
 
     context = {
-        'cursos': cursos,
+        'page_obj': page_obj,
         'is_rrhh': True,
         'show_finished_courses': show_finished_courses,
+        'sort_by': sort_by,
+        'direction': direction,
+        'page_size': int(page_size),
+        'ordenacion_siguiente': ordenacion_siguiente,
     }
+
+    # Registro de la acción de acceso a la vista
+    logger.info(f"El usuario '{request.user.username}' (RRHH) ha accedido a la lista de gestión de cursos. Mostrar cursos terminados: {show_finished_courses}.")
+
     return render(request, 'formacion/gestion_cursos_list.html', context)
 
 

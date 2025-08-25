@@ -71,7 +71,6 @@
     {# TAB: MI ESPACIO PERSONAL #}
     {% if es_empleado %}
     <div class="tab-pane fade show active" id="tab-personal" role="tabpanel" aria-labelledby="tab-personal-tab" tabindex="0">
-        <div class="dashboard-section-title"><i class="bi bi-person-badge-fill"></i> Mi Espacio Personal</div>
         <div class="dashboard-grid">
             <div class="dashboard-card card-empleado">
                 <span class="card-icon">👤</span>
@@ -104,7 +103,6 @@
     {# TAB: CURSOS Y FORMACIÓN #}
     {% if es_empleado or es_formacion or es_rrhh or es_direccion or es_admin %}
     <div class="tab-pane fade {% if not es_empleado %}show active{% endif %}" id="tab-cursos" role="tabpanel" aria-labelledby="tab-cursos-tab" tabindex="0">
-        <div class="dashboard-section-title"><i class="bi bi-easel2-fill"></i> Cursos y Formación</div>
         <div class="dashboard-grid">
             {% if es_empleado %}
             <div class="dashboard-card card-empleado">
@@ -145,15 +143,8 @@
                 <span class="card-icon">📚</span>
                 <h3 class="card-title">Gestión de Cursos</h3>
                 <p class="card-description">Crea, edita y gestiona los cursos y programas de formación internos de la empresa.</p>
-                
-                {# This link makes the entire card clickable and takes you to the main HR course list #}
-                <a href="{% url 'formacion:gestion_cursos_list' %}" class="card-link-full-area">
-                    <span class="visually-hidden">Gestionar Cursos</span> 
-                </a>
-
-                {# This is the specific link for creating a new course #}
-                <a href="{% url 'formacion:crear_curso' %}" class="card-link">
-                    <i class="bi bi-plus-circle-fill"></i> Crear Nuevo Curso
+                <a href="{% url 'formacion:gestion_cursos_list' %}" class="card-link">
+                    <i class="bi bi-plus-circle-fill"></i> Gestión de Cursos
                 </a>
             </div>
             {% endif %}
@@ -164,7 +155,6 @@
     {# TAB: COORDINADOR #}
     {% if es_coordinador %}
     <div class="tab-pane fade" id="tab-coordinador" role="tabpanel" aria-labelledby="tab-coordinador-tab" tabindex="0">
-        <div class="dashboard-section-title"><i class="bi bi-diagram-3-fill"></i> Gestión de Departamento</div>
         <div class="dashboard-grid">
             <div class="dashboard-card card-coordinador">
                 <span class="card-icon">👥</span>
@@ -197,7 +187,6 @@
     {# TAB: RRHH #}
     {% if es_rrhh %}
     <div class="tab-pane fade" id="tab-rrhh" role="tabpanel" aria-labelledby="tab-rrhh-tab" tabindex="0">
-        <div class="dashboard-section-title"><i class="bi bi-person-badge-fill"></i> Recursos Humanos</div>
         <div class="dashboard-grid">
             <div class="dashboard-card card-rrhh">
                 <span class="card-icon">📄</span>
@@ -222,7 +211,6 @@
     {# TAB: GESTIÓN #}
     {% if es_formacion or es_rrhh or es_direccion%}
     <div class="tab-pane fade" id="tab-formacion" role="tabpanel" aria-labelledby="tab-formacion-tab" tabindex="0">
-        <div class="dashboard-section-title"><i class="bi bi-list-check"></i> Gestión de Preselecciones</div>
         <div class="dashboard-grid">
             <div class="dashboard-card card-formacion">
                 <span class="card-icon">📊</span>
@@ -247,7 +235,6 @@
     {# TAB: DIRECCIÓN #}
     {% if es_direccion %}
     <div class="tab-pane fade" id="tab-direccion" role="tabpanel" aria-labelledby="tab-direccion-tab" tabindex="0">
-        <div class="dashboard-section-title"><i class="bi bi-graph-up-arrow"></i> Dirección</div>
         <div class="dashboard-grid">
             <div class="dashboard-card card-direccion">
                 <span class="card-icon">📈</span>
@@ -264,7 +251,6 @@
     {# TAB: ADMINISTRACIÓN #}
     {% if es_admin %}
     <div class="tab-pane fade" id="tab-admin" role="tabpanel" aria-labelledby="tab-admin-tab" tabindex="0">
-        <div class="dashboard-section-title"><i class="bi bi-gear-wide-connected"></i> Administración</div>
         <div class="dashboard-grid">
             <div class="dashboard-card card-admin">
                 <span class="card-icon">🛠️</span>
