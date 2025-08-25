@@ -17,7 +17,7 @@ El objetivo principal es centralizar y optimizar los procesos relacionados con l
 - **Gestión de Titulaciones:** Registro y seguimiento de titulaciones y certificaciones obtenidas por los empleados.
 - **Gestión de Empleados:** Perfiles de empleados con su historial formativo.
 - **Notificaciones:** Sistema de notificaciones internas para informar sobre el estado de las solicitudes y otras acciones relevantes.
-- **Roles de Usuario:** Diferentes niveles de acceso y permisos (Coordinador, RRHH, Formación, Dirección, Administrador).
+- **Roles de Usuario:** Diferentes niveles de acceso y permisos (Coordinador, RRHH, Formación, Dirección, Administrador, Empleado).
 
 ---
 
@@ -31,8 +31,8 @@ El objetivo principal es centralizar y optimizar los procesos relacionados con l
 | Base de Datos      | PostgreSQL                                                  |
 | Dependencias       | pip, requirements.txt                                       |
 | Variables Entorno  | python-decouple                                             |
-| Frontend           | HTML5, CSS3 (estilos personalizados), JavaScript (opcional) |
-| Iconos             | Bootstrap Icons (o Font Awesome)                            |
+| Frontend           | HTML5, CSS3 (estilos personalizados), Bootstrap, JavaScript (opcional) |
+| Iconos             | Bootstrap Icons                                             |
 | Formularios        | django-widget-tweaks, django-crispy-forms                   |
 
 ---
@@ -61,11 +61,10 @@ SECRET_KEY='tu_clave_secreta_generada_aqui_es_muy_larga_y_aleatoria'
 DEBUG=True
 ALLOWED_HOSTS=127.0.0.1,localhost # Separa por comas, sin espacios
 
-# Si usas PostgreSQL/MySQL, descomenta y configura:
 # DB_ENGINE=django.db.backends.postgresql
-# DB_NAME=nombre_de_tu_bd
-# DB_USER=usuario_bd
-# DB_PASSWORD=contraseña_bd
+# POSTGRES_DB=nombre_de_tu_bd
+# POSTGRES_USER=usuario_bd
+# POSTGRES_PASSWORD=contraseña_bd
 # DB_HOST_LOCAL=localhost
 # DB_HOST_DOCKER=db
 # DB_PORT=5432
@@ -79,6 +78,7 @@ ALLOWED_HOSTS=127.0.0.1,localhost # Separa por comas, sin espacios
 # EMAIL_HOST_PASSWORD=tu_password_email
 # DEFAULT_FROM_EMAIL=tu_email@ejemplo.com
 ```
+
 Para `SECRET_KEY`: Puedes generar una clave segura ejecutando en tu terminal (con el entorno virtual activado):
 ```bash
 python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
@@ -101,7 +101,7 @@ docker-compose exec web python manage.py createsuperuser
 ```
 
 ### 6. Configuración Inicial de la Aplicación
-Para asegurar que tu aplicación tenga los grupos de usuarios y permisos necesarios desde el principio (ej. `RRHH`, `Formación`, `Coordinador`, `Dirección`), puedes cargar los datos iniciales proporcionados. Estos archivos definen la estructura de permisos y roles que la aplicación espera.
+Para asegurar que tu aplicación tenga los grupos de usuarios y permisos necesarios desde el principio (ej. `RRHH`, `Formación`, `Coordinador`, `Dirección`, `Empleado`), puedes cargar los datos iniciales proporcionados. Estos archivos definen la estructura de permisos y roles que la aplicación espera.
 
 #### Función de los archivos:
 
@@ -145,7 +145,7 @@ Usa las credenciales del superusuario que creaste.
 ```bash
 docker-compose exec web sh -c "python manage.py dumpdata --indent 2 > /app/datos/backup_temp.json"
 ```
-> NOTA: El archivo queda dentro del contenedor y no se corrompe al pasar a la terminal 
+> NOTA: El archivo queda dentro del contenedor y no se corrompe al pasar a la terminal. Para copiarlo:  `docker cp django_app:/app/datos/backup_temp.json ./backup_temp.json` 
 
 ### Restaurar un backup de los datos
 ```bash
