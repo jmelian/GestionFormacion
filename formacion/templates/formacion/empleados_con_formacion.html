@@ -15,8 +15,9 @@
     </p>
 </div>
 
-<div class="filters-container">
-    <form method="get" action="{% url 'formacion:empleados_con_formacion' %}">
+<!-- Filtros sticky -->
+<div class="filters-container sticky-top shadow-sm">
+    <form method="get" id="filtersForm" action="{% url 'formacion:empleados_con_formacion' %}">
         <div class="filter-flexbar">
             <div class="filter-group">
                 <label for="departamento" class="filter-label">
@@ -57,7 +58,7 @@
     </form>
 </div>
 
-<div class="table-container">
+<div class="table-container has-sticky-filters">
     <div class="table-responsive">
         <table class="table table-modern">
             <thead>
@@ -99,7 +100,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for empleado in empleados %}
+                {% for empleado in page_obj %}
                     <tr>
                         <td>
                             <div class="d-flex align-items-center gap-2">
@@ -129,10 +130,9 @@
                                 </span>
                             </div>
                         </td>
-                        <td>
-                            <a href="{% url 'formacion:empleado_formacion_detalle' empleado.id %}" class="btn-details">
+                        <td class="table-actions-center-wrap">
+                            <a href="{% url 'formacion:empleado_formacion_detalle' empleado.id %}" class="btn-action btn-action-details" title="Ver Detalles">
                                 <i class="bi bi-eye-fill"></i>
-                                Ver Detalles
                             </a>
                         </td>
                     </tr>
@@ -150,6 +150,16 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<!-- Controles de paginación -->
+{% include 'formacion/includes/pagination_controls2.html' %}
+
+<!-- Botón volver al inicio  -->
+<div class="d-flex justify-content-start mt-4">
+    <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+        <i class="bi bi-arrow-left"></i> Volver al Dashboard
+    </a>
 </div>
 
 {% endblock %}

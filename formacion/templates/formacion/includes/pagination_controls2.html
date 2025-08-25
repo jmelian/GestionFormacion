@@ -1,0 +1,59 @@
+{% load formacion_tags %}
+
+<div class="table-footer d-flex flex-wrap justify-content-between align-items-center mt-3 gap-2">
+
+  <!-- Info y selector -->
+  <div class="d-flex flex-wrap align-items-center gap-2 small text-muted">
+      {% if page_obj.paginator.count > 0 %}
+        <span>
+          {{ page_obj.start_index }}–{{ page_obj.end_index }} de {{ page_obj.paginator.count }}
+        </span>
+      {% endif %}
+
+      <label for="page-size" class="mb-0">· Mostrar</label>
+      <select id="page-size" name="page_size" form="filtersForm"
+              class="form-select form-select-sm w-auto"
+              onchange="document.getElementById('filtersForm').submit()">
+          <option value="10"  {% if page_size == 10 %}selected{% endif %}>10</option>
+          <option value="25"  {% if page_size == 25 %}selected{% endif %}>25</option>
+          <option value="50"  {% if page_size == 50 %}selected{% endif %}>50</option>
+          <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+      </select>
+  </div>
+
+  <!-- Navegación -->
+  <nav>
+    <ul class="pagination pagination-sm mb-0">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?{% url_replace_param page=page_obj.previous_page_number %}" aria-label="Anterior">
+            ‹
+          </a>
+        </li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+          <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+            <a class="page-link" href="?{% url_replace_param page=num %}">{{ num }}</a>
+          </li>
+        {% elif num == 1 or num == page_obj.paginator.num_pages %}
+          <li class="page-item">
+            <a class="page-link" href="?{% url_replace_param page=num %}">{{ num }}</a>
+          </li>
+          {% if num == 1 and page_obj.number > 3 or num == page_obj.paginator.num_pages and page_obj.number < page_obj.paginator.num_pages|add:-2 %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?{% url_replace_param page=page_obj.next_page_number %}" aria-label="Siguiente">
+            ›
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>

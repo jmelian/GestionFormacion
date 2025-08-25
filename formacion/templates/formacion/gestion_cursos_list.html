@@ -1,6 +1,6 @@
-{# formacion/templates/formacion/gestion_cursos_list.html #}
 {% extends "base.html" %}
 {% load static %}
+{% load formacion_tags %}
 
 {% block title %}Gestión de Cursos - RRHH{% endblock %}
 
@@ -16,14 +16,14 @@
         </div>
     </div>
 
-    {# Los mensajes del sistema se manejan globalmente en base.html #}
-
-    {# Controles de filtro y botón crear curso #}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="filter-controls">
-            <form method="GET" action="{% url 'formacion:gestion_cursos_list' %}" class="d-flex align-items-center">
+            <form method="GET" id="filtersForm" action="{% url 'formacion:gestion_cursos_list' %}">
+                <input type="hidden" name="sort_by" value="{{ sort_by }}">
+                <input type="hidden" name="direction" value="{{ direction }}">
+                <input type="hidden" name="page_size" value="{{ page_size }}">
                 <label class="form-check-label me-2">
-                    <input type="checkbox" class="form-check-input" name="show_finished" value="true" {% if show_finished_courses %}checked{% endif %} onchange="this.form.submit()">
+                    <input type="checkbox" class="form-check-input" name="show_finished" value="true" {% if show_finished_courses %}checked{% endif %} onchange="document.getElementById('filtersForm').submit()">
                     Mostrar cursos terminados
                 </label>
             </form>
@@ -35,22 +35,67 @@
         </div>
     </div>
 
-    {% if cursos %}
+    {% if page_obj %}
         <div class="table-container">
             <div class="table-responsive-modern">
-                <table class="table-modern">
+                <table class="table-modern sortable-table">
                     <thead>
                         <tr>
-                            <th>Nombre del Curso</th>
-                            <th>Tipo</th>
-                            <th>Proveedor</th>
-                            <th class="text-center">Fechas</th>
-                            <th class="text-center">Duración (horas)</th>
-                            <th class="text-center" style="min-width: 180px; width: 1%; white-space: nowrap;">Acciones</th>
+                            <th class="sticky-th sortable-th">
+                                <a href="?{% url_replace_param sort_by='nombre' direction=ordenacion_siguiente.nombre %}" class="text-decoration-none text-dark d-flex align-items-center">
+                                    Nombre del Curso
+                                    <span class="sort-icon-container">
+                                        {% if sort_by == 'nombre' %}
+                                            <i class="bi ms-2 {% if direction == 'desc' %}bi-sort-alpha-down-alt{% else %}bi-sort-alpha-up{% endif %}"></i>
+                                        {% endif %}
+                                    </span>
+                                </a>
+                            </th>
+                            <th class="sticky-th sortable-th">
+                                <a href="?{% url_replace_param sort_by='tipo' direction=ordenacion_siguiente.tipo %}" class="text-decoration-none text-dark d-flex align-items-center">
+                                    Tipo
+                                    <span class="sort-icon-container">
+                                        {% if sort_by == 'tipo' %}
+                                            <i class="bi ms-2 {% if direction == 'desc' %}bi-sort-alpha-down-alt{% else %}bi-sort-alpha-up{% endif %}"></i>
+                                        {% endif %}
+                                    </span>
+                                </a>
+                            </th>
+                            <th class="sticky-th sortable-th">
+                                <a href="?{% url_replace_param sort_by='proveedor' direction=ordenacion_siguiente.proveedor %}" class="text-decoration-none text-dark d-flex align-items-center">
+                                    Proveedor
+                                    <span class="sort-icon-container">
+                                        {% if sort_by == 'proveedor' %}
+                                            <i class="bi ms-2 {% if direction == 'desc' %}bi-sort-alpha-down-alt{% else %}bi-sort-alpha-up{% endif %}"></i>
+                                        {% endif %}
+                                    </span>
+                                </a>
+                            </th>
+                            <th class="sticky-th text-center sortable-th">
+                                <a href="?{% url_replace_param sort_by='fecha_inicio' direction=ordenacion_siguiente.fecha_inicio %}" class="text-decoration-none text-dark d-flex align-items-center justify-content-center">
+                                    Fechas
+                                    <span class="sort-icon-container">
+                                        {% if sort_by == 'fecha_inicio' %}
+                                            <i class="bi ms-2 {% if direction == 'desc' %}bi-sort-numeric-down-alt{% else %}bi-sort-numeric-up{% endif %}"></i>
+                                        {% endif %}
+                                    </span>
+                                </a>
+                            </th>
+                            <th class="sticky-th text-center sortable-th">
+                                <a href="?{% url_replace_param sort_by='duracion_horas' direction=ordenacion_siguiente.duracion_horas %}" class="text-decoration-none text-dark d-flex align-items-center justify-content-center flex-column">
+                                    Duración <br>(horas)
+                                    <span class="sort-icon-container">
+                                        {% if sort_by == 'duracion_horas' %}
+                                            <i class="bi ms-2 {% if direction == 'desc' %}bi-sort-numeric-down-alt{% else %}bi-sort-numeric-up{% endif %}"></i>
+                                        {% endif %}
+                                    </span>
+                                </a>
+                            </th>
+                            <th class="sticky-th text-center" style="white-space: nowrap;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for curso in cursos %}
+                        {% for curso in page_obj %}
                             <tr>
                                 <td>{{ curso.nombre }}</td>
                                 <td>{{ curso.get_tipo_display }}</td>
@@ -64,15 +109,21 @@
                                         N/A
                                     {% endif %}
                                 </td>
-                                <td class="text-center">{{ curso.duracion_horas }}</td>
-                                <td class="table-actions-center">
+                                <td class="text-center">
+                                    {% if curso.duracion_horas %}
+                                        {{ curso.duracion_horas }} h
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="table-actions-center-wrap">
                                     <a href="{% url 'formacion:editar_curso' curso.id %}" class="btn-action btn-edit" title="Editar Curso">
                                         <i class="bi bi-pencil-fill"></i>
                                     </a>
-                                    <a href="{% url 'formacion:listar_participantes_curso' curso.id %}" class="btn-action btn-action-participants ms-2" title="Ver Participantes">
+                                    <a href="{% url 'formacion:listar_participantes_curso' curso.id %}" class="btn-action btn-action-participants" title="Ver Participantes">
                                         <i class="bi bi-people-fill"></i>
                                     </a>
-                                    <form method="post" action="{% url 'formacion:eliminar_curso' curso.id %}" class="d-inline-block ms-2">
+                                    <form method="post" action="{% url 'formacion:eliminar_curso' curso.id %}" class="d-inline-block">
                                         {% csrf_token %}
                                         <button type="submit" class="btn-action btn-delete" title="Eliminar Curso"
                                                 onclick="return confirm('¿Estás seguro de que deseas eliminar el curso {{ curso.nombre|escapejs }}? Esta acción es irreversible.');">
@@ -86,6 +137,7 @@
                 </table>
             </div>
         </div>
+        {% include 'formacion/includes/pagination_controls2.html' %}
     {% else %}
         <div class="empty-state">
             <i class="bi bi-journal-x"></i>
@@ -99,4 +151,7 @@
         </a>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
 {% endblock %}
