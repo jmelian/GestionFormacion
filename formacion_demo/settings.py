@@ -154,8 +154,11 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '/vol/web/staticfiles/'
 
 # Sección de seguridad
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+CSRF_TRUSTED_ORIGINS = [
+        'http://xwiki.contactel.es:8082',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
