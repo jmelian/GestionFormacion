@@ -424,6 +424,7 @@
     border: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para profundidad */
     flex-shrink: 0; /* Evita que el botón se encoja en espacios reducidos */
+    position: relative;
 }
 
 .btn-action:hover {
@@ -445,9 +446,12 @@
 /* Botón para "Preselecciones" (acción de revisión/gestión) */
 .btn-action.btn-action-preselection {
     background: linear-gradient(135deg, #22c55e, #16a34a); /* Un verde distintivo para "revisar/aprobar" */
+    color: white;
 }
+
 .btn-action.btn-action-preselection:hover {
     background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
 }
 
 /* Botón para "Participantes" (acción de ver detalles/lista) */

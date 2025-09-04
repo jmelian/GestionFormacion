@@ -593,31 +593,32 @@ def preseleccionar_empleado(request):
 
                             # Lógica de Notificación
                             mensaje_notificacion = f'Nueva preselección creada por "{empleado_coordinador.get_full_name()}" para el curso "{nueva_preseleccion.curso.nombre}" de "{nueva_preseleccion.empleado.get_full_name()}". Pendiente de validar.'
+
                             grupos_a_notificar = [settings.GRUPO_FORMACION, settings.GRUPO_RRHH, settings.GRUPO_DIRECCION]
 
-                            # Creamos las notificaciones en un bloque try/except para evitar fallos
-                            try:
-                                # Notificar a los usuarios de los grupos definidos
-                                for group_name in grupos_a_notificar:
-                                    # Evitamos notificar al propio coordinador si pertenece a estos grupos
-                                    usuarios_del_grupo = Empleado.objects.filter(groups__name=group_name).exclude(id=empleado_coordinador.id)
-                                    for usuario_grupo in usuarios_del_grupo:
-                                        Notificacion.objects.create(usuario=usuario_grupo, mensaje=mensaje_notificacion, tipo='info')
-                                
-                                # Notificar a los superusuarios que no estén ya en los grupos
-                                super_usuarios = Empleado.objects.filter(is_superuser=True).exclude(groups__name__in=grupos_a_notificar).distinct()
-                                for admin_user in super_usuarios:
-                                     # Evitamos notificar al propio coordinador si es superusuario
-                                    if admin_user != empleado_coordinador:
-                                        Notificacion.objects.create(usuario=admin_user, mensaje=mensaje_notificacion, tipo='info')
+                            # Obtener una lista única de todos los usuarios de los grupos de destino
+                            usuarios_a_notificar = Empleado.objects.filter(
+                                groups__name__in=grupos_a_notificar
+                            ).distinct()
 
-                            except Group.DoesNotExist as e:
-                                logger.error(f"Uno de los grupos de notificación no existe: {e}", exc_info=True)
-                                messages.warning(request, "Advertencia: Algunos grupos de validación no pudieron ser notificados porque no existen.")
-                            except Exception as e:
-                                logger.error(f"ERROR inesperado al notificar por preselección: {e}", exc_info=True)
-                                messages.error(request, "Ocurrió un error al enviar algunas notificaciones.")
+                            # Añadir a los superusuarios que no estén en los grupos anteriores
+                            super_usuarios = Empleado.objects.filter(is_superuser=True).exclude(
+                                id__in=usuarios_a_notificar.values_list('id', flat=True)
+                            ).distinct()
 
+                            todos_los_destinatarios = list(usuarios_a_notificar) + list(super_usuarios)
+                            
+                            # Eliminamos al coordinador actual de la lista de destinatarios
+                            destinatarios_finales = [u for u in todos_los_destinatarios if u.id != empleado_coordinador.id]
+
+                            # Creamos una única notificación para cada destinatario único
+                            for usuario_notificacion in destinatarios_finales:
+                                Notificacion.objects.create(
+                                    usuario=usuario_notificacion,
+                                    mensaje=mensaje_notificacion,
+                                    tipo='info', 
+                                    url=reverse('formacion:confirmar_preseleccionados_lista')
+                                )
                 except Exception as e:
                     logger.error(f"Error en la transacción al guardar la preselección. Usuario '{empleado_coordinador.username}': {e}", exc_info=True)
                     messages.error(request, "Ocurrió un error al guardar la preselección. Por favor, revisa los datos.")

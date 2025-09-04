@@ -228,7 +228,7 @@ class Empleado(AbstractUser):
     SEDE_CHOICES = [
         ('tf', 'TF'),
         ('remoto', 'Remoto'),
-        ('gc', 'CG'),
+        ('gc', 'GC'),
     ]
     ESTADO_EMPLEADO_CHOICES = [
         ('activo', 'Activo'),

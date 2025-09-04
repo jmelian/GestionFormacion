@@ -39,6 +39,7 @@
                             <th>Empleado</th>
                             <th>Departamento</th>
                             <th class="text-center">Prioridad</th>
+                            <th class="text-center">Observaciones</th>
                             <th class="text-center">Estado Actual</th>
                             <th class="text-center">Acción</th>
                         </tr>
@@ -49,6 +50,7 @@
                             <td>{{ preseleccion.empleado.get_full_name }}</td>
                             <td>{{ preseleccion.empleado.departamento.nombre }}</td>
                             <td class="text-center">{{ preseleccion.prioridad }}</td>
+                            <td class="text-center">{{ preseleccion.observaciones }}</td>
                             <td class="text-center">
                                 {# Muestra el estado actual de la preselección o participación activa #}
                                 {% if preseleccion.participacion_activa %}

@@ -46,7 +46,7 @@
                             <tr>
                                 <td>{{ participacion.empleado.get_full_name }}</td>
                                 <td>{{ participacion.empleado.departamento.nombre }}</td>
-                                <td class="text-center">{{ participacion.fecha_inicio_real|date:"d/m/Y" }}</td>
+                                <td class="text-center">{{ participacion.curso.fecha_inicio|date:"d/m/Y" }}</td>
                                 <td class="text-center">
                                     {% if participacion.estado == 'pendiente' %}
                                         <span class="status-badge status-info"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>

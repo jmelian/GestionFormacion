@@ -150,10 +150,7 @@
 }
 
 /* Colores por defecto para cada tipo de botón (se aplican al ícono y borde) */
-.btn-action.btn-action-preselection {
-    color: var(--success-color);
-    border-color: var(--success-color);
-}
+
 .btn-action.btn-action-participants {
     color: white;
     border-color: white;
