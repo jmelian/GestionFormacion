@@ -437,6 +437,7 @@ class Curso(models.Model):
     duracion_horas = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, validators=[MinValueValidator(0)], help_text="Duración total del curso en horas.")
     fecha_inicio = models.DateField(null=True, blank=True, help_text="Fecha de inicio de la edición actual del curso.")
     fecha_fin = models.DateField(null=True, blank=True, help_text="Fecha de fin de la edición actual del curso.")
+    horario = models.CharField(max_length=255, blank=True, null=True, help_text="Horario de impartición del curso. Ejemplo: 'De 9:00 a 14:00'.")
     plazas_totales = models.PositiveIntegerField(default=0, help_text="Número total de plazas disponibles en el curso.")
     plazas_disponibles = models.PositiveIntegerField(default=0, help_text="Número de plazas aún disponibles para inscripción. Se actualiza automáticamente.")
     observaciones = models.TextField(blank=True, null=True, help_text="Notas o comentarios adicionales sobre el curso.")

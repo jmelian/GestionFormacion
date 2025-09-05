@@ -101,55 +101,65 @@
     {% endif %}
 
     {# TAB: CURSOS Y FORMACIÓN #}
-    {% if es_empleado or es_formacion or es_rrhh or es_direccion or es_admin %}
-    <div class="tab-pane fade {% if not es_empleado %}show active{% endif %}" id="tab-cursos" role="tabpanel" aria-labelledby="tab-cursos-tab" tabindex="0">
-        <div class="dashboard-grid">
-            {% if es_empleado %}
-            <div class="dashboard-card card-empleado">
-                <span class="card-icon">📅</span>
-                <h3 class="card-title">Próximos Cursos</h3>
-                <p class="card-description">Descubre los cursos disponibles próximamente y mantente al día con las oportunidades formativas.</p>
-                <a href="{% url 'formacion:proximos_cursos' %}" class="card-link">
-                    <i class="bi bi-calendar-event-fill"></i> Explorar cursos
-                </a>
+    {% if es_empleado or es_formacion or es_rrhh or es_direccion or es_admin or es_coordinador %}
+        <div class="tab-pane fade {% if not es_empleado %}show active{% endif %}" id="tab-cursos" role="tabpanel" aria-labelledby="tab-cursos-tab" tabindex="0">
+            <div class="dashboard-grid">
+                {% if es_empleado %}
+                    <div class="dashboard-card card-empleado">
+                        <span class="card-icon">📅</span>
+                        <h3 class="card-title">Próximos Cursos</h3>
+                        <p class="card-description">Descubre los cursos disponibles próximamente y mantente al día con las oportunidades formativas.</p>
+                        <a href="{% url 'formacion:proximos_cursos' %}" class="card-link">
+                            <i class="bi bi-calendar-event-fill"></i> Explorar cursos
+                        </a>
+                    </div>
+                    <div class="dashboard-card card-empleado">
+                        <span class="card-icon">📋</span>
+                        <h3 class="card-title">Cursos Obligatorios</h3>
+                        <p class="card-description">Consulta los cursos de formación que son obligatorios para tu puesto o de forma general, y solicita tu inscripción.</p>
+                        <a href="{% url 'formacion:cursos_obligatorios_lista' %}" class="card-link">
+                            <i class="bi bi-list-check"></i> Ver Cursos Obligatorios
+                        </a>
+                    </div>
+                {% endif %}
+                {% if es_formacion or es_rrhh or es_direccion or es_admin %}
+                    <div class="dashboard-card card-formacion">
+                        <span class="card-icon">📋</span>
+                        <h3 class="card-title">Estado de Cursos</h3>
+                        <p class="card-description">Consulta el estado general de todos los cursos, participantes y métricas de progreso formativo.</p>
+                        <a href="{% url 'formacion:estado_cursos' %}" class="card-link">
+                            <i class="bi bi-clipboard-data-fill"></i> Ver estado general
+                        </a>
+                    </div>
+                    <div class="dashboard-card card-formacion">
+                        <span class="card-icon">📊</span>
+                        <h3 class="card-title">Formación por Empleado</h3>
+                        <p class="card-description">Visualiza las formaciones y titulaciones de cada empleado, con filtros por departamento y búsqueda.</p>
+                        <a href="{% url 'formacion:empleados_con_formacion' %}" class="card-link">
+                            <i class="bi bi-people-fill"></i> Consultar empleados
+                        </a>
+                    </div>
+                    <div class="dashboard-card card-formacion">
+                        <span class="card-icon">📚</span>
+                        <h3 class="card-title">Gestión de Cursos</h3>
+                        <p class="card-description">Crea, edita y gestiona los cursos y programas de formación internos de la empresa.</p>
+                        <a href="{% url 'formacion:gestion_cursos_list' %}" class="card-link">
+                            <i class="bi bi-plus-circle-fill"></i> Gestión de Cursos
+                        </a>
+                    </div>
+                {% endif %}
+                {% if es_coordinador %}
+                    <div class="dashboard-card card-formacion">
+                        <span class="card-icon">📋</span>
+                        <h3 class="card-title">Estado de Cursos</h3>
+                        <p class="card-description">Consulta el estado general de todos los cursos, participantes y métricas de progreso formativo.</p>
+                        <a href="{% url 'formacion:estado_cursos' %}" class="card-link">
+                            <i class="bi bi-clipboard-data-fill"></i> Ver estado general
+                        </a>
+                    </div>
+                {% endif %}
             </div>
-            <div class="dashboard-card card-empleado">
-                <span class="card-icon">📋</span>
-                <h3 class="card-title">Cursos Obligatorios</h3>
-                <p class="card-description">Consulta los cursos de formación que son obligatorios para tu puesto o de forma general, y solicita tu inscripción.</p>
-                <a href="{% url 'formacion:cursos_obligatorios_lista' %}" class="card-link">
-                    <i class="bi bi-list-check"></i> Ver Cursos Obligatorios
-                </a>
-            </div>
-            {% endif %}
-            {% if es_formacion or es_rrhh or es_direccion or es_admin %}
-            <div class="dashboard-card card-formacion">
-                <span class="card-icon">📋</span>
-                <h3 class="card-title">Estado de Cursos</h3>
-                <p class="card-description">Consulta el estado general de todos los cursos, participantes y métricas de progreso formativo.</p>
-                <a href="{% url 'formacion:estado_cursos' %}" class="card-link">
-                    <i class="bi bi-clipboard-data-fill"></i> Ver estado general
-                </a>
-            </div>
-            <div class="dashboard-card card-formacion">
-                <span class="card-icon">📊</span>
-                <h3 class="card-title">Formación por Empleado</h3>
-                <p class="card-description">Visualiza las formaciones y titulaciones de cada empleado, con filtros por departamento y búsqueda.</p>
-                <a href="{% url 'formacion:empleados_con_formacion' %}" class="card-link">
-                    <i class="bi bi-people-fill"></i> Consultar empleados
-                </a>
-            </div>
-            <div class="dashboard-card card-formacion">
-                <span class="card-icon">📚</span>
-                <h3 class="card-title">Gestión de Cursos</h3>
-                <p class="card-description">Crea, edita y gestiona los cursos y programas de formación internos de la empresa.</p>
-                <a href="{% url 'formacion:gestion_cursos_list' %}" class="card-link">
-                    <i class="bi bi-plus-circle-fill"></i> Gestión de Cursos
-                </a>
-            </div>
-            {% endif %}
         </div>
-    </div>
     {% endif %}
 
     {# TAB: COORDINADOR #}

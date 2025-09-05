@@ -119,68 +119,7 @@
     min-width: 180px;
 }
 
-/* =======================================
-   ESTILOS UNIFICADOS PARA BOTONES DE ACCIÓN
-======================================= */
-/* Base del botón: define forma, tamaño, y el efecto visual de hover */
-.btn-action {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    transition: all 0.2s ease-in-out;
-    background-color: transparent;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow);
-}
 
-/* Efecto de hover: solo cambia la sombra y el fondo, no los colores de texto/borde */
-.btn-action:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
-    background-color: var(--light-bg);
-}
-
-/* Estilos para el ícono por defecto dentro del botón */
-.btn-action i {
-    font-size: 1.1rem;
-    transition: color 0.2s ease-in-out;
-}
-
-/* Colores por defecto para cada tipo de botón (se aplican al ícono y borde) */
-
-.btn-action.btn-action-participants {
-    color: white;
-    border-color: white;
-}
-.btn-action.btn-action-details {
-    color: white; /* Color blanco para el ícono */
-    background-color: var(--primary-color); /* Fondo azul para el botón */
-    border-color: var(--primary-color);
-}
-.btn-action.btn-action-edit {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-.btn-action.btn-action-delete {
-    color: var(--danger-color);
-    border-color: var(--danger-color);
-}
-
-/* ESTADO DESHABILITADO */
-.btn-action-disabled {
-    background-color: var(--border-color);
-    color: var(--secondary-color);
-    cursor: not-allowed;
-    border: 1px solid var(--border-color);
-    opacity: 0.6;
-}
-.btn-action-disabled:hover {
-    box-shadow: none;
-    transform: none;
-}
 
 /* Estilos para la insignia de notificación */
 .action-badge {
@@ -259,11 +198,6 @@
     .table-modern td {
         padding: 0.6rem 0.4rem;
         font-size: 0.85rem;
-    }
-    .btn-action {
-        width: 36px;
-        height: 36px;
-        font-size: 1.05rem;
     }
     .table-actions-center {
         min-width: 100px;
