@@ -158,14 +158,6 @@
     outline: none;
 }
 
-.btn-action.btn-delete {
-    color: #dc2626;
-}
-.btn-action.btn-delete:hover,
-.btn-action.btn-delete:focus {
-    background: #fee2e2;
-    color: #7f1d1d;
-}
 .btn-action.btn-edit {
     color: #0ea5e9;
 }
@@ -181,4 +173,40 @@
 .btn-action-participants:focus {
     background: #bbf7d0;
     color: #14532d;
+}
+
+/* ===== Botón Rechazar / Cancelar ===== */
+/* Botones de acción - RECHAZAR/CANCELAR */
+
+/* Base */
+.btn-action.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+/* Activo (sin disabled) */
+.btn-action.btn-delete:not(:disabled) {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  cursor: pointer;
+}
+.btn-action.btn-delete:not(:disabled):hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  transform: translateY(-1px);
+}
+
+/* Deshabilitado */
+.btn-action.btn-delete:disabled {
+  background: linear-gradient(135deg, #c4c9d3, #9ba3b1) !important;
+  cursor: not-allowed;
+  opacity: 1;
 }

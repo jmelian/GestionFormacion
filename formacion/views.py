@@ -1318,11 +1318,13 @@ def listar_participantes_curso(request, curso_id):
         name__in=[settings.GRUPO_FORMACION, settings.GRUPO_DIRECCION, settings.GRUPO_RRHH]
     ).exists()
     es_admin = usuario_actual.is_superuser
-    es_coordinador_curso_solicitante = es_coordinador(usuario_actual) and \
-                                       curso.departamento_solicitante and \
-                                       getattr(getattr(usuario_actual, 'departamento_coordinado', None), 'nombre', None) == curso.departamento_solicitante
-
-    puede_ver_lista = es_rrhh_o_formacion_o_direccion or es_admin or es_coordinador_curso_solicitante
+    es_coordinador = usuario_actual.groups.filter(name=settings.GRUPO_COORDINADOR).exists()
+    
+    #es_coordinador_curso_solicitante = es_coordinador(usuario_actual) and \
+    #                                   curso.departamento_solicitante and \
+    #                                   getattr(getattr(usuario_actual, 'departamento_coordinado', None), 'nombre', None) == curso.departamento_solicitante
+    
+    puede_ver_lista = es_rrhh_o_formacion_o_direccion or es_admin or es_coordinador
 
     if not puede_ver_lista:
         messages.error(request, "No tienes permisos para ver los participantes de este curso.")
@@ -1330,7 +1332,6 @@ def listar_participantes_curso(request, curso_id):
         return redirect('formacion:dashboard')
 
     # --- Lógica de verificación de permisos para RECHAZAR participantes (se precalcula una vez) ---
-    es_coordinador_departamento = es_coordinador(usuario_actual) and usuario_actual.departamento_coordinado
     tiene_permiso_por_rol_o_admin = es_rrhh_o_formacion_o_direccion or es_admin
     
     # --- Obtener y procesar las participaciones ---
@@ -1343,8 +1344,8 @@ def listar_participantes_curso(request, curso_id):
         estados_no_rechazables = ['rechazado', 'cancelado', 'completado', 'asistido']
         for participacion in participaciones:
             # Revisa si el usuario actual es el coordinador del departamento del empleado en la participación
-            es_coordinador_del_empleado = es_coordinador_departamento and \
-                                          participacion.empleado.departamento == usuario_actual.departamento_coordinado
+            es_coordinador_del_empleado = es_coordinador and \
+                                          participacion.empleado.departamento == usuario_actual.departamento
 
             # El usuario puede ver el botón de rechazar si tiene un rol superior O si es el coordinador del empleado
             participacion.puede_ver_boton_rechazar = tiene_permiso_por_rol_o_admin or es_coordinador_del_empleado
@@ -1368,6 +1369,8 @@ def listar_participantes_curso(request, curso_id):
         'curso': curso,
         'participantes': participaciones,
         'usuario_actual': usuario_actual,
+        'es_coordinador': es_coordinador,
+        'tiene_permiso_por_rol_o_admin': tiene_permiso_por_rol_o_admin,
     }
     return render(request, 'formacion/listar_participantes_curso.html', context)
 
@@ -1988,7 +1991,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 # --- Gestión de Cursos ---
 
 @login_required
-@user_passes_test(es_formacion_o_direccion_o_rrhh, login_url='formacion:dashboard')
+#@user_passes_test(es_formacion_o_direccion_o_rrhh, login_url='formacion:dashboard')
+@user_passes_test(lambda u: es_formacion_o_direccion_o_rrhh(u) or es_coordinador(u), login_url='formacion:dashboard')
 def estado_cursos(request):
     """
     Vista que muestra el estado de todos los cursos.
@@ -1996,7 +2000,7 @@ def estado_cursos(request):
     """
     logger.info(f"El usuario '{request.user.username}' está intentando acceder a la vista de estado de cursos.")
 
-    grupos_permitidos = [settings.GRUPO_FORMACION, settings.GRUPO_RRHH, settings.GRUPO_DIRECCION]
+    grupos_permitidos = [settings.GRUPO_FORMACION, settings.GRUPO_RRHH, settings.GRUPO_DIRECCION, settings.GRUPO_COORDINADOR]
     if not request.user.groups.filter(name__in=grupos_permitidos).exists() and not request.user.is_superuser:
         messages.error(request, "No tienes permisos para acceder a esta página.")
         logger.warning(f"Intento de acceso denegado a '{request.user.username}' por falta de permisos.")
@@ -2075,6 +2079,7 @@ def estado_cursos(request):
             'participacion_resumen': participacion_resumen,
         }
         datos_cursos_con_estado.append(curso_data)
+    es_coordinador = request.user.groups.filter(name=settings.GRUPO_COORDINADOR).exists()
 
     context = {
         'page_obj': page_obj,
@@ -2083,6 +2088,7 @@ def estado_cursos(request):
         'show_finished_courses': show_finished_courses,
         'sort_by': sort_by,
         'direction': direction,
+        'es_coordinador': es_coordinador,
     }
 
     logger.info(f"Renderizando la plantilla 'estado_cursos.html' con {len(datos_cursos_con_estado)} cursos en la página actual.")

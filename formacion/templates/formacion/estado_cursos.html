@@ -64,19 +64,25 @@
                                 <td class="text-center">{{ curso_data.plazas_disponibles }}</td>
                                 <td>{{ curso_data.participacion_resumen }}</td>
                                 <td class="table-actions-center-wrap">
-                                    {% if curso_data.num_pendientes_validar > 0 %}
-                                    <a href="{% url 'formacion:gestionar_preselecciones_curso' curso_data.id %}" class="btn-action btn-action-preselection" title="Gestionar Preselecciones">
-                                        <i class="bi bi-ui-checks"></i>
-                                        <span class="action-badge">{{ curso_data.num_pendientes_validar }}</span>
-                                    </a>
+                                    {% if es_coordinador %}
+                                        <a href="{% url 'formacion:listar_participantes_curso' curso_data.id %}" class="btn-action btn-action-participants" title="Ver Participantes">
+                                            <i class="bi bi-people-fill"></i>
+                                        </a>                            
                                     {% else %}
-                                    <button class="btn-action btn-action-disabled" disabled title="No hay preselecciones pendientes">
-                                        <i class="bi bi-ui-checks"></i>
-                                    </button>
+                                        {% if curso_data.num_pendientes_validar > 0 %}
+                                        <a href="{% url 'formacion:gestionar_preselecciones_curso' curso_data.id %}" class="btn-action btn-action-preselection" title="Gestionar Preselecciones">
+                                            <i class="bi bi-ui-checks"></i>
+                                            <span class="action-badge">{{ curso_data.num_pendientes_validar }}</span>
+                                        </a>
+                                        {% else %}
+                                        <button class="btn-action btn-action-disabled" disabled title="No hay preselecciones pendientes">
+                                            <i class="bi bi-ui-checks"></i>
+                                        </button>
+                                        {% endif %}
+                                        <a href="{% url 'formacion:listar_participantes_curso' curso_data.id %}" class="btn-action btn-action-participants" title="Ver Participantes">
+                                            <i class="bi bi-people-fill"></i>
+                                        </a>
                                     {% endif %}
-                                    <a href="{% url 'formacion:listar_participantes_curso' curso_data.id %}" class="btn-action btn-action-participants" title="Ver Participantes">
-                                        <i class="bi bi-people-fill"></i>
-                                    </a>
                                 </td>
                             </tr>
                             {% empty %}
