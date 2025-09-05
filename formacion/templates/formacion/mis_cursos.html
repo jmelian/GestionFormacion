@@ -35,7 +35,7 @@
                             <th>Curso</th>
                             <th>Tipo</th>
                             <th class="text-center">Fechas</th>
-                            <th class="text-center">Duración (horas)</th>
+                            <th class="text-center">Duración</th>
                             <th class="text-center">Estado</th>
                             <th class="text-center">Certificado</th>
                             <th class="text-center">Nota Final</th>
@@ -70,7 +70,7 @@
                                         N/A
                                     {% endif %}
                                 </td>
-                                <td class="text-center">{{ p.curso.duracion_horas }}</td>
+                                <td class="text-center">{{ p.curso.duracion_horas }}h</td>
                                 <td class="text-center">
                                     {% comment %} Aplicar badges de estado según el valor de p.estado {% endcomment %}
                                     {% if p.estado == 'pendiente' %}
@@ -116,11 +116,6 @@
                                 
                                 <td class="table-actions-center">
                                     {# Botón para Marcar como Completado #}
-                                    {% comment %} 
-                                    Los estados 'completado', 'cancelado', 'abandonado', 'rechazado' se consideran finales
-                                    y no deberían permitir la acción de "Marcar como Completado".
-                                    Puedes ajustar esta lista de exclusión según la lógica de tu aplicación.
-                                    {% endcomment %}
                                     {% if p.estado not in estados_finales_participacion %}
                                         <form action="{% url 'formacion:marcar_participacion_completada' participacion_id=p.id %}" method="post" class="d-inline-block me-2">
                                             {% csrf_token %}
@@ -131,44 +126,25 @@
                                         </form>
                                     {% endif %}
 
-                                    {# Botón de Cancelar Participación #}
-                                    {% comment %} 
-                                    Se mantiene la lógica original para el botón de cancelar.
-                                    Asegúrate de que 'p.can_cancel' está definido en tu modelo o vista.
-                                    {% endcomment %}
-                                    {% if p.can_cancel %} {# Asumiendo que 'can_cancel' es un método o propiedad del modelo Participacion #}
+                                    {# Botón de Cancelar Participación (usa la propiedad del modelo) #}
+                                    {% if p.puede_ser_cancelada %}
                                         <form method="post" action="{% url 'formacion:cancelar_participacion' p.id %}" class="d-inline-block">
                                             {% csrf_token %}
-                                            <button type="submit" class="btn-action btn-cancel-action" title="Cancelar Participación"
+                                            <button type="submit" class="btn-action btn-delete" title="Cancelar Participación"
                                                     onclick="return confirm('¿Estás seguro de que deseas cancelar tu participación en el curso \"{{ p.curso.nombre }}\"?');">
                                                 <i class="bi bi-x-circle-fill"></i>
                                             </button>
                                         </form>
                                     {% else %}
-                                        {# Mostrar un estado de no cancelación más claro con iconos #}
-                                        {% if p.estado == 'completado' or p.estado == 'asistido' %}
-                                            <span class="status-badge status-secondary" title="Curso ya completado/asistido">
-                                                <i class="bi bi-check-all me-1"></i> Finalizado
-                                            </span>
-                                        {% elif p.estado == 'cancelado' %}
-                                            <span class="status-badge status-danger" title="Participación ya cancelada">
-                                                <i class="bi bi-slash-circle-fill me-1"></i> Cancelado
-                                            </span>
-                                        {% elif p.estado == 'rechazado' %}
-                                            <span class="status-badge status-secondary" title="Participación rechazada">
-                                                <i class="bi bi-x-octagon-fill me-1"></i> Rechazado
-                                            </span>
-                                        {% elif p.curso.fecha_fin and p.curso.fecha_fin < "now"|date:"Y-m-d" and p.estado != 'asistido' and p.estado != 'completado' %}
-                                            <span class="status-badge status-secondary" title="Curso ya finalizado">
-                                                <i class="bi bi-clock-history me-1"></i> Finalizado
-                                            </span>
-                                        {% else %}
-                                            {# Si no se puede cancelar por otras razones o el estado no lo permite #}
-                                            <span class="status-badge status-secondary" title="No se puede cancelar en este estado">
-                                                <i class="bi bi-info-circle-fill me-1"></i> No Cancelable
-                                            </span>
-                                        {% endif %}
+                                        <span class="status-badge status-secondary" title="No se puede cancelar">
+                                            <i class="bi bi-info-circle-fill me-1"></i> No Cancelable
+                                        </span>
                                     {% endif %}
+
+                                    {# Enlace para ver detalles del curso #}
+                                    <a href="{% url 'formacion:detalle_participacion' participacion_id=p.id %}" class="btn-action btn-admin-link ms-2" title="Ver Detalles">
+                                        <i class="bi bi-info-circle-fill"></i>
+                                    </a>
                                 </td>
                             </tr>
                         {% endfor %}
