@@ -37,8 +37,12 @@
             <strong>Fecha de Fin del Curso:</strong> {% if participacion.curso.fecha_fin %}{{ participacion.curso.fecha_fin|date:"d/m/Y" }}{% else %}Pendiente{% endif %}
         </div>
         <div class="mb-3">
-            <strong>Horario:</strong> {% if participacion.curso.Horario %}{{ participacion.curso.horario }}{% else %}Pendiente{% endif %}
+            <strong>Horario:</strong> {% if participacion.curso.horario %}{{ participacion.curso.horario }}{% else %}Pendiente{% endif %}
         </div>
+        <div class="mb-3">
+            <strong>Proyecto:</strong> {% if participacion.curso.proyecto %}{{ participacion.curso.proyecto }}{% else %}-{% endif %}
+        </div>
+
         <div class="mb-3">
             <strong>Observaciones:</strong> {% if participacion.curso.observaciones %}{{ participacion.curso.observaciones }}{% else %}Pendiente{% endif %}
         </div>
@@ -61,7 +65,7 @@
             {% if participacion.estado not in estados_finales_participacion %}
             <form action="{% url 'formacion:marcar_participacion_completada' participacion_id=participacion.id %}" method="post" style="display:inline;">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-success">
+                <button type="submit" class="btn btn-complete">
                     <i class="bi bi-check-circle-fill me-1"></i> Marcar como Completado
                 </button>
             </form>

@@ -244,6 +244,29 @@
     color: white;
 }
 
+/* Estilo para el botón "Marcar como Completado" */
+.btn-complete {
+    background: linear-gradient(135deg, #10b981, #059669); /* Un gradiente de verde para el éxito */
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem; /* Mismo padding que btn-secondary */
+    border-radius: 0.75rem; /* Mismo border-radius que btn-secondary */
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+/* Efecto hover para el botón de "Completado" */
+.btn-complete:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    color: white;
+}
+
 .btn-back {
     background: linear-gradient(135deg, #64748b, #475569);
     border: none;

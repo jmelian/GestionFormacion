@@ -624,6 +624,15 @@ class Participacion(models.Model):
     def __str__(self):
         return f"{self.empleado.get_full_name()} - {self.curso.nombre} ({self.get_estado_display()})"
 
+    @property
+    def puede_ser_cancelada(self):
+        """
+        Determina si una participación puede ser cancelada.
+        La lógica está basada en la vista que proporcionaste.
+        """
+        estados_no_cancelables = ['completado', 'asistido', 'cancelado', 'rechazado']
+        return self.estado not in estados_no_cancelables and self.curso.fecha_fin and self.curso.fecha_fin >= date.today()
+
 
 class Titulacion(models.Model):
     empleado = models.ForeignKey(
@@ -768,7 +777,7 @@ class Preseleccion(models.Model):
         help_text="Empleado preseleccionado para el curso."
     )
     prioridad = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        validators=[MinValueValidator(1)],
         help_text="Orden de prioridad de la preselección."
     )
     observaciones = models.TextField(

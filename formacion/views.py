@@ -175,47 +175,27 @@ def proximos_cursos(request):
     # Renderizamos la plantilla 'proximos_cursos.html', pasando la lista de cursos encontrados.
     return render(request, 'formacion/proximos_cursos.html', {'cursos': cursos})
 
+
 @login_required
 def mis_cursos(request):
     """
     Vista que muestra los cursos en los que un usuario autenticado está participando.
-    Calcula dinámicamente si el curso se puede cancelar.
     """
-    # Registramos que un usuario ha accedido a esta vista.
     logger.info(f"El usuario '{request.user.username}' ha accedido a la vista de mis cursos.")
 
     try:
-        # La consulta original es muy buena. Filtra las participaciones del usuario actual
-        # que tienen un estado relevante y optimiza el acceso a la base de datos
-        # con select_related('curso'), lo que evita consultas adicionales.
-        participaciones_qs = Participacion.objects.filter(
+        participaciones = Participacion.objects.filter(
             empleado=request.user,
             estado__in=['aceptado', 'asistido', 'completado', 'pendiente', 'solicitado', 'confirmada']
-        ).select_related('curso').order_by('curso__fecha_inicio') # Añadimos un orden para mejor visualización
-
-        # Registramos el número de participaciones encontradas para fines de depuración.
-        logger.debug(f"Se encontraron {participaciones_qs.count()} participaciones para el usuario '{request.user.username}'.")
-
-        participaciones_with_flags = []
-        for p in participaciones_qs:
-            # Aquí es donde se determina si un curso se puede cancelar.
-            # La lógica es clara: el estado no debe ser final (completado, asistido, etc.)
-            # y la fecha de finalización del curso debe ser hoy o en el futuro.
-            p.can_cancel = (
-                p.estado not in ['completado', 'asistido', 'cancelado', 'rechazado'] and
-                p.curso.fecha_fin and p.curso.fecha_fin >= date.today()
-            )
-            participaciones_with_flags.append(p)
+        ).select_related('curso').order_by('curso__fecha_inicio')
+        
+        logger.debug(f"Se encontraron {participaciones.count()} participaciones para el usuario '{request.user.username}'.")
 
     except Exception as e:
-        # Si ocurre un error durante la consulta o el procesamiento, lo registramos.
-        # Esto es vital para detectar y resolver problemas.
         logger.error(f"Error al obtener las participaciones para el usuario '{request.user.username}': {e}", exc_info=True)
-        participaciones_with_flags = [] # Aseguramos que la lista esté vacía para evitar errores de renderizado
+        participaciones = []
 
-    # Renderizamos la plantilla con la lista de participaciones y el nuevo atributo `can_cancel`.
-    return render(request, 'formacion/mis_cursos.html', {'participaciones': participaciones_with_flags})
-
+    return render(request, 'formacion/mis_cursos.html', {'participaciones': participaciones})
 
 @login_required
 @user_passes_test(es_coordinador, login_url='formacion:dashboard')
@@ -848,7 +828,7 @@ def gestionar_preselecciones_curso(request, curso_id):
                                 Notificacion.objects.create(usuario=coordinador, mensaje=f'La preselección de "{preseleccion.empleado.get_full_name()}" para el curso "{curso.nombre}" ha sido RECHAZADA.', tipo='info')
                             preseleccion.delete()
                     
-                    messages.success(request, f'Preselección de "{preseleccion.empleado.get_full_name()}" eliminada de la lista.')
+                    #messages.success(request, f'Preselección de "{preseleccion.empleado.get_full_name()}" eliminada de la lista.')
 
             except Exception as e:
                 logger.error(f"Error durante la acción '{accion}' para la preselección ID '{preseleccion_id}': {e}", exc_info=True)
