@@ -312,9 +312,11 @@ def titulaciones_pendientes_rrhh(request):
     logger.info(f"El usuario '{request.user.username}' (RRHH/Admin) ha accedido a la vista de titulaciones pendientes.")
 
     if request.method == 'POST':
+        logger.info(f"Solicitud POST recibida en titulaciones_pendientes_rrhh. Contenido: {request.POST.dict()}")
         # Manejamos las acciones de 'validar' o 'rechazar'.
         titulacion_id = request.POST.get('titulacion_id')
         action = request.POST.get('action') # 'validar' o 'rechazar'
+        logger.info(f"Datos de la solicitud: titulacion_id='{titulacion_id}', action='{action}'")
         
         try:
             # Obtenemos la titulación o devolvemos un 404 si no existe.
@@ -327,6 +329,7 @@ def titulaciones_pendientes_rrhh(request):
 
         # Lógica para la acción de VALIDAR
         if action == 'validar':
+            current_query_params = request.GET.urlencode()
             if titulacion.estado == 'pendiente':
                 try:
                     with transaction.atomic():
@@ -335,33 +338,29 @@ def titulaciones_pendientes_rrhh(request):
 
                         Notificacion.objects.create(
                             usuario=titulacion.empleado,
-                            mensaje=f"Tu titulación de '{titulacion.nombre}' ha sido <strong>validada</strong> por RRHH.",
+                            mensaje=f"Tu titulación de '{titulacion.nombre}' ha sido validada por RRHH.",
                             tipo='success',
                             url=reverse('formacion:detalle_titulacion', args=[titulacion.id]),
                             leida=False
                         )
-                    # Registramos el éxito de la validación.
                     logger.info(f"Titulación '{titulacion.nombre}' de '{titulacion.empleado.get_full_name()}' validada por '{request.user.username}'.")
                     messages.success(request, f"Titulación de {titulacion.empleado.get_full_name()} ({titulacion.nombre}) validada correctamente.")
                 except Exception as e:
-                    # Si falla la transacción, lo registramos y notificamos al usuario.
                     logger.error(f"Error en la transacción al validar la titulación con ID '{titulacion_id}': {e}", exc_info=True)
                     messages.error(request, 'Ocurrió un error al validar la titulación. Por favor, inténtalo de nuevo.')
             else:
-                # Si se intenta validar una titulación que ya tiene otro estado, lo registramos como advertencia.
                 logger.warning(f"Intento de validar una titulación con estado '{titulacion.estado}' por el usuario '{request.user.username}'.")
                 messages.info(request, f"Esta titulación ya estaba '{titulacion.get_estado_display()}'. No se puede validar.")
-        
+            return redirect(f"{reverse('formacion:titulaciones_pendientes_rrhh')}?{current_query_params}")
+
         # Lógica para la acción de RECHAZAR
         elif action == 'rechazar':
             motivo_rechazo = request.POST.get('motivo_rechazo', '').strip()
+            current_query_params = request.GET.urlencode()
             if not motivo_rechazo:
                 logger.warning(f"El usuario '{request.user.username}' intentó rechazar una titulación sin proporcionar un motivo. Titulación ID: {titulacion_id}.")
                 messages.error(request, "El motivo del rechazo no puede estar vacío.")
-                # Redirigimos para mantener los parámetros de la URL (paginación, orden).
-                current_query_params = request.GET.urlencode()
-                return redirect(f"{reverse('formacion:titulaciones_pendientes_rrhh')}?{current_query_params}")
-
+            
             if titulacion.estado == 'pendiente':
                 try:
                     with transaction.atomic():
@@ -371,26 +370,21 @@ def titulaciones_pendientes_rrhh(request):
 
                         Notificacion.objects.create(
                             usuario=titulacion.empleado,
-                            mensaje=f"Tu titulación de '{titulacion.nombre}' ha sido <strong>rechazada</strong> por RRHH. Motivo: {motivo_rechazo}",
+                            mensaje=f"Tu titulación de '{titulacion.nombre}' ha sido rechazada por RRHH. Motivo: {motivo_rechazo}",
                             tipo='danger',
                             url=reverse('formacion:detalle_titulacion', args=[titulacion.id]),
                             leida=False
                         )
-                    # Registramos el éxito del rechazo.
                     logger.info(f"Titulación '{titulacion.nombre}' de '{titulacion.empleado.get_full_name()}' rechazada por '{request.user.username}'. Motivo: '{motivo_rechazo}'.")
                     messages.success(request, f"Titulación de {titulacion.empleado.get_full_name()} ({titulacion.nombre}) rechazada correctamente.")
                 except Exception as e:
-                    # Si falla la transacción, lo registramos y notificamos al usuario.
                     logger.error(f"Error en la transacción al rechazar la titulación con ID '{titulacion_id}': {e}", exc_info=True)
                     messages.error(request, 'Ocurrió un error al rechazar la titulación. Por favor, inténtalo de nuevo.')
             else:
-                # Si se intenta rechazar una titulación que ya tiene otro estado, lo registramos.
                 logger.warning(f"Intento de rechazar una titulación con estado '{titulacion.estado}' por el usuario '{request.user.username}'.")
                 messages.info(request, f"La titulación de {titulacion.empleado.get_full_name()} ({titulacion.nombre}) ya ha sido '{titulacion.get_estado_display()}'. No se puede rechazar.")
-        
-        # Redirigimos con los mismos parámetros de la URL para mantener el estado de la paginación y orden.
-        current_query_params = request.GET.urlencode()
-        return redirect(f"{reverse('formacion:titulaciones_pendientes_rrhh')}?{current_query_params}")
+            
+            return redirect(f"{reverse('formacion:titulaciones_pendientes_rrhh')}?{current_query_params}")
 
     # --- Lógica para solicitudes GET ---
     try:
@@ -427,7 +421,6 @@ def titulaciones_pendientes_rrhh(request):
 
 
         # --- PAGINACIÓN ---
-        
         try:
             # Se obtiene el tamaño de página de la URL, por defecto 10
             page_size = int(request.GET.get('page_size', 10))

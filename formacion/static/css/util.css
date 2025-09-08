@@ -463,6 +463,13 @@
 .btn-action.btn-edit:hover {
     background: linear-gradient(135deg, #ea580c, #c2410c);
 }
+.btn-action.btn-edit[disabled] {
+    cursor: not-allowed !important;
+    background: linear-gradient(135deg, #c4c9d3, #9ba3b1) !important;
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+}
 
 .btn-action.btn-enroll-action {
     background: linear-gradient(135deg, #22c55e, #16a34a);
