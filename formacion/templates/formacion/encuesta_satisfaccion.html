@@ -1,27 +1,34 @@
-{% extends 'base.html' %} {# O tu plantilla base #}
-{% load crispy_forms_tags %} {# Si usas django-crispy-forms para un mejor estilo #}
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}Encuesta de Satisfacción - {{ curso.nombre }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Encuesta de Satisfacción del Curso</h2>
-    <h3>"{{ curso.nombre }}"</h3>
-
-    <div class="card p-3 mb-4">
-        <h5 class="card-title">Datos del Curso</h5>
-        <p><strong>Fecha:</strong> {{ fecha_actual|date:"d/m/Y" }}</p>
-        <p><strong>Curso:</strong> {{ curso.nombre }}</p>
-        <p><strong>Profesor:</strong> {% if curso.profesor %}{{ curso.profesor }}{% else %}N/A{% endif %}</p>
-        <p><strong>Aula:</strong> {% if curso.aula %}{{ curso.aula }}{% else %}N/A{% endif %}</p>
-        <p><strong>Duración:</strong> {% if curso.duracion %}{{ curso.duracion }}{% else %}N/A{% endif %}</p>
-        <p><strong>Horario:</strong> {% if curso.horario %}{{ curso.horario }}{% else %}N/A{% endif %}</p>
-        {# Puedes añadir aquí el tipo de formación si lo tienes en el modelo Curso #}
+<div class="content-container"> {# Usamos el contenedor principal para aplicar estilos consistentes #}
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-clipboard-check-fill"></i>
+            Encuesta de Satisfacción
+        </h1>
+        <div class="page-description">
+            Completa la valoración del curso "{{ curso.nombre }}".
+        </div>
     </div>
 
     <form method="post">
         {% csrf_token %}
         
+        <div class="card p-4 mb-4">
+            <h5 class="card-title">Datos del Curso</h5>
+            <p><strong>Fecha:</strong> {{ fecha_actual|date:"d/m/Y" }}</p>
+            <p><strong>Curso:</strong> {{ curso.nombre }}</p>
+            <p><strong>Profesor:</strong> {% if curso.profesor %}{{ curso.profesor }}{% else %}N/A{% endif %}</p>
+            <p><strong>Aula:</strong> {% if curso.aula %}{{ curso.aula }}{% else %}N/A{% endif %}</p>
+            <p><strong>Duración:</strong> {% if curso.duracion %}{{ curso.duracion }}{% else %}N/A{% endif %}</p>
+            <p><strong>Horario:</strong> {% if curso.horario %}{{ curso.horario }}{% else %}N/A{% endif %}</p>
+        </div>
+
         <div class="card p-4 mb-4">
             <h5 class="card-title">VALORACIÓN DEL PROFESOR / CURSO</h5>
             {% for field in form %}
@@ -34,7 +41,6 @@
                     </div>
                 {% endif %}
             {% endfor %}
-            {# Si tu valoración final es calculada, la mostrarías aquí. Si es un campo de entrada, iría con los otros. #}
         </div>
 
         <div class="card p-4 mb-4">
@@ -49,7 +55,6 @@
                     </div>
                 {% endif %}
             {% endfor %}
-            {# Si tu valoración final es calculada, la mostrarías aquí. Si es un campo de entrada, iría con los otros. #}
         </div>
 
         <div class="card p-4 mb-4">
@@ -60,8 +65,12 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Enviar Encuesta</button>
-        <a href="{% url 'formacion:mis_cursos' %}" class="btn btn-secondary">Volver a Mis Cursos</a>
+        <div class="d-flex justify-content-start mt-4">
+            <button type="submit" class="btn-primary me-2">Enviar Encuesta</button>
+            <a href="{% url 'formacion:mis_cursos' %}" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Volver a Mis Cursos
+            </a>
+        </div>
     </form>
 </div>
 {% endblock %}

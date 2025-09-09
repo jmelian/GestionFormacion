@@ -70,7 +70,13 @@
                                         N/A
                                     {% endif %}
                                 </td>
-                                <td class="text-center">{{ p.curso.duracion_horas }}h</td>
+                                <td class="text-center">
+                                    {% if p.curso.duracion_horas %}
+                                        {{ p.curso.duracion_horas }}h
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
                                 <td class="text-center">
                                     {% comment %} Aplicar badges de estado según el valor de p.estado {% endcomment %}
                                     {% if p.estado == 'pendiente' %}
