@@ -10,7 +10,7 @@ from django.contrib.auth.models import Group
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from datetime import date
-from django.db.models import Count, Q, Prefetch
+from django.db.models import Count, Q, Prefetch, Avg, Sum
 from django.contrib.auth import logout
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -145,36 +145,81 @@ def solo_superusuarios(user):
 
 from django.views.generic import ListView
 
-
 @login_required
-def proximos_cursos(request):
+def formacion_planificada(request):
     """
-    Vista que muestra todos los cursos que aún no han comenzado o que inician hoy.
-    Solo los usuarios autenticados pueden acceder a esta página.
+    Vista que muestra la formación planificada y permite ver los cursos finalizados
+    mediante un checkbox. Añade paginación, ordenación y filtros.
     """
-    # Agregamos un log de información para registrar el acceso del usuario a esta vista.
-    # Esto es útil para monitorear la actividad en la aplicación.
-    logger.info(f"El usuario '{request.user.username}' ha accedido a la vista de próximos cursos.")
+    logger.info(f"El usuario '{request.user.username}' ha accedido a la vista de formación planificada.")
 
+    cursos_qs = Curso.objects.all()
+
+    # --- Filtro por Palabras Clave ---
+    keyword = request.GET.get('keyword', '').strip()
+    if keyword:
+        cursos_qs = cursos_qs.filter(
+            Q(nombre__icontains=keyword) |
+            Q(contenido__icontains=keyword) |
+            Q(proveedor__nombre__icontains=keyword)
+        )
+        logger.info(f"Aplicando filtro de palabra clave: '{keyword}'.")
+    # --- Filtro por Cursos Finalizados/Futuros ---
     try:
-        # Obtenemos los cursos cuya fecha de inicio es igual o posterior a la fecha actual.
-        # Ordenamos los resultados por la fecha de inicio para que los cursos más cercanos aparezcan primero.
-        cursos = Curso.objects.filter(fecha_inicio__gte=date.today()).order_by('fecha_inicio')
-        
-        # Agregamos un log de depuración para mostrar cuántos cursos se encontraron.
-        # Esto ayuda a verificar que la consulta está funcionando como se espera.
-        logger.debug(f"Se encontraron {cursos.count()} cursos futuros para mostrar.")
-
+        mostrar_finalizados = request.GET.get('finalizados', 'false') == 'true'
+        if mostrar_finalizados:
+            cursos_qs = cursos_qs.filter(fecha_inicio__lt=date.today())
+            logger.debug(f"Se encontraron {cursos_qs.count()} cursos finalizados.")
+        else:
+            cursos_qs = cursos_qs.filter(fecha_inicio__gte=date.today())
+            logger.debug(f"Se encontraron {cursos_qs.count()} cursos futuros.")
     except Exception as e:
-        # En caso de un error en la consulta a la base de datos, registramos la excepción.
-        # Esto es crucial para la depuración en caso de un fallo.
-        logger.error(f"Error al obtener los próximos cursos para el usuario '{request.user.username}': {e}", exc_info=True)
-        # Aseguramos que 'cursos' sea una lista vacía para evitar un error en el render.
-        cursos = [] 
+        logger.error(f"Error al obtener los cursos para el usuario '{request.user.username}': {e}", exc_info=True)
+        cursos = []
 
-    # Renderizamos la plantilla 'proximos_cursos.html', pasando la lista de cursos encontrados.
-    return render(request, 'formacion/proximos_cursos.html', {'cursos': cursos})
+    # --- Ordenación de Columnas ---
+    sort_by = request.GET.get('sort_by', 'fecha_inicio')
+    direction = request.GET.get('direction', 'asc')
 
+    allowed_sort_fields = {
+        'nombre': 'nombre',
+        'fecha_inicio': 'fecha_inicio',
+        'duracion_horas': 'duracion_horas',
+        'proveedor': 'proveedor__nombre',
+        'plazas_totales': 'plazas_totales',
+    }
+
+    sort_field = allowed_sort_fields.get(sort_by, 'fecha_inicio')
+
+    if direction == 'desc':
+        sort_field = f'-{sort_field}'
+        
+    try:
+        cursos_qs = cursos_qs.order_by(sort_field)
+    except Exception as e:
+        logger.error(f"Error al ordenar los cursos: {e}", exc_info=True)
+        
+    # --- PAGINACIÓN ---
+    try:
+        page_size = int(request.GET.get('page_size', 10))
+    except ValueError:
+        page_size = 10
+    
+    page = request.GET.get('page', 1)
+    paginator = Paginator(cursos_qs, page_size)
+    page_obj = paginator.get_page(page)
+
+    context = {
+        'cursos': page_obj,
+        'mostrar_finalizados': mostrar_finalizados,
+        'today': date.today(),
+        'sort_by': sort_by,
+        'direction': direction,
+        'keyword': keyword,
+        'page_size': page_size,
+        'page_obj': page_obj,
+    }
+    return render(request, 'formacion/formacion_planificada.html', context)
 
 @login_required
 def mis_cursos(request):
@@ -2161,7 +2206,7 @@ def eliminar_curso(request, curso_id):
         
     # Redirige al usuario a la lista de próximos cursos, independientemente
     # del éxito o fallo.
-    return redirect('formacion:proximos_cursos')
+    return redirect('formacion:formacion_planificada')
 
 
 class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
@@ -3204,6 +3249,60 @@ def detalle_participacion(request, participacion_id):
         'estados_finales_participacion': estados_finales_participacion,
     }
     return render(request, 'formacion/detalle_participacion.html', context)
+
+
+@login_required
+def resumen_curso_finalizado(request, curso_id):
+    """
+    Muestra un resumen detallado de un curso que ha finalizado, incluyendo estadísticas de
+    participación y resultados de las encuestas de satisfacción.
+    Solo accesible para usuarios de RRHH, Formación, Dirección o superusuarios.
+    """
+    logger.info(f"El usuario '{request.user.username}' ha accedido al resumen del curso con ID: {curso_id}.")
+
+    curso = get_object_or_404(Curso, pk=curso_id)
+
+    if curso.fecha_inicio and curso.fecha_inicio > date.today():
+        messages.error(request, 'Este curso aún no ha empezado y no se puede ver su resumen.')
+        return redirect('formacion:resumen_curso_finalizado', curso_id=curso_id)
+
+    try:
+        participaciones = Participacion.objects.filter(curso=curso).select_related('empleado').order_by('empleado__last_name')
+        
+        # Obtenemos las encuestas asociadas a este curso a través de la relación Participacion
+        encuestas = EncuestaSatisfaccion.objects.filter(participacion__curso=curso)
+        
+        # Calculamos el promedio de las valoraciones de las encuestas
+        promedios_encuesta = encuestas.aggregate(
+            opinion_contenido_curso_avg=Avg('opinion_contenido_curso'),
+            conocimientos_profesor_avg=Avg('conocimientos_profesor'),
+            gusto_general_curso_avg=Avg('gusto_general_curso'),
+            mejora_conocimientos_carrera_avg=Avg('mejora_conocimientos_carrera'),
+            adquisicion_habilidades_puesto_avg=Avg('adquisicion_habilidades_puesto')
+        )
+
+        context = {
+            'curso': curso,
+            'participaciones': participaciones,
+            'estadisticas': {
+                'total_participantes': participaciones.count(),
+                'asistidos': participaciones.filter(estado='asistido').count(),
+                'completados': participaciones.filter(estado='completado').count(),
+                'certificados_obtenidos': participaciones.filter(certificado_obtenido=True).count(),
+            },
+            'promedios_encuesta': promedios_encuesta,
+            'total_encuestas': encuestas.count(),
+        }
+        logger.debug(f"Estadísticas calculadas para el curso '{curso.nombre}': {context['estadisticas']}")
+        logger.debug(f"Promedios de encuesta calculados: {context['promedios_encuesta']}")
+
+    except Exception as e:
+        logger.error(f"Error al generar el resumen del curso '{curso.nombre}': {e}", exc_info=True)
+        messages.error(request, 'No se pudo cargar el resumen del curso. Inténtalo de nuevo más tarde.')
+        return redirect('formacion:resumen_curso_finalizado', curso_id=curso_id)
+
+    return render(request, 'formacion/resumen_curso_finalizado.html', context)
+
 
 @login_required
 def serve_protected_titulacion(request, filename):

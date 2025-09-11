@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load formacion_tags %}
+
+{% block title %}Resumen del Curso: {{ curso.nombre }}{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-bar-chart-fill"></i>
+            Resumen del Curso Finalizado
+        </h1>
+        <div class="page-description">
+            <p>Análisis de los resultados del curso <strong>{{ curso.nombre }}</strong>.</p>
+        </div>
+    </div>
+    
+    <div class="card p-4 mb-4">
+        <h5 class="card-title">Datos del Curso</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Curso:</strong> {{ curso.nombre }}</p>
+                <p><strong>Proveedor:</strong> {{ curso.proveedor.nombre }}</p>
+                <p><strong>Fechas:</strong> {{ curso.fecha_inicio|date:"d/m/Y" }} - {{ curso.fecha_fin|date:"d/m/Y" }}</p>
+                <p><strong>Duración:</strong>
+                    {% if curso.duracion_horas %}
+                        {{ curso.duracion_horas }} horas
+                    {% else %}
+                        -
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Modalidad:</strong> {{ curso.get_modalidad_display }}</p>
+                <p><strong>Plazas Totales:</strong> {{ curso.plazas_totales }}</p>
+                <p><strong>Plazas Ocupadas:</strong> {{ estadisticas.total_participantes }}</p>
+                <p><strong>Documentación del curso:</strong> 
+                    {% if curso.documentacion %}
+                        <a href="{{ curso.documentacion }}">Abrir Documentación</a>
+                    {% else %}
+                        No disponible
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if "Direccion" in user.groups.all|join:"," or "RRHH" in user.groups.all|join:"," or "Formacion" in user.groups.all|join:"," or "Coordinador" in user.groups.all|join:"," or user.is_superuser %}
+        <div class="card p-4 mb-4">
+            <h5 class="card-title">Estadísticas de Participación</h5>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ estadisticas.total_participantes }}</span>
+                        <span class="stat-label">Total Participantes</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ estadisticas.asistidos }}</span>
+                        <span class="stat-label">Asistidos</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ estadisticas.completados }}</span>
+                        <span class="stat-label">Completados</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ estadisticas.certificados_obtenidos }}</span>
+                        <span class="stat-label">Certificados Obtenidos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Sección para el resumen de encuestas #}
+        {% if total_encuestas > 0 %}
+        <div class="card p-4 mb-4">
+            <h5 class="card-title">Resumen de Encuestas de Satisfacción ({{ total_encuestas }} encuestas)</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ promedios_encuesta.opinion_contenido_curso_avg|floatformat:1 }}</span>
+                        <span class="stat-label">Contenido del Curso</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ promedios_encuesta.conocimientos_profesor_avg|floatformat:1 }}</span>
+                        <span class="stat-label">Conocimientos del Profesor</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ promedios_encuesta.gusto_general_curso_avg|floatformat:1 }}</span>
+                        <span class="stat-label">Gusto General</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ promedios_encuesta.mejora_conocimientos_carrera_avg|floatformat:1 }}</span>
+                        <span class="stat-label">Mejora de Conocimientos</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ promedios_encuesta.adquisicion_habilidades_puesto_avg|floatformat:1 }}</span>
+                        <span class="stat-label">Adquisición de Habilidades</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card p-4 mb-4">
+            <h5 class="card-title">Listado de Participantes</h5>
+            {% if participaciones %}
+                <div class="table-responsive-modern">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Estado</th>
+                                <th>Nota Final</th>
+                                <th>Certificado</th>
+                                <th>Validación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for participacion in participaciones %}
+                            <tr>
+                                <td>{{ participacion.empleado.get_full_name }}</td>
+                                <td>{{ participacion.get_estado_display }}</td>
+                                <td>{{ participacion.nota_final|default:"N/A" }}</td>
+                                <td>
+                                    {% if participacion.certificado_obtenido %}
+                                        <span class="status-badge status-success">Sí</span>
+                                    {% else %}
+                                        <span class="status-badge status-danger">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if participacion.validado %}
+                                        <span class="status-badge status-success">Validado</span>
+                                    {% else %}
+                                        <span class="status-badge status-secondary">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state small">
+                    <i class="bi bi-info-circle"></i>
+                    <p>No hay participantes registrados para este curso.</p>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:formacion_planificada' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver a Formación Planificada
+        </a>
+    </div>
+</div>
+{% endblock %}

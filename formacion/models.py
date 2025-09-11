@@ -441,6 +441,7 @@ class Curso(models.Model):
     plazas_totales = models.PositiveIntegerField(default=0, help_text="Número total de plazas disponibles en el curso.")
     plazas_disponibles = models.PositiveIntegerField(default=0, help_text="Número de plazas aún disponibles para inscripción. Se actualiza automáticamente.")
     observaciones = models.TextField(blank=True, null=True, help_text="Notas o comentarios adicionales sobre el curso.")
+    documentacion = models.CharField(max_length=255, blank=True, null=True, help_text="Enlace a la documentación del curso (ej. Google Drive, SharePoint, etc.).")
     externo = models.BooleanField(default=False, help_text="Indica si el curso es impartido por un proveedor externo.")
     origen = models.CharField(max_length=20, choices=ORIGEN_CURSO_CHOICES, default='interno', help_text="Indica si el curso es interno o externo a la organización.")
     es_obligatorio = models.BooleanField(default=False, help_text="Indica si este curso es generalmente obligatorio para algún puesto o perfil.")

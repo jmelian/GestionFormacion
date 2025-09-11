@@ -1,7 +1,13 @@
+1 HECHO - Tarjeta: formación anterior con toda la documentación
+
+2 - Verificar si la solicitud de cursos obligatorios envía notificación a RRHH
+
+3 HECHO - Cambiar "próximos cursos" por "formación planificada", añadir el checkbox de cursos terminados y usar esta vista para FEAT 1
+
+4 HECHO - Actualizar checkbox de "Estado General de Cursos" y "Gestión de Cursos" para hacerlos como "formación planificada".
+
+5 - Poner paginación a Formacion planificada
+
+6 - Poner filtros a Formación planificada
 
 
-
-
-
-
-    

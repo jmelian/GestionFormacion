@@ -40,11 +40,12 @@ urlpatterns = [
     # URLs relacionadas con Cursos
     path('gestion-de-cursos/', views.gestion_cursos_list, name='gestion_cursos_list'),
     path('mis-cursos/', views.mis_cursos, name='mis_cursos'),
-    path('proximos-cursos/', views.proximos_cursos, name='proximos_cursos'),
+    path('formacion_planificada/', views.formacion_planificada, name='formacion_planificada'),
     path('estado-cursos/', views.estado_cursos, name='estado_cursos'),
     path('cursos/crear/', views.crear_editar_curso, name='crear_curso'),
     path('cursos/editar/<int:curso_id>/', views.crear_editar_curso, name='editar_curso'),
     path('cursos/eliminar/<int:curso_id>/', views.eliminar_curso, name='eliminar_curso'),
+    path('cursos/<int:curso_id>/resumen/', views.resumen_curso_finalizado, name='resumen_curso_finalizado'),
     path('curso/<int:curso_id>/participantes/', views.listar_participantes_curso, name='listar_participantes_curso'),
     path('solicitar-curso/', views.solicitud_curso_create, name='solicitar_curso'),
     path('participacion/<int:participacion_id>/encuesta/', views.encuesta_satisfaccion, name='encuesta_satisfaccion'),
