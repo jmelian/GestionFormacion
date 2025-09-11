@@ -17,13 +17,16 @@
     </div>
 
     <form method="GET" id="filtersForm" action="{% url 'formacion:estado_cursos' %}">
-        <div class="filter-controls mb-3">
-            <label class="form-check-label me-2">
-                <input type="checkbox" class="form-check-input" name="show_finished" value="true" {% if show_finished_courses %}checked{% endif %} onchange="document.getElementById('filtersForm').submit()">
-                Mostrar cursos terminados
-            </label>
+        <div class="d-flex justify-content-end mb-3">
+            <div class="form-check form-switch text-white fw-bold">
+                <input class="form-check-input" type="checkbox" role="switch" id="showFinishedCourses"
+                       name="show_finished" value="true"
+                       {% if show_finished_courses %}checked{% endif %}
+                       onchange="toggleCourses()">
+                <label class="form-check-label" for="showFinishedCourses">Mostrar cursos terminados</label>
+            </div>
         </div>
-
+        
         <input type="hidden" name="sort_by" value="{{ sort_by }}">
         <input type="hidden" name="direction" value="{{ direction }}">
         <input type="hidden" name="page" value="{{ page_obj.number }}">
@@ -67,7 +70,7 @@
                                     {% if es_coordinador %}
                                         <a href="{% url 'formacion:listar_participantes_curso' curso_data.id %}" class="btn-action btn-action-participants" title="Ver Participantes">
                                             <i class="bi bi-people-fill"></i>
-                                        </a>                            
+                                        </a>              
                                     {% else %}
                                         {% if curso_data.num_pendientes_validar > 0 %}
                                         <a href="{% url 'formacion:gestionar_preselecciones_curso' curso_data.id %}" class="btn-action btn-action-preselection" title="Gestionar Preselecciones">
@@ -124,6 +127,19 @@
 
 {% block extra_js %}
 <script>
+    function toggleCourses() {
+        const checkbox = document.getElementById('showFinishedCourses');
+        const filtersForm = document.getElementById('filtersForm');
+        const showFinishedInput = filtersForm.querySelector('input[name="show_finished"]');
+        
+        if (checkbox.checked) {
+            showFinishedInput.value = 'true';
+        } else {
+            showFinishedInput.value = 'false';
+        }
+        filtersForm.submit();
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
         // Lógica para manejar la ordenación de las columnas de la tabla.
         const sortableHeaders = document.querySelectorAll('.sortable-th');

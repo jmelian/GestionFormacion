@@ -400,7 +400,7 @@ class ProyectoForm(forms.ModelForm):
 class CursoForm(forms.ModelForm):
     class Meta:
         model = Curso
-        exclude = ['codigo', 'origen']
+        exclude = ['codigo', 'origen', 'plazas_disponibles']
         widgets = {
             'fecha_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'fecha_fin': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'), 

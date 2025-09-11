@@ -24,6 +24,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='empleado',
             name='sede',
-            field=models.CharField(blank=True, choices=[('tf', 'TF'), ('remoto', 'Remoto'), ('gc', 'CG')], help_text='Sede principal de trabajo del empleado.', max_length=50, null=True),
+            field=models.CharField(blank=True, choices=[('tf', 'TF'), ('remoto', 'Remoto'), ('gc', 'GC')], help_text='Sede principal de trabajo del empleado.', max_length=50, null=True),
         ),
     ]
