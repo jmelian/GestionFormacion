@@ -92,60 +92,26 @@
                                     {% endif %}
                                 </td>
                                 <td class="table-actions-center">
-                                    {# Lógica de permisos para los ROLES SUPERIORES (admin, rrhh, direccion, formacion) #}
-                                    {% if tiene_permiso_por_rol_o_admin %}
-                                        {# Botón para rechazar (visible solo para roles superiores) #}
-                                        {% if participacion.puede_ser_rechazada %}
-                                            <form method="post" action="{% url 'formacion:rechazar_participacion' participacion.id %}" class="d-inline-block">
+                                    {# Lógica para cursos OBLIGATORIOS #}
+                                    {% if curso.es_obligatorio %}
+                                        {% if participacion.estado in 'solicitado,pendiente' and tiene_permiso_por_rol_o_admin %}
+                                            <form method="post" action="{% url 'formacion:aprobar_solicitud_obligatoria' participacion.id %}" class="d-inline-block">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn-action btn-delete" title="Cancelar Participación">
+                                                <button type="submit" class="btn-action btn-success-action" title="Aprobar Solicitud">
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                </button>
+                                            </form>
+                                            <form method="post" action="{% url 'formacion:rechazar_solicitud_obligatoria' participacion.id %}" class="d-inline-block ms-2">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn-action btn-delete" title="Rechazar Solicitud">
                                                     <i class="bi bi-x-circle-fill"></i>
                                                 </button>
                                             </form>
                                         {% endif %}
-
-                                        {# Botón Aprobar #}
-                                        {% if participacion.estado in 'solicitado,pendiente' %}
-                                            <form method="post" action="{% url 'formacion:aprobar_participacion' participacion.id %}" class="d-inline-block ms-2">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn-action btn-success-action" title="Aprobar Participación">
-                                                    <i class="bi bi-check-circle-fill"></i>
-                                                </button>
-                                            </form>
-                                        {% endif %}
-
-                                        {# Botón Marcar Asistido #}
-                                        {% if participacion.estado in 'confirmada,aceptado' %}
-                                            <form method="post" action="{% url 'formacion:marcar_asistido' participacion.id %}" class="d-inline-block ms-2">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn-action btn-action-participants" title="Marcar como Asistido">
-                                                    <i class="bi bi-person-fill-check"></i>
-                                                </button>
-                                            </form>
-                                        {% endif %}
-
-                                        {# Botón Marcar Completado #}
-                                        {% if participacion.estado in 'asistido,confirmada,aceptado' %}
-                                            <form method="post" action="{% url 'formacion:marcar_completado' participacion.id %}" class="d-inline-block ms-2">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn-action btn-completed-action" title="Marcar como Completado"
-                                                        onclick="return confirm('¿Estás seguro de que quieres marcar esta participación como COMPLETADA? Asegúrate de haber introducido la nota final y el estado del certificado.');">
-                                                    <i class="bi bi-award-fill"></i>
-                                                </button>
-                                            </form>
-                                        {% endif %}
-
-                                        {# Botón de Detalles #}
-                                        {% if participacion.estado in 'confirmada,aceptado,asistido,completado' %}
-                                            <a href="#" class="btn-action btn-admin-link ms-2" title="Ver Detalles">
-                                                <i class="bi bi-info-circle-fill"></i>
-                                            </a>
-                                        {% endif %}
-
-                                    {# Lógica de permisos para el rol de COORDINADOR #}
-                                    {% elif es_coordinador %}
-                                        {# Lógica para el botón de rechazar del coordinador específico #}
-                                        {% if participacion.empleado.departamento == usuario_actual.departamento and participacion.puede_ser_rechazada %}
+                                    
+                                    {# Lógica para cursos NO OBLIGATORIOS #}
+                                    {% else %}
+                                        {% if participacion.boton_rechazar_activo %}
                                             <form method="post" action="{% url 'formacion:rechazar_participacion' participacion.id %}" class="d-inline-block">
                                                 {% csrf_token %}
                                                 <button type="submit" class="btn-action btn-delete" title="Cancelar Participación">
@@ -153,11 +119,34 @@
                                                 </button>
                                             </form>
                                         {% else %}
-                                            {# El botón debe estar deshabilitado porque no es el coordinador o el estado no lo permite #}
                                             <button class="btn-action btn-delete" disabled title="No se puede cancelar en este estado o no tienes permiso">
                                                 <i class="bi bi-x-circle-fill"></i>
                                             </button>
                                         {% endif %}
+                                    {% endif %}
+
+                                    {# Botones que se muestran para AMBOS tipos de cursos #}
+                                    {% if participacion.estado in 'confirmada,aceptado' %}
+                                        <form method="post" action="{% url 'formacion:marcar_asistido' participacion.id %}" class="d-inline-block ms-2">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-action-participants" title="Marcar como Asistido">
+                                                <i class="bi bi-person-fill-check"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    {% if participacion.estado in 'asistido,confirmada,aceptado' %}
+                                        <form method="post" action="{% url 'formacion:marcar_completado' participacion.id %}" class="d-inline-block ms-2">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-completed-action" title="Marcar como Completado"
+                                                    onclick="return confirm('¿Estás seguro de que quieres marcar esta participación como COMPLETADA? Asegúrate de haber introducido la nota final y el estado del certificado.');">
+                                                <i class="bi bi-award-fill"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    {% if participacion.estado in 'confirmada,aceptado,asistido,completado' %}
+                                        <a href="#" class="btn-action btn-admin-link ms-2" title="Ver Detalles">
+                                            <i class="bi bi-info-circle-fill"></i>
+                                        </a>
                                     {% endif %}
                                 </td>
                             </tr>

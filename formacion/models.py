@@ -463,6 +463,11 @@ class Curso(models.Model):
             self.plazas_disponibles = self.plazas_totales
         super().save(*args, **kwargs)
 
+    @property
+    def gestion_solicitudes(self):
+        return self.es_obligatorio
+
+
 class SolicitudCurso(models.Model):
     # Información básica y de solicitante (gestionada automáticamente)
     solicitante = models.ForeignKey(

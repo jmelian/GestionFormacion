@@ -875,9 +875,12 @@ def gestionar_preselecciones_curso(request, curso_id):
             return redirect('formacion:gestionar_preselecciones_curso', curso_id=curso.id)
 
     # Si es una solicitud GET
+    referer_url = request.META.get('HTTP_REFERER')
+    
     context = {
         'curso': curso,
         'preselecciones': preselecciones,
+        'referer_url': referer_url,
     }
     return render(request, 'formacion/confirmar_preseleccionados.html', context)
 
@@ -2070,10 +2073,25 @@ def estado_cursos(request):
     # Procesar solo los cursos de la página actual
     datos_cursos_con_estado = []
     for curso in page_obj.object_list:
+        # Contamos las participaciones con los estados finales
         aceptados = Participacion.objects.filter(curso=curso, estado='aceptado').count()
         asistidos = Participacion.objects.filter(curso=curso, estado='asistido').count()
         completados = Participacion.objects.filter(curso=curso, estado='completado').count()
-        pendientes_validar = Preseleccion.objects.filter(curso=curso).count()
+
+        # Lógica para contar participantes 'pendientes de validar'
+        if curso.es_obligatorio:
+            # Para cursos obligatorios, contamos las participaciones en estado 'solicitado'
+            # o 'pendiente', si aplica a tu modelo de Participacion.
+            pendientes_validar = Participacion.objects.filter(
+                curso=curso, estado__in=['solicitado', 'pendiente']
+            ).count()
+            # O, si usas un modelo de Solicitud específico:
+            # pendientes_validar = SolicitudCursoObligatorio.objects.filter(
+            #     curso=curso, estado='solicitado'
+            # ).count()
+        else:
+            # Para cursos no obligatorios, contamos las preselecciones
+            pendientes_validar = Preseleccion.objects.filter(curso=curso).count()
 
         participacion_resumen_parts = []
         if aceptados > 0: participacion_resumen_parts.append(f"Acept: {aceptados}")
@@ -2095,6 +2113,7 @@ def estado_cursos(request):
             'plazas_disponibles': curso.plazas_disponibles,
             'num_pendientes_validar': pendientes_validar,
             'participacion_resumen': participacion_resumen,
+            'es_obligatorio': curso.es_obligatorio,
         }
         datos_cursos_con_estado.append(curso_data)
     es_coordinador = request.user.groups.filter(name=settings.GRUPO_COORDINADOR).exists()
@@ -2102,7 +2121,7 @@ def estado_cursos(request):
     context = {
         'page_obj': page_obj,
         'page_size': page_size,
-        'datos_cursos': datos_cursos_con_estado, # La plantilla iterará sobre esta lista
+        'datos_cursos': datos_cursos_con_estado,
         'show_finished_courses': show_finished_courses,
         'sort_by': sort_by,
         'direction': direction,
@@ -2731,50 +2750,71 @@ def solicitar_inscripcion_curso(request, curso_id):
         # Registramos el intento de solicitud
         logger.info(f"Usuario '{request.user.username}' intentando solicitar inscripción para el curso con ID '{curso_id}'.")
         
-        curso = get_object_or_404(Curso, pk=curso_id)
-
-        # Validaciones antes de crear la participación
-        if Participacion.objects.filter(empleado=request.user, curso=curso).exists():
-            messages.warning(request, f'Ya tienes una solicitud o participación existente para "{curso.nombre}".')
-            logger.warning(f"Solicitud rechazada para '{request.user.username}'. Ya existe una participación para el curso '{curso.nombre}'.")
-            return redirect('formacion:cursos_obligatorios_lista')
-        
-        if curso.plazas_totales is not None and curso.plazas_totales > 0 and curso.plazas_disponibles <= 0:
-            messages.error(request, f'Lo sentimos, el curso "{curso.nombre}" no tiene plazas disponibles.')
-            logger.error(f"Solicitud rechazada para '{request.user.username}'. No hay plazas disponibles en el curso '{curso.nombre}'.")
-            return redirect('formacion:cursos_obligatorios_lista')
-        
-        if curso.fecha_fin and curso.fecha_fin < timezone.now().date():
-            messages.error(request, f'Lo sentimos, el curso "{curso.nombre}" ya ha finalizado y no se puede solicitar.')
-            logger.error(f"Solicitud rechazada para '{request.user.username}'. El curso '{curso.nombre}' ya ha finalizado.")
-            return redirect('formacion:cursos_obligatorios_lista')
-
         try:
-            # Registramos que la creación de la participación está a punto de ocurrir
-            logger.info(f"Creando una nueva participación para el usuario '{request.user.username}' en el curso '{curso.nombre}'.")
+            curso = get_object_or_404(Curso, pk=curso_id)
+
+            # Validaciones antes de crear la participación
+            if Participacion.objects.filter(empleado=request.user, curso=curso).exists():
+                messages.warning(request, f'Ya tienes una solicitud o participación existente para "{curso.nombre}".')
+                logger.warning(f"Solicitud rechazada para '{request.user.username}'. Ya existe una participación para el curso '{curso.nombre}'.")
+                return redirect('formacion:cursos_obligatorios_lista')
             
-            # Crear la nueva participación con estado 'pendiente'
-            participacion = Participacion.objects.create(
-                empleado=request.user,
-                curso=curso,
-                estado='pendiente'
-            )
+            if curso.plazas_totales is not None and curso.plazas_totales > 0 and curso.plazas_disponibles <= 0:
+                messages.error(request, f'Lo sentimos, el curso "{curso.nombre}" no tiene plazas disponibles.')
+                logger.error(f"Solicitud rechazada para '{request.user.username}'. No hay plazas disponibles en el curso '{curso.nombre}'.")
+                return redirect('formacion:cursos_obligatorios_lista')
             
-            # Opcional: Reducir plazas disponibles si el curso las gestiona
-            if curso.plazas_totales is not None and curso.plazas_totales > 0:
-                curso.plazas_disponibles -= 1
-                curso.save()
-            
-            messages.success(request, f'Tu solicitud de inscripción para "{curso.nombre}" ha sido enviada con éxito. Está pendiente de confirmación.')
-            
-            # Registramos el éxito de la solicitud
-            logger.info(f"Solicitud de inscripción exitosa para '{request.user.username}' en el curso '{curso.nombre}'. ID de participación: {participacion.pk}.")
-            
+            if curso.fecha_fin and curso.fecha_fin < timezone.now().date():
+                messages.error(request, f'Lo sentimos, el curso "{curso.nombre}" ya ha finalizado y no se puede solicitar.')
+                logger.error(f"Solicitud rechazada para '{request.user.username}'. El curso '{curso.nombre}' ya ha finalizado.")
+                return redirect('formacion:cursos_obligatorios_lista')
+
+            # Usamos una transacción atómica para asegurar que todo se guarde correctamente
+            with transaction.atomic():
+                # Crear la nueva participación con estado 'pendiente'
+                participacion = Participacion.objects.create(
+                    empleado=request.user,
+                    curso=curso,
+                    estado='pendiente'
+                )
+                
+                # Opcional: Reducir plazas disponibles si el curso las gestiona
+                if curso.plazas_totales is not None and curso.plazas_totales > 0:
+                    curso.plazas_disponibles -= 1
+                    curso.save()
+
+                messages.success(request, f'Tu solicitud de inscripción para "{curso.nombre}" ha sido enviada con éxito. Está pendiente de confirmación.')
+                
+                # Registramos el éxito de la solicitud
+                logger.info(f"Solicitud de inscripción exitosa para '{request.user.username}' en el curso '{curso.nombre}'. ID de participación: {participacion.pk}.")
+
+                # --- LÓGICA DE NOTIFICACIÓN A RRHH ---
+                logger.info("Iniciando proceso de notificación a RRHH.")
+                mensaje_notificacion = f'Nueva solicitud de curso de "{request.user.get_full_name()}" para el curso "{curso.nombre}". Pendiente de validar.'
+                
+                try:
+                    # Buscamos a los usuarios que pertenecen al grupo 'RRHH' directamente desde el modelo Empleado
+                    destinatarios_finales = Empleado.objects.filter(groups__name='RRHH')
+                    # Eliminamos al usuario que hizo la solicitud de la lista de destinatarios
+                    destinatarios_finales = destinatarios_finales.exclude(id=request.user.id)
+                    
+                    for usuario_notificacion in destinatarios_finales:
+                        Notificacion.objects.create(
+                            usuario=usuario_notificacion,
+                            mensaje=mensaje_notificacion,
+                            tipo='info',
+                            url=reverse('formacion:gestionar_solicitudes_obligatorias_rrhh')
+                        )
+                    logger.info(f"Notificación enviada a {len(destinatarios_finales)} usuarios.")
+                    
+                except Group.DoesNotExist:
+                    logger.error("El grupo 'RRHH' no existe. No se pudo enviar la notificación.")
+                
             return redirect('formacion:cursos_obligatorios_lista')
 
         except Exception as e:
-            messages.error(request, f'Ocurrió un error al procesar tu solicitud: {e}')
-            logger.error(f"Error inesperado al solicitar la inscripción al curso '{curso.nombre}' por el usuario '{request.user.username}': {e}", exc_info=True)
+            messages.error(request, f'Ocurrió un error inesperado al procesar tu solicitud: {e}')
+            logger.error(f"Error inesperado al solicitar la inscripción al curso '{curso_id}' por el usuario '{request.user.username}': {e}", exc_info=True)
             return redirect('formacion:cursos_obligatorios_lista')
     
     messages.error(request, 'Método de solicitud no válido.')
@@ -2797,19 +2837,21 @@ def gestionar_solicitudes_obligatorias_rrhh(request):
 
         # Registramos cuántas solicitudes pendientes se encontraron
         logger.info(f"Recuperadas {solicitudes_pendientes.count()} solicitudes pendientes para revisión.")
-        
+
+        referer_url = request.META.get('HTTP_REFERER')    
         context = {
             'solicitudes_pendientes': solicitudes_pendientes,
             'has_pendientes': bool(solicitudes_pendientes),
             'page_title': 'Gestión de Solicitudes de Cursos Obligatorios',
             'page_description': 'Revisa y gestiona las solicitudes de inscripción de los empleados a cursos marcados como obligatorios.',
             'form': AprobarParticipacionForm(),
+            'referer_url': referer_url,
         }
         
         # Registramos que la plantilla se va a renderizar
         logger.info("Renderizando la plantilla de gestión de solicitudes.")
         return render(request, 'formacion/gestionar_solicitudes_obligatorias_rrhh.html', context)
-        
+
     except Exception as e:
         # En caso de error inesperado, lo registramos
         logger.error(f"Ocurrió un error inesperado en 'gestionar_solicitudes_obligatorias_rrhh': {e}", exc_info=True)
