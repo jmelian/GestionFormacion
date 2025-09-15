@@ -49,13 +49,9 @@
                                 <td class="text-center">{{ participacion.curso.fecha_inicio|date:"d/m/Y" }}</td>
                                 <td class="text-center">
                                     {% if participacion.estado == 'pendiente' %}
-                                        <span class="status-badge status-info"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>
-                                    {% elif participacion.estado == 'solicitado' %}
-                                        <span class="status-badge status-info"><i class="bi bi-file-earmark-check-fill me-1"></i> Solicitado</span>
-                                    {% elif participacion.estado == 'confirmada' %}
-                                        <span class="status-badge status-success"><i class="bi bi-calendar-check-fill me-1"></i> Confirmado</span>
-                                    {% elif participacion.estado == 'aceptado' %}
-                                        <span class="status-badge status-success"><i class="bi bi-check-circle-fill me-1"></i> Aceptado</span>
+                                        <span class="status-badge status-info"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>                                
+                                    {% elif participacion.estado == 'confirmado' %}
+                                        <span class="status-badge status-success"><i class="bi bi-calendar-check-fill me-1"></i> Confirmado</span>                                    
                                     {% elif participacion.estado == 'asistido' %}
                                         <span class="status-badge status-primary"><i class="bi bi-person-fill-check me-1"></i> Asistido</span>
                                     {% elif participacion.estado == 'completado' %}
@@ -94,19 +90,10 @@
                                 <td class="table-actions-center">
                                     {# Lógica para cursos OBLIGATORIOS #}
                                     {% if curso.es_obligatorio %}
-                                        {% if participacion.estado in 'solicitado,pendiente' and tiene_permiso_por_rol_o_admin %}
-                                            <form method="post" action="{% url 'formacion:aprobar_solicitud_obligatoria' participacion.id %}" class="d-inline-block">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn-action btn-success-action" title="Aprobar Solicitud">
-                                                    <i class="bi bi-check-circle-fill"></i>
-                                                </button>
-                                            </form>
-                                            <form method="post" action="{% url 'formacion:rechazar_solicitud_obligatoria' participacion.id %}" class="d-inline-block ms-2">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn-action btn-delete" title="Rechazar Solicitud">
-                                                    <i class="bi bi-x-circle-fill"></i>
-                                                </button>
-                                            </form>
+                                        {% if participacion.estado in 'pendiente' and tiene_permiso_por_rol_o_admin %}                            
+                                            <a href="{% url 'formacion:gestionar_solicitudes_obligatorias_rrhh' %}" class="btn-action btn-action-preselection" title="Gestionar Solicitudes">
+                                                <i class="bi bi-ui-checks"></i>
+                                            </a>
                                         {% endif %}
                                     
                                     {# Lógica para cursos NO OBLIGATORIOS #}
@@ -126,7 +113,7 @@
                                     {% endif %}
 
                                     {# Botones que se muestran para AMBOS tipos de cursos #}
-                                    {% if participacion.estado in 'confirmada,aceptado' %}
+                                    {% if participacion.estado in 'confirmado' and tiene_permiso_por_rol_o_admin %}
                                         <form method="post" action="{% url 'formacion:marcar_asistido' participacion.id %}" class="d-inline-block ms-2">
                                             {% csrf_token %}
                                             <button type="submit" class="btn-action btn-action-participants" title="Marcar como Asistido">
@@ -134,16 +121,16 @@
                                             </button>
                                         </form>
                                     {% endif %}
-                                    {% if participacion.estado in 'asistido,confirmada,aceptado' %}
-                                        <form method="post" action="{% url 'formacion:marcar_completado' participacion.id %}" class="d-inline-block ms-2">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn-action btn-completed-action" title="Marcar como Completado"
-                                                    onclick="return confirm('¿Estás seguro de que quieres marcar esta participación como COMPLETADA? Asegúrate de haber introducido la nota final y el estado del certificado.');">
-                                                <i class="bi bi-award-fill"></i>
-                                            </button>
-                                        </form>
+
+                                    {% if participacion.estado in 'asistido,confirmado' and tiene_permiso_por_rol_o_admin %}
+                                        <a href="{% url 'formacion:marcar_completado_unificado' participacion_id=participacion.id %}" 
+                                        class="btn-action btn-completed-action ms-2" 
+                                        title="Marcar como Completado" 
+                                        onclick="return confirm('¿Estás seguro de que quieres marcar esta participación como COMPLETADA? Asegúrate de haber introducido la nota final y el estado del certificado.');">
+                                            <i class="bi bi-award-fill"></i>
+                                        </a>
                                     {% endif %}
-                                    {% if participacion.estado in 'confirmada,aceptado,asistido,completado' %}
+                                    {% if participacion.estado in 'confirmado,asistido,completado' and tiene_permiso_por_rol_o_admin %}
                                         <a href="#" class="btn-action btn-admin-link ms-2" title="Ver Detalles">
                                             <i class="bi bi-info-circle-fill"></i>
                                         </a>

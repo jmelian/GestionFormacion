@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Marcar Participación como Completada{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-check-circle-fill me-2"></i> Marcar Participación Completada
+        </h1>
+        <div class="page-description">
+            Completa los detalles para finalizar el proceso de tu participación en el curso "{{ participacion.curso.nombre }}".
+        </div>
+    </div>
+
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+
+            <p><strong>Curso:</strong> {{ participacion.curso.nombre }}</p>
+            <p><strong>Empleado:</strong> {{ participacion.empleado.get_full_name }}</p>
+
+            <hr>
+
+            {% for field in form %}
+                <div class="mb-3">
+                    {% if field.name == 'certificado_obtenido' %}
+                        <div class="form-check">
+                            {% render_field field class="form-check-input" %}
+                            <label class="form-check-label" for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+                        </div>
+                    {% else %}
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Confirmar y Guardar
+                </button>
+                <a href="{% url 'formacion:mis_cursos' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const certificadoCheckbox = document.getElementById('id_certificado_obtenido');
+        const fechaCertificadoField = document.querySelector('[name="fecha_certificado"]');
+        const fechaCertificadoContainer = fechaCertificadoField.closest('.mb-3');
+
+        function toggleFechaCertificado() {
+            if (certificadoCheckbox.checked) {
+                fechaCertificadoContainer.style.display = 'block';
+            } else {
+                fechaCertificadoContainer.style.display = 'none';
+            }
+        }
+        
+        certificadoCheckbox.addEventListener('change', toggleFechaCertificado);
+        toggleFechaCertificado();
+    });
+</script>
+{% endblock %}

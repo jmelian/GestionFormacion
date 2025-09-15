@@ -1,13 +1,22 @@
-1 HECHO - Tarjeta: formación anterior con toda la documentación
 
-2 - Verificar si la solicitud de cursos obligatorios envía notificación a RRHH
 
-3 HECHO - Cambiar "próximos cursos" por "formación planificada", añadir el checkbox de cursos terminados y usar esta vista para FEAT 1
+8 Comprobar qué pasa si das por terminado un curso sin haber marcado asistido (no debería haber problema) -> no se debe poder marcar como completado desde cualquier estado
 
-4 HECHO - Actualizar checkbox de "Estado General de Cursos" y "Gestión de Cursos" para hacerlos como "formación planificada".
 
-5 - Poner paginación a Formacion planificada
+12 estudiar cómo tratar los cursos obligatorios y las fechas de inicio y fin a la hora de mostrarlos
 
-6 - Poner filtros a Formación planificada
+13 gestionar_solicitudes_obligatorias_rrhh -> loop el "volver" al validar una solicitud, puesto que la página anterior también era la misma
+
+
+
+
+17 quitar estilos locales de {# formacion/gestionar_solicitudes_obligatorias_rrhh.html #}
+
+
+
+ALTER TABLE formacion_participacion ADD COLUMN fecha_fin_real date NULL;
+
+
+
 
 

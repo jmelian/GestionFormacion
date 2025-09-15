@@ -606,43 +606,30 @@ class AprobarParticipacionForm(forms.ModelForm):
         return cleaned_data
 
 class MarcarCompletadoForm(forms.ModelForm):
-    nota_final = forms.CharField(
-        label="Nota Final / Calificación",
-        max_length=100,
-        required=False # Puede que no todos los cursos tengan nota
-    )
-    certificado_obtenido = forms.BooleanField(
-        label="¿Certificado Obtenido?",
-        required=False, # Puede que no todos los cursos den certificado
-        initial=False
-    )
-    fecha_certificado = forms.DateField(
-        label="Fecha de Obtención del Certificado",
-        widget=forms.DateInput(attrs={'type': 'date'}),
-        required=False # Opcional si no siempre hay certificado
-    )
-    fecha_caducidad_certificado = forms.DateField(
-        label="Fecha de Caducidad del Certificado",
-        widget=forms.DateInput(attrs={'type': 'date'}),
-        required=False # Opcional si no todos los certificados caducan
-    )
-
-
+    """
+    Formulario para que los usuarios (empleados o RRHH) marquen
+    una participación como completada, con campos adicionales.
+    """
     class Meta:
         model = Participacion
-        fields = ['nota_final', 'certificado_obtenido', 'fecha_certificado', 'fecha_caducidad_certificado'] # Añadir 'certificado_url' si lo tienes
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        certificado_obtenido = cleaned_data.get('certificado_obtenido')
-        fecha_certificado = cleaned_data.get('fecha_certificado')
-        fecha_caducidad_certificado = cleaned_data.get('fecha_caducidad_certificado')
+        fields = ['nota_final', 'certificado_obtenido', 'fecha_certificado']
+        widgets = {
+            'nota_final': forms.TextInput(attrs={'class': 'form-control'}),
+            'certificado_obtenido': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'fecha_certificado': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+        labels = {
+            'nota_final': 'Nota Final (Texto Abierto)',
+            'certificado_obtenido': 'Certificado Obtenido',
+            'fecha_certificado': 'Fecha de Certificado',
+        }
 
-        if certificado_obtenido and not fecha_certificado:
-            raise forms.ValidationError(
-                "Si el certificado ha sido obtenido, la fecha de obtención es obligatoria."
-            )
-        return cleaned_data
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Hace que la nota final y la fecha del certificado no sean campos requeridos
+        self.fields['nota_final'].required = False
+        self.fields['fecha_certificado'].required = False
+
 
 class EncuestaSatisfaccionForm(forms.ModelForm):
     # Campos que el usuario rellenará directamente
