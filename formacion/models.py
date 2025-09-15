@@ -42,9 +42,9 @@ ESTADO_PARTICIPACION_CHOICES = [
     ('pendiente', 'Pendiente de Confirmación'),
     ('confirmado', 'Confirmado'),
     ('asistido', 'Asistido'),
-    ('aprobado', 'Aprobado'),
-    ('suspendido', 'Suspendido'),
     ('cancelado', 'Cancelado'),
+    ('abandonado', 'Abandonado'),
+    ('rechazado', 'Rechazado'),
     ('completado', 'Completado (Aprobado y Certificado)'),
 ]
 
@@ -613,6 +613,11 @@ class Participacion(models.Model):
         null=True,
         help_text="Fecha de inicio asignada por RRHH para esta participación específica."
     )
+    fecha_fin_real = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Fecha de finalización del curso para esta participación específica."
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text="Fecha y hora de creación de la participación (puede usarse como fecha de inscripción inicial)."
@@ -638,6 +643,32 @@ class Participacion(models.Model):
         """
         estados_no_cancelables = ['completado', 'asistido', 'cancelado', 'rechazado']
         return self.estado not in estados_no_cancelables and self.curso.fecha_fin and self.curso.fecha_fin >= date.today()
+    
+    @property
+    def encuesta_rellenada(self):
+        """
+        Retorna True si esta participación tiene una encuesta de satisfacción asociada, de lo contrario False.
+        """
+        try:
+            return self.encuesta is not None
+        except EncuestaSatisfaccion.DoesNotExist:
+            return False
+        
+    @property
+    def completado_con_datos_finales(self):
+        """
+        Retorna True si la participación está en estado 'completado'
+        y se han rellenado los datos finales del curso (nota, certificado),
+        si aplica.
+        """
+        # Si el curso es de tipo 'no_aplica', la acción de "completado" no requiere datos finales.
+        # En este caso, solo necesitamos verificar que el estado sea 'completado'.
+        if self.curso.resultado_formal == 'no_aplica':
+            return self.estado == 'completado'
+        # Si el resultado formal sí aplica, se debe verificar que la nota y el certificado se hayan rellenado.
+        else:
+            return self.estado == 'completado' and self.nota_final is not None and self.nota_final != ''
+
 
 
 class Titulacion(models.Model):
@@ -890,6 +921,7 @@ class EncuestaSatisfaccion(models.Model):
     @property
     def valoracion_media_eficacia(self):
         return (self.mejora_conocimientos_carrera + self.adquisicion_habilidades_puesto) / 2
+    
 
 
 class PreguntaEncuesta(models.Model):

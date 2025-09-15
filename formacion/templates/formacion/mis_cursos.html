@@ -80,13 +80,9 @@
                                 <td class="text-center">
                                     {% comment %} Aplicar badges de estado según el valor de p.estado {% endcomment %}
                                     {% if p.estado == 'pendiente' %}
-                                        <span class="status-badge status-info"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>
-                                    {% elif p.estado == 'solicitado' %}
-                                        <span class="status-badge status-info"><i class="bi bi-file-earmark-check-fill me-1"></i> Solicitado</span>
-                                    {% elif p.estado == 'confirmada' %}
-                                        <span class="status-badge status-success"><i class="bi bi-calendar-check-fill me-1"></i> Confirmado</span>
-                                    {% elif p.estado == 'aceptado' %}
-                                        <span class="status-badge status-success"><i class="bi bi-check-circle-fill me-1"></i> Aceptado</span>
+                                        <span class="status-badge status-info"><i class="bi bi-hourglass-split me-1"></i> Pendiente</span>                                   
+                                    {% elif p.estado == 'confirmado' %}
+                                        <span class="status-badge status-success"><i class="bi bi-calendar-check-fill me-1"></i> Confirmado</span>                                
                                     {% elif p.estado == 'asistido' %}
                                         <span class="status-badge status-primary"><i class="bi bi-person-fill-check me-1"></i> Asistido</span>
                                     {% elif p.estado == 'completado' %}

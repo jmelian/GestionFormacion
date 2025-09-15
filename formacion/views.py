@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
-from .models import Empleado, Departamento, Curso, Participacion, Preseleccion, Notificacion, Proveedor, Proyecto, Area, PuestoDeTrabajo, Titulacion, TIPO_TITULACION_MECES_MAP, SolicitudCurso, RequisitoPuestoFormacion, EncuestaSatisfaccion
+from .models import Empleado, Departamento, Curso, Participacion, Preseleccion, Notificacion, Proveedor, Proyecto, Area, PuestoDeTrabajo, Titulacion, TIPO_TITULACION_MECES_MAP, ESTADO_PARTICIPACION_CHOICES, SolicitudCurso, RequisitoPuestoFormacion, EncuestaSatisfaccion
 from .forms import EmpleadoCreationForm, EmpleadoProfileForm, CursoForm, PreseleccionForm, ParticipacionForm, TitulacionForm, SolicitudCursoForm, AprobarParticipacionForm, MarcarCompletadoForm, EncuestaSatisfaccionForm
 from django.contrib.auth.models import Group
 from django.db import IntegrityError, transaction
@@ -22,7 +22,9 @@ from django import forms
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.transaction import TransactionManagementError
 from django.http import FileResponse, Http404, HttpResponseForbidden
+from django.db.utils import OperationalError, DatabaseError
 import logging
+
 
 
 # Obtenemos una instancia del logger para este módulo.
@@ -231,7 +233,7 @@ def mis_cursos(request):
     try:
         participaciones = Participacion.objects.filter(
             empleado=request.user,
-            estado__in=['aceptado', 'asistido', 'completado', 'pendiente', 'solicitado', 'confirmada']
+            estado__in=[choice[0] for choice in ESTADO_PARTICIPACION_CHOICES]
         ).select_related('curso').order_by('curso__fecha_inicio')
         
         logger.debug(f"Se encontraron {participaciones.count()} participaciones para el usuario '{request.user.username}'.")
@@ -744,7 +746,7 @@ def gestionar_preselecciones_curso(request, curso_id):
                         if Participacion.objects.filter(
                             empleado_id=emp_id,
                             curso=curso,
-                            estado__in=['aceptado', 'asistido', 'completado']
+                            estado__in=['confirmado', 'asistido', 'completado']
                         ).exists():
                             logger.info(f"El empleado ID '{emp_id}' ya tiene una participación activa en el curso '{curso.nombre}'. Se omite.")
                             messages.info(request, f"Un empleado seleccionado ya tiene participación activa en el curso. No se procesa duplicado.")
@@ -755,10 +757,10 @@ def gestionar_preselecciones_curso(request, curso_id):
                         participacion, created = Participacion.objects.get_or_create(
                             curso=curso,
                             empleado=empleado,
-                            defaults={'estado': 'aceptado'}
+                            defaults={'estado': 'confirmado'}
                         )
                         if not created:
-                            participacion.estado = 'aceptado'
+                            participacion.estado = 'confirmado'
                             participacion.save()
 
                         # Actualiza las plazas disponibles
@@ -809,7 +811,7 @@ def gestionar_preselecciones_curso(request, curso_id):
                             participacion_existente = Participacion.objects.filter(
                                 empleado=preseleccion.empleado,
                                 curso=curso,
-                                estado__in=['aceptado', 'asistido', 'completado']
+                                estado__in=['confirmado', 'asistido', 'completado']
                             ).exists()
 
                             if participacion_existente:
@@ -820,10 +822,10 @@ def gestionar_preselecciones_curso(request, curso_id):
                                 participacion, created = Participacion.objects.get_or_create(
                                     empleado=preseleccion.empleado,
                                     curso=curso,
-                                    defaults={'estado': 'aceptado'}
+                                    defaults={'estado': 'confirmado'}
                                 )
-                                if not created and participacion.estado != 'aceptado':
-                                    participacion.estado = 'aceptado'
+                                if not created and participacion.estado != 'confirmado':
+                                    participacion.estado = 'confirmado'
                                     participacion.save()
 
                                 curso.plazas_disponibles -= 1
@@ -842,7 +844,7 @@ def gestionar_preselecciones_curso(request, curso_id):
                         participacion_existente = Participacion.objects.filter(
                             empleado=preseleccion.empleado,
                             curso=curso,
-                            estado__in=['aceptado', 'asistido', 'completado']
+                            estado__in=['confirmado', 'asistido', 'completado']
                         ).exists()
                         if participacion_existente:
                             logger.warning(f"Intento de rechazo individual de '{preseleccion.empleado.username}' fallido: ya tiene una participación activa en el curso '{curso.nombre}'.")
@@ -994,17 +996,17 @@ def gestionar_preseleccion(request, preseleccion_id):
                     participacion, created = Participacion.objects.get_or_create(
                         empleado=empleado_preseleccionado,
                         curso=curso_preseleccionado,
-                        defaults={'estado': 'aceptado'}
+                        defaults={'estado': 'confirmado'}
                     )
 
                     if not created:
-                        if participacion.estado != 'aceptado':
-                            participacion.estado = 'aceptado'
+                        if participacion.estado != 'confirmado':
+                            participacion.estado = 'confirmado'
                             participacion.save(update_fields=['estado'])
-                            messages.info(request, f"La participación existente de {participacion.empleado.get_full_name()} se ha actualizado a 'aceptado'.")
+                            messages.info(request, f"La participación existente de {participacion.empleado.get_full_name()} se ha actualizado a 'confirmado'.")
                             logger.info(f"Participación existente de '{participacion.empleado.username}' actualizada a 'aceptada'.")
                         else:
-                            messages.warning(request, f"La participación de {participacion.empleado.get_full_name()} para '{curso_preseleccionado.nombre}' ya estaba aceptada.")
+                            messages.warning(request, f"La participación de {participacion.empleado.get_full_name()} para '{curso_preseleccionado.nombre}' ya estaba confirmada.")
                             preseleccion.delete()
                             logger.warning(f"Participación de '{participacion.empleado.username}' ya estaba aceptada. Se elimina la preselección redundante.")
                             return redirect(next_url)
@@ -1026,7 +1028,7 @@ def gestionar_preseleccion(request, preseleccion_id):
                     )
 
                     if not created:
-                        if participacion.estado == 'aceptado':
+                        if participacion.estado == 'confirmado':
                             curso_preseleccionado.plazas_disponibles += 1
                             curso_preseleccionado.save(update_fields=['plazas_disponibles'])
                             messages.info(request, f"Se ha liberado una plaza para el curso '{curso_preseleccionado.nombre}' al rechazar la participación de {empleado_preseleccionado.get_full_name()}.")
@@ -1248,7 +1250,7 @@ def rechazar_participacion(request, participacion_id):
     # --- Lógica del rechazo ---
     try:
         with transaction.atomic():
-            if participacion.estado == 'aceptado':
+            if participacion.estado == 'confirmado':
                 curso_participacion.plazas_disponibles += 1
                 curso_participacion.save(update_fields=['plazas_disponibles'])
                 messages.info(request, f"Se ha liberado una plaza para el curso '{curso_participacion.nombre}' tras el rechazo.")
@@ -2074,7 +2076,7 @@ def estado_cursos(request):
     datos_cursos_con_estado = []
     for curso in page_obj.object_list:
         # Contamos las participaciones con los estados finales
-        aceptados = Participacion.objects.filter(curso=curso, estado='aceptado').count()
+        confirmados = Participacion.objects.filter(curso=curso, estado='confirmado').count()
         asistidos = Participacion.objects.filter(curso=curso, estado='asistido').count()
         completados = Participacion.objects.filter(curso=curso, estado='completado').count()
 
@@ -2094,7 +2096,7 @@ def estado_cursos(request):
             pendientes_validar = Preseleccion.objects.filter(curso=curso).count()
 
         participacion_resumen_parts = []
-        if aceptados > 0: participacion_resumen_parts.append(f"Acept: {aceptados}")
+        if confirmados > 0: participacion_resumen_parts.append(f"Acept: {confirmados}")
         if asistidos > 0: participacion_resumen_parts.append(f"Asist: {asistidos}")
         if completados > 0: participacion_resumen_parts.append(f"Comp: {completados}")
         if pendientes_validar > 0: participacion_resumen_parts.append(f"Pend: {pendientes_validar}")
@@ -2862,7 +2864,7 @@ def gestionar_solicitudes_obligatorias_rrhh(request):
 @user_passes_test(es_rrhh, login_url='/formacion/login/')
 def aprobar_solicitud_obligatoria(request, participacion_id):
     """
-    RRHH aprueba una solicitud de inscripción a curso obligatorio (cambia estado de Participacion a 'confirmada').
+    RRHH aprueba una solicitud de inscripción a curso obligatorio (cambia estado de Participacion a 'confirmado').
     Ahora requiere una fecha de inicio real y crea una notificación detallada.
     """
     try:
@@ -2874,10 +2876,10 @@ def aprobar_solicitud_obligatoria(request, participacion_id):
             if form.is_valid():
                 if participacion.estado == 'pendiente':
                     try:
-                        participacion.estado = 'confirmada'
+                        participacion.estado = 'confirmado'
                         participacion.fecha_confirmacion = timezone.now().date()
                         participacion.fecha_inicio_real = form.cleaned_data['fecha_inicio_real']
-                        participacion.certificado_obtenido = True
+                        participacion.certificado_obtenido = False
                         participacion.save()
 
                         Notificacion.objects.create(
@@ -2990,7 +2992,7 @@ def marcar_asistido(request, participacion_id):
 
         if request.method == 'POST':
             # Solo permitir marcar como asistido si el estado actual lo permite
-            if participacion.estado in ['confirmada', 'aceptado']:
+            if participacion.estado in ['confirmado']:
                 try:
                     participacion.estado = 'asistido'
                     participacion.save()
@@ -3007,7 +3009,7 @@ def marcar_asistido(request, participacion_id):
                     logger.error(f"Error inesperado al guardar la asistencia para la participación '{participacion_id}': {e}", exc_info=True)
             else:
                 messages.warning(request, f'No se puede marcar como asistido la participación de {participacion.empleado.get_full_name()} en su estado actual ({participacion.get_estado_display()}).')
-                logger.warning(f"Intento de marcar como asistido la participación '{participacion_id}' fallido. El estado actual es '{participacion.estado}', no 'confirmada' o 'aceptado'.")
+                logger.warning(f"Intento de marcar como asistido la participación '{participacion_id}' fallido. El estado actual es '{participacion.estado}', no 'confirmado'.")
         else:
             messages.error(request, 'Método de solicitud no válido.')
             logger.warning(f"Intento de marcar como asistido la participación '{participacion_id}' con un método no válido.")
@@ -3025,7 +3027,7 @@ def marcar_asistido(request, participacion_id):
         return redirect('formacion:gestionar_cursos_rrhh') # Redirigimos a una vista genérica de RRHH
     
 
-
+''' ELIMINAR PRONTO
 @login_required
 @user_passes_test(es_rrhh)
 def marcar_completado(request, participacion_id):
@@ -3039,10 +3041,11 @@ def marcar_completado(request, participacion_id):
         if request.method == 'POST':
             form = MarcarCompletadoForm(request.POST, instance=participacion)
             if form.is_valid():
-                if participacion.estado in ['asistido', 'confirmada', 'aceptado']:
+                if participacion.estado in ['asistido', 'confirmado']:
                     try:
                         with transaction.atomic():
                             participacion.estado = 'completado'
+                            participacion.fecha_fin_real = timezone.now().date()
                             form.save()
                             
                             url_encuesta = reverse('formacion:encuesta_satisfaccion', args=[participacion.id])
@@ -3082,7 +3085,8 @@ def marcar_completado(request, participacion_id):
         logger.error(f"Ocurrió un error inesperado en 'marcar_completado': {e}", exc_info=True)
         messages.error(request, f"Ocurrió un error inesperado: {e}")
         return redirect('formacion:gestionar_cursos_rrhh')
-    
+'''
+
 
 @login_required
 @user_passes_test(es_rrhh, login_url='formacion:dashboard')
@@ -3157,7 +3161,15 @@ def encuesta_satisfaccion(request, participacion_id):
     Vista para que un empleado rellene la encuesta de satisfacción de un curso.
     """
     try:
-        participacion = get_object_or_404(Participacion, id=participacion_id, empleado=request.user)
+        participacion = get_object_or_404(Participacion, id=participacion_id)
+        es_rrhh_usuario = es_rrhh(request.user)
+
+        # Validación de permisos
+        if not es_rrhh_usuario and participacion.empleado != request.user:
+            messages.error(request, 'No tienes permiso para acceder a esta encuesta.')
+            logger.error(f"Intento de acceso no autorizado a la encuesta '{participacion_id}' por '{request.user.username}'.")
+            return redirect('formacion:mis_cursos')
+            
         logger.info(f"El usuario '{request.user.username}' ha accedido a la encuesta de satisfacción para la participación '{participacion_id}'.")
     except Participacion.DoesNotExist:
         messages.error(request, 'La participación especificada no existe.')
@@ -3183,7 +3195,7 @@ def encuesta_satisfaccion(request, participacion_id):
                 with transaction.atomic():
                     encuesta = form.save(commit=False)
                     encuesta.participacion = participacion
-                    encuesta.empleado = request.user
+                    encuesta.empleado = participacion.empleado  # Asignamos el empleado de la participación, no el usuario logueado
                     encuesta.fecha_encuesta = date.today()
                     encuesta.nombre_curso_encuesta = participacion.curso.nombre
                     encuesta.save()
@@ -3209,7 +3221,7 @@ def encuesta_satisfaccion(request, participacion_id):
     }
     return render(request, 'formacion/encuesta_satisfaccion.html', context)
 
-
+''' ELIMINAR PRONTO
 @login_required
 def marcar_participacion_completada(request, participacion_id):
     """
@@ -3268,6 +3280,161 @@ def marcar_participacion_completada(request, participacion_id):
         messages.error(request, "Método no permitido para esta acción.")
         logger.warning(f"El usuario '{request.user.username}' intentó usar un método no permitido ({request.method}) para la participación '{participacion_id}'.")
         return redirect('formacion:mis_cursos')
+'''
+
+@login_required
+def marcar_completado_unificado(request, participacion_id):
+    """
+    Gestiona el marcado de una participación como 'completado' para todos los usuarios.
+    """
+    try:
+        participacion = get_object_or_404(Participacion, pk=participacion_id)
+        es_rrhh_usuario = es_rrhh(request.user)
+        logger.info(f"Usuario '{request.user.username}': intenta marcar completado un curso en estado: '{participacion.curso.resultado_formal}'.")
+
+        # Validación de permisos
+        if not es_rrhh_usuario and participacion.empleado != request.user:
+            messages.error(request, "No tienes permiso para marcar esta participación.")
+            return redirect('formacion:mis_cursos')
+
+        # Lógica para manejar la solicitud
+        if request.method == 'POST':
+            if participacion.curso.resultado_formal == 'no_aplica':
+                logger.info(f"Usuario '{request.user.username}': Entra en NO APLICA")
+                if participacion.estado not in ['completado', 'cancelado', 'suspendido', 'aprobado']:
+                    with transaction.atomic():
+                        participacion.fecha_fin_real = timezone.now().date()
+                        participacion.estado = 'completado'
+                        participacion.save()
+
+                        messages.success(request, f"Se ha marcado la participación de '{participacion.empleado.get_full_name()}' como completada.")
+
+                        # Notificación para el empleado sobre el curso completado
+                        url_completado = reverse('formacion:marcar_completado_unificado', args=[participacion.id])
+                        Notificacion.objects.create(usuario=participacion.empleado, mensaje=f"¡Tu participación en '{participacion.curso.nombre}' ha sido marcada como completada! Por favor, rellena los detalles finales.", tipo='success', url=url_completado, leida=False)
+
+                        # Notificación para el empleado sobre la encuesta
+                        notificacion_mensaje_encuesta = f"¡Tu curso '{participacion.curso.nombre}' ha sido completado! ¡Ayúdanos a mejorar rellenando nuestra encuesta de satisfacción!"
+                        url_encuesta = reverse('formacion:encuesta_satisfaccion', args=[participacion.id])
+                        Notificacion.objects.create(usuario=participacion.empleado, mensaje=notificacion_mensaje_encuesta, tipo='info', url=url_encuesta, leida=False)
+                        
+                        if es_rrhh_usuario and participacion.empleado != request.user:
+                            return redirect('formacion:listar_participantes_curso', curso_id=participacion.curso.id)
+                        else:
+                            return redirect('formacion:encuesta_satisfaccion', participacion_id=participacion.id)
+                else:
+                    messages.warning(request, f"La participación en '{participacion.curso.nombre}' ya está en un estado final ({participacion.get_estado_display()}).")
+                    return redirect('formacion:mis_cursos')
+            else:
+                logger.info(f"Usuario '{request.user.username}': SI APLICA")
+                form = MarcarCompletadoForm(request.POST, instance=participacion)
+                if form.is_valid():
+                    # Aquí es donde se guardan los datos finales y se cambia el estado si no se ha hecho
+                    if participacion.estado not in ['completado', 'cancelado', 'suspendido', 'aprobado']:
+                        with transaction.atomic():
+                            participacion.fecha_fin_real = timezone.now().date()
+                            participacion.estado = 'completado'
+                            form.save()
+                    else:
+                        # Si el estado ya es final, solo guarda el formulario, no cambies el estado de nuevo
+                        form.save()
+                    
+                    messages.success(request, f"Se han actualizado los detalles finales de la participación de '{participacion.empleado.get_full_name()}'.")
+                    
+                    # Notificación para el empleado sobre el curso completado
+                    url_completado = reverse('formacion:marcar_completado_unificado', args=[participacion.id])
+                    Notificacion.objects.create(usuario=participacion.empleado, mensaje=f"¡Tu participación en '{participacion.curso.nombre}' ha sido marcada como completada! Por favor, rellena los detalles finales.", tipo='success', url=url_completado, leida=False)
+
+                    # Notificación para el empleado sobre la encuesta
+                    notificacion_mensaje_encuesta = f"¡Tu curso '{participacion.curso.nombre}' ha sido completado! ¡Ayúdanos a mejorar rellenando nuestra encuesta de satisfacción!"
+                    url_encuesta = reverse('formacion:encuesta_satisfaccion', args=[participacion.id])
+                    Notificacion.objects.create(usuario=participacion.empleado, mensaje=notificacion_mensaje_encuesta, tipo='info', url=url_encuesta, leida=False)
+                            
+                    if es_rrhh_usuario and participacion.empleado != request.user:
+                        return redirect('formacion:listar_participantes_curso', curso_id=participacion.curso.id)
+                    else:
+                        return redirect('formacion:encuesta_satisfaccion', participacion_id=participacion.id)
+                else:
+                    logger.error(f"Formulario de completado no válido para la participación {participacion.id}. Errores: {form.errors.as_json()}")
+                    messages.error(request, "Por favor, corrige los errores del formulario.")
+                    context = {
+                        'form': form,
+                        'participacion': participacion,
+                    }
+                    return render(request, 'formacion/marcar_completado.html', context)
+        
+        # Flujo GET: Lógica para mostrar o no el formulario
+        if es_rrhh_usuario and participacion.empleado != request.user:
+            logger.info(f"Usuario '{request.user.username}': Lógica de GET para RRHH. Procesando directamente.")
+            if participacion.estado not in ['completado', 'cancelado', 'suspendido', 'aprobado']:
+                with transaction.atomic():
+                    participacion.fecha_fin_real = timezone.now().date()
+                    participacion.estado = 'completado'
+                    participacion.save()
+
+                    messages.success(request, f"Se ha marcado la participación de '{participacion.empleado.get_full_name()}' como completada.")
+                    
+                    # Notificación para el empleado sobre el curso completado
+                    url_completado = reverse('formacion:marcar_completado_unificado', args=[participacion.id])
+                    Notificacion.objects.create(usuario=participacion.empleado, mensaje=f"¡Tu participación en '{participacion.curso.nombre}' ha sido marcada como completada! Por favor, rellena los detalles finales.", tipo='success', url=url_completado, leida=False)
+
+                    # Notificación para el empleado sobre la encuesta
+                    notificacion_mensaje_encuesta = f"¡Tu curso '{participacion.curso.nombre}' ha sido completado! ¡Ayúdanos a mejorar rellenando nuestra encuesta de satisfacción!"
+                    url_encuesta = reverse('formacion:encuesta_satisfaccion', args=[participacion.id])
+                    Notificacion.objects.create(usuario=participacion.empleado, mensaje=notificacion_mensaje_encuesta, tipo='info', url=url_encuesta, leida=False)
+
+                    return redirect('formacion:listar_participantes_curso', curso_id=participacion.curso.id)
+            else:
+                messages.warning(request, f"La participación en '{participacion.curso.nombre}' ya está en un estado final ({participacion.get_estado_display()}).")
+                return redirect('formacion:listar_participantes_curso', curso_id=participacion.curso.id)
+        
+        # Esta condición permite que el formulario se muestre si la participación ya está completada pero le faltan los datos finales.
+        elif participacion.estado == 'completado' and not participacion.completado_con_datos_finales:
+            logger.info(f"Usuario '{request.user.username}': Lógica de GET para rellenar datos finales.")
+            form = MarcarCompletadoForm(instance=participacion)
+            context = {
+                'form': form,
+                'participacion': participacion,
+            }
+            return render(request, 'formacion/marcar_completado.html', context)
+            
+        elif participacion.curso.resultado_formal == 'no_aplica':
+            logger.info(f"Usuario '{request.user.username}': Lógica de GET para curso 'no_aplica'. Procesando directamente.")
+            if participacion.estado not in ['completado', 'cancelado', 'suspendido', 'aprobado']:
+                with transaction.atomic():
+                    participacion.fecha_fin_real = timezone.now().date()
+                    participacion.estado = 'completado'
+                    participacion.save()
+                    messages.success(request, f"¡Has marcado tu participación en '{participacion.curso.nombre}' como completada!")
+                    
+                    # Notificación para el empleado sobre el curso completado
+                    url_completado = reverse('formacion:marcar_completado_unificado', args=[participacion.id])
+                    Notificacion.objects.create(usuario=participacion.empleado, mensaje=f"¡Tu participación en '{participacion.curso.nombre}' ha sido marcada como completada! Por favor, rellena los detalles finales.", tipo='success', url=url_completado, leida=False)
+
+                    # Notificación para el empleado sobre la encuesta
+                    notificacion_mensaje_encuesta = f"¡Tu curso '{participacion.curso.nombre}' ha sido completado! ¡Ayúdanos a mejorar rellenando nuestra encuesta de satisfacción!"
+                    url_encuesta = reverse('formacion:encuesta_satisfaccion', args=[participacion.id])
+                    Notificacion.objects.create(usuario=participacion.empleado, mensaje=notificacion_mensaje_encuesta, tipo='info', url=url_encuesta, leida=False)
+
+                    return redirect('formacion:encuesta_satisfaccion', participacion_id=participacion.id)
+            else:
+                messages.warning(request, f"La participación en '{participacion.curso.nombre}' ya está en un estado final ({participacion.get_estado_display()}).")
+                return redirect('formacion:mis_cursos')
+        else:
+            logger.info(f"Usuario '{request.user.username}': Lógica de GET para curso 'SI APLICA'. Mostrando formulario.")
+            form = MarcarCompletadoForm(instance=participacion)
+            context = {
+                'form': form,
+                'participacion': participacion,
+            }
+            return render(request, 'formacion/marcar_completado.html', context)
+
+    except Participacion.DoesNotExist:
+        messages.error(request, "La participación especificada no existe.")
+        return redirect('formacion:mis_cursos')
+    except Exception as e:
+        messages.error(request, f"Ocurrió un error inesperado: {e}")
+        return redirect('formacion:mis_cursos')
     
 
 @login_required
@@ -3283,7 +3450,7 @@ def detalle_participacion(request, participacion_id):
         logger.error(f"Intento de acceso no autorizado o a una participación inexistente por el usuario '{request.user.username}' para el ID '{participacion_id}'.")
         return redirect('formacion:mis_cursos')
         
-    estados_finales_participacion = ['completado', 'cancelado', 'abandonado', 'rechazado']
+    estados_finales_participacion = ['pendiente', 'completado', 'cancelado', 'abandonado', 'rechazado']
 
     context = {
         'participacion': participacion,

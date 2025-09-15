@@ -12,7 +12,7 @@ def has_participation(user, course):
     
     # Assuming your Participation model has a foreign key to User (e.g., 'empleado')
     # and a foreign key to Curso (e.g., 'curso').
-    # Also, consider if you want to check for 'active' states like 'aceptado' or 'pendiente'
+    # Also, consider if you want to check for 'active' states like 'confirmado' or 'pendiente'
     # or just any participation record. For simplicity, we check for any record here.
     
     # You might need to adjust 'empleado' and 'curso' based on your actual model field names

@@ -66,11 +66,11 @@
                             </td>
                             <td class="action-cell">
                                 <div class="action-cell-content">
-                                    <form action="{% url 'formacion:aprobar_solicitud_obligatoria' participacion_id=solicitud.id %}" method="post" class="action-form-full"> {# Nueva clase para este form, o usar las existentes si ya tienen estilos adecuados #}
+                                    <form action="{% url 'formacion:aprobar_solicitud_obligatoria' participacion_id=solicitud.id %}" method="post" class="action-form-full">
                                         {% csrf_token %}
-                                        <div class="date-input-container mb-2"> {# Puedes mantener el mb-2 si quieres un margen entre fecha y botón #}
-                                            <label for="id_fecha_inicio_real_{{ solicitud.id }}" class="form-label visually-hidden">Fecha de Inicio</label>
-                                            <input type="date" name="fecha_inicio_real" id="id_fecha_inicio_real_{{ solicitud.id }}" class="form-control date-input" required>
+                                        <div class="date-input-container mb-2">
+                                            <label for="id_fecha_inicio_real_{{ solicitud.id }}" class="form-label visually-hidden">Fecha de Inicio</label>    
+                                            <input type="date" name="fecha_inicio_real" id="id_fecha_inicio_real_{{ solicitud.id }}" class="form-control date-input" required title="Selecciona la fecha de inicio del curso">
                                         </div>
                                         {# Mueve el botón de aprobar DENTRO de este formulario #}
                                         <div class="action-buttons-container justify-content-center"> {# Centra los botones #}
