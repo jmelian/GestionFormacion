@@ -123,13 +123,13 @@ class CursoAdmin(admin.ModelAdmin):
 @admin.register(Participacion)
 class ParticipacionAdmin(admin.ModelAdmin):
     list_display = (
-        'empleado', 'curso', 'estado', 'validado',
-        'fecha_certificado', 'created_at' 
+        'empleado', 'curso', 'estado',
+        'fecha_certificado', 'created_at'
     )
     list_filter = (
-        'estado', 'validado', 'curso', 
+        'estado', 'curso',
         'empleado__departamento',
-        'empleado__area', 
+        'empleado__area',
         'empleado__codigo_puesto__departamento',
         'empleado__codigo_puesto'
     )

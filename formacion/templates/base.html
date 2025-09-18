@@ -13,16 +13,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
-    <link rel="stylesheet" href="{% static 'css/messages.css' %}">
-    <link rel="stylesheet" href="{% static 'css/table.css' %}">
-    <link rel="stylesheet" href="{% static 'css/form.css' %}">
-    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
-    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
-    <link rel="stylesheet" href="{% static 'css/util.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <!-- Base styles -->
+    <link rel="stylesheet" href="{% static 'css/base/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base/animations.css' %}">
+
+    <!-- Component styles -->
+    <link rel="stylesheet" href="{% static 'css/components/buttons.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/tables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/cards.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/badges.css' %}">
+
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="{% static 'css/layout/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/layout/layout.css' %}">
+
+    <!-- Page-specific styles -->
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/profile.css' %}">
     
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <link rel="icon" type="image/png" sizes="512x512" href="{% static 'favicon-512.png' %}">

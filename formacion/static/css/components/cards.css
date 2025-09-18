@@ -1,0 +1,272 @@
+/* =========================
+    CARTAS/CONTENEDORES CONSOLIDADOS
+    Todos los estilos de cartas y contenedores unificados
+========================= */
+
+/* Carta de vidrio general */
+.glass-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.93), rgba(248,250,252,0.96));
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.11);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Carta de sección de perfil */
+.profile-section-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.8));
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-section-card .section-title {
+    margin-bottom: 1.5rem;
+}
+
+.profile-section-card h2 {
+    font-size: 1.33rem;
+    color: var(--brand-color);
+    font-weight: 700;
+    margin-bottom: 1.0rem;
+}
+
+/* Carta de acciones de perfil */
+.profile-actions-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.8));
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.profile-actions-card p {
+    color: var(--secondary-color);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.profile-actions-card .btn {
+    font-size: 1.04em;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.6em 1.5em;
+}
+
+/* Carta de formulario */
+.form-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+    backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    margin-top: 2rem;
+    animation: fadeInScale 0.6s ease-out forwards;
+}
+
+/* Carta de autenticación */
+.auth-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+    backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    max-width: 450px;
+    width: 100%;
+    text-align: center;
+    animation: fadeInScale 0.6s ease-out forwards;
+}
+
+/* Carta de dashboard */
+.dashboard-card {
+    flex: 1 1 240px;
+    max-width: 280px;
+    min-width: 220px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #fff 80%, #f1f5f9 100%);
+    border-radius: 1rem;
+    box-shadow: 0 4px 16px 0 rgba(59, 130, 246, 0.06);
+    border: 1.5px solid #e0e7ef;
+    padding: 1rem 0.8rem 0.8rem 0.8rem;
+    position: relative;
+    transition: box-shadow 0.2s, transform 0.2s;
+    overflow: hidden;
+    animation: fadeInUp 0.7s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 12px 32px 0 rgba(59, 130, 246, 0.13);
+    transform: translateY(-6px) scale(1.025);
+    z-index: 2;
+}
+
+.dashboard-card .card-icon {
+    font-size: 2.7rem;
+    margin-bottom: 1.1rem;
+    display: block;
+    color: #3b82f6;
+    filter: drop-shadow(0 2px 6px #8b5cf633);
+}
+
+.dashboard-card .card-title {
+    font-size: 1.22rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+
+.dashboard-card .card-description {
+    color: #64748b;
+    font-size: 1.01rem;
+    line-height: 1.5;
+    margin-bottom: 1.3rem;
+    min-height: 48px;
+}
+
+.dashboard-card .card-link {
+    position: relative;
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.01rem;
+    padding: 0.55rem 1.2rem;
+    border-radius: 0.7rem;
+    background: linear-gradient(90deg, #3b82f6 60%, #8b5cf6 100%);
+    box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.08);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+    pointer-events: auto;
+    min-width: 180px;
+    margin-top: auto;
+}
+
+.dashboard-card .card-link:hover {
+    background: linear-gradient(90deg, #2563eb 60%, #7c3aed 100%);
+    color: #fff;
+    transform: translateX(4px) scale(1.04);
+    box-shadow: 0 4px 16px 0 rgba(59, 130, 246, 0.13);
+}
+
+.card-link-full-area {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Variantes de cartas de dashboard */
+.dashboard-card.card-empleado { border-left: 6px solid #10b981; }
+.dashboard-card.card-coordinador { border-left: 6px solid #f59e0b; }
+.dashboard-card.card-formacion { border-left: 6px solid #f6e75c; }
+.dashboard-card.card-rrhh { border-left: 6px solid #06b6d4; }
+.dashboard-card.card-direccion { border-left: 6px solid #ef4444; }
+.dashboard-card.card-admin { border-left: 6px solid #6b7280; }
+
+.primary-card .card-icon { color: var(--primary-color); }
+.success-card .card-icon { color: var(--success-color); }
+.warning-card .card-icon { color: var(--warning-color); }
+.danger-card .card-icon { color: var(--danger-color); }
+.info-card .card-icon { color: var(--secondary-color); }
+
+/* Header de dashboard */
+.dashboard-header {
+    background: linear-gradient(135deg, #f1f5f9 80%, #e0e7ef 100%);
+    border-radius: 1.2rem;
+    padding: 2.2rem 2rem 1.5rem 2rem;
+    margin-bottom: 2.2rem;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    border: 1px solid #e0e7ef;
+    text-align: left;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Grid de dashboard */
+.dashboard-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 2rem;
+    justify-content: flex-start;
+}
+
+.row.g-4 > .col {
+    padding: 1rem;
+}
+
+/* Responsive para cartas */
+@media (max-width: 1200px) {
+    .dashboard-header {
+        max-width: 98vw;
+    }
+}
+
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        gap: 1.2rem;
+    }
+    .dashboard-card {
+        min-width: 220px;
+        max-width: 98vw;
+    }
+}
+
+@media (max-width: 900px) {
+    .dashboard-card {
+        min-width: 80vw;
+        max-width: 90vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 1.2rem 0.7rem 1.2rem 0.7rem;
+    }
+    .dashboard-section-title {
+        font-size: 1.05rem;
+        margin-top: 1.3rem;
+    }
+    .nav-dashboard-tabs .nav-link {
+        font-size: 0.99rem;
+        padding: 0.5rem 0.7rem;
+    }
+    .dashboard-card {
+        min-width: 100%;
+        max-width: 100%;
+    }
+    .profile-section-card {
+        padding: 1.5rem;
+    }
+    .profile-detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    .profile-detail-item strong {
+        width: auto;
+        margin-bottom: 0.2rem;
+    }
+}

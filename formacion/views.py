@@ -287,68 +287,6 @@ def equipo_departamento(request):
 
 @login_required
 @user_passes_test(lambda u: es_rrhh(u) or es_admin(u), login_url='formacion:dashboard')
-def certificados_pendientes_rrhh(request):
-    """
-    Vista que muestra y permite validar los certificados pendientes de
-    los empleados. Accesible solo para usuarios de RRHH y administradores.
-    """
-    # Registramos el acceso a la vista.
-    logger.info(f"El usuario '{request.user.username}' (RRHH/Admin) ha accedido a la vista de certificados pendientes.")
-
-    if request.method == 'POST':
-        # Manejamos la validación de un certificado.
-        participacion_id = request.POST.get('participacion_id')
-        
-        # Protegemos el código con un bloque try...except para capturar errores
-        # durante la validación del certificado.
-        try:
-            # Obtenemos la participación o mostramos un error si no existe.
-            participacion = get_object_or_404(Participacion, id=participacion_id)
-            
-            # Verificamos si la participación ya ha sido validada.
-            if not participacion.validado:
-                participacion.validado = True
-                participacion.save()
-                
-                # Registramos el éxito de la validación.
-                logger.info(f"El certificado de '{participacion.empleado.get_full_name()}' para el curso '{participacion.curso.nombre}' ha sido validado correctamente.")
-                messages.success(request, f"Certificado de {participacion.empleado.get_full_name()} validado correctamente.")
-            else:
-                # Si el certificado ya estaba validado, lo registramos como advertencia.
-                logger.warning(f"Se intentó validar un certificado ya validado para el empleado '{participacion.empleado.get_full_name()}'.")
-                messages.info(request, "Este certificado ya estaba validado.")
-
-        except Exception as e:
-            # Si ocurre un error inesperado, lo registramos como crítico y mostramos un mensaje.
-            logger.error(f"Error crítico al validar el certificado con ID '{participacion_id}': {e}", exc_info=True)
-            messages.error(request, f"Ocurrió un error al validar el certificado con ID {participacion_id}.")
-            
-        return redirect('formacion:certificados_pendientes_rrhh')
-    
-    # Manejamos la petición GET para mostrar la lista de certificados pendientes.
-    try:
-        # Obtenemos las participaciones que cumplen con los criterios para ser validadas.
-        participaciones = Participacion.objects.filter(
-            validado=False,
-            estado__in=['completado', 'asistido'],
-            nota_final__isnull=False
-        ).exclude(nota_final="").select_related('empleado__departamento', 'curso')
-
-        # Registramos el número de certificados pendientes encontrados para propósitos de depuración.
-        logger.debug(f"Se encontraron {participaciones.count()} certificados pendientes de validación.")
-
-    except Exception as e:
-        # Si la consulta a la base de datos falla, lo registramos como un error crítico.
-        logger.error(f"Error al obtener la lista de certificados pendientes para el usuario '{request.user.username}': {e}", exc_info=True)
-        messages.error(request, 'Ocurrió un error al cargar la lista de certificados pendientes.')
-        return redirect('formacion:dashboard')
-
-    # Renderizamos la plantilla con la lista de participaciones.
-    return render(request, 'formacion/certificados_pendientes_rrhh.html', {'participaciones': participaciones})
-
-
-@login_required
-@user_passes_test(lambda u: es_rrhh(u) or es_admin(u), login_url='formacion:dashboard')
 def titulaciones_pendientes_rrhh(request):
     """
     Vista para que el personal de RRHH y los administradores gestionen las
@@ -2864,63 +2802,92 @@ def gestionar_solicitudes_obligatorias_rrhh(request):
 @user_passes_test(es_rrhh, login_url='/formacion/login/')
 def aprobar_solicitud_obligatoria(request, participacion_id):
     """
-    RRHH aprueba una solicitud de inscripción a curso obligatorio (cambia estado de Participacion a 'confirmado').
-    Ahora requiere una fecha de inicio real y crea una notificación detallada.
+    RRHH aprueba o rechaza una solicitud de inscripción a curso obligatorio (cambia estado de Participacion a 'confirmado' o 'rechazado').
+    Para aprobar, requiere una fecha de inicio real y crea una notificación detallada.
     """
     try:
         participacion = get_object_or_404(Participacion, pk=participacion_id)
-        logger.info(f"Usuario '{request.user.username}' intentando aprobar la solicitud '{participacion_id}' de '{participacion.empleado.username}'.")
+        logger.info(f"Usuario '{request.user.username}' intentando procesar la solicitud '{participacion_id}' de '{participacion.empleado.username}'.")
 
         if request.method == 'POST':
-            form = AprobarParticipacionForm(request.POST)
-            if form.is_valid():
+            action = request.POST.get('action')
+            if action == 'approve':
+                form = AprobarParticipacionForm(request.POST)
+                if form.is_valid():
+                    if participacion.estado == 'pendiente':
+                        try:
+                            participacion.estado = 'confirmado'
+                            participacion.fecha_confirmacion = timezone.now().date()
+                            participacion.fecha_inicio_real = form.cleaned_data['fecha_inicio_real']
+                            participacion.certificado_obtenido = False
+                            participacion.save()
+
+                            Notificacion.objects.create(
+                                usuario=participacion.empleado,
+                                mensaje=f'¡Tu solicitud para el curso "{participacion.curso.nombre}" ha sido APROBADA! La fecha de inicio es el {participacion.fecha_inicio_real.strftime("%d/%m/%Y")}.',
+                                tipo='success'
+                            )
+
+                            messages.success(request, f'La solicitud de {participacion.empleado.first_name} para "{participacion.curso.nombre}" ha sido APROBADA y el curso comenzará el {participacion.fecha_inicio_real.strftime("%d/%m/%Y")}.')
+                            logger.info(f"Solicitud '{participacion_id}' de '{participacion.empleado.username}' aprobada con éxito. Fecha de inicio: {participacion.fecha_inicio_real}.")
+
+                        except Exception as e:
+                            # Error inesperado durante el guardado
+                            messages.error(request, f'Ocurrió un error inesperado al aprobar la solicitud: {e}')
+                            logger.error(f"Error inesperado al guardar la aprobación de la solicitud '{participacion_id}': {e}", exc_info=True)
+
+                    else:
+                        messages.warning(request, 'Esta solicitud ya no está en estado pendiente.')
+                        logger.warning(f"Intento de aprobar la solicitud '{participacion_id}' fallido. El estado actual es '{participacion.estado}', no 'pendiente'.")
+
+                    return redirect('formacion:gestionar_solicitudes_obligatorias_rrhh')
+                else:
+                    # El formulario no es válido, se registran los errores
+                    error_messages = []
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            field_name = form.fields[field].label if field in form.fields and form.fields[field].label else field
+                            error_messages.append(f"Error en '{field_name}': {error}")
+
+                    error_message_combined = " ".join(error_messages)
+                    messages.error(request, error_message_combined or 'Error al aprobar: La fecha de inicio no es válida. Por favor, asegúrate de introducir una fecha válida.')
+                    logger.warning(f"Intento de aprobar la solicitud '{participacion_id}' fallido debido a errores de validación del formulario: {error_message_combined}")
+                    return redirect('formacion:gestionar_solicitudes_obligatorias_rrhh')
+            elif action == 'reject':
                 if participacion.estado == 'pendiente':
                     try:
-                        participacion.estado = 'confirmado'
-                        participacion.fecha_confirmacion = timezone.now().date()
-                        participacion.fecha_inicio_real = form.cleaned_data['fecha_inicio_real']
-                        participacion.certificado_obtenido = False
-                        participacion.save()
+                        with transaction.atomic():
+                            participacion.estado = 'rechazada'
+                            participacion.fecha_confirmacion = timezone.now().date()
+                            participacion.save()
 
-                        Notificacion.objects.create(
-                            usuario=participacion.empleado,
-                            mensaje=f'¡Tu solicitud para el curso "{participacion.curso.nombre}" ha sido APROBADA! La fecha de inicio es el {participacion.fecha_inicio_real.strftime("%d/%m/%Y")}.',
-                            tipo='success'
-                        )
+                            # Opcional: Crear una notificación para el empleado
+                            Notificacion.objects.create(
+                                usuario=participacion.empleado,
+                                mensaje=f'Lamentablemente, tu solicitud para el curso "{participacion.curso.nombre}" ha sido RECHAZADA. Por favor, contacta con RRHH para más detalles.',
+                                tipo='danger'
+                            )
 
-                        messages.success(request, f'La solicitud de {participacion.empleado.first_name} para "{participacion.curso.nombre}" ha sido APROBADA y el curso comenzará el {participacion.fecha_inicio_real.strftime("%d/%m/%Y")}.')
-                        logger.info(f"Solicitud '{participacion_id}' de '{participacion.empleado.username}' aprobada con éxito. Fecha de inicio: {participacion.fecha_inicio_real}.")
-                    
+                        messages.warning(request, f'La solicitud de {participacion.empleado.first_name} para "{participacion.curso.nombre}" ha sido RECHAZADA.')
+                        logger.info(f"Solicitud '{participacion_id}' de '{participacion.empleado.username}' rechazada con éxito.")
+
                     except Exception as e:
-                        # Error inesperado durante el guardado
-                        messages.error(request, f'Ocurrió un error inesperado al aprobar la solicitud: {e}')
-                        logger.error(f"Error inesperado al guardar la aprobación de la solicitud '{participacion_id}': {e}", exc_info=True)
-                    
+                        messages.error(request, f'Ocurrió un error inesperado al rechazar la solicitud: {e}')
+                        logger.error(f"Error inesperado al guardar el rechazo de la solicitud '{participacion_id}': {e}", exc_info=True)
+
                 else:
-                    messages.warning(request, 'Esta solicitud ya no está en estado pendiente.')
-                    logger.warning(f"Intento de aprobar la solicitud '{participacion_id}' fallido. El estado actual es '{participacion.estado}', no 'pendiente'.")
-                
-                return redirect('formacion:gestionar_solicitudes_obligatorias_rrhh')
-            else:
-                # El formulario no es válido, se registran los errores
-                error_messages = []
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        field_name = form.fields[field].label if field in form.fields and form.fields[field].label else field
-                        error_messages.append(f"Error en '{field_name}': {error}")
-                
-                error_message_combined = " ".join(error_messages)
-                messages.error(request, error_message_combined or 'Error al aprobar: La fecha de inicio no es válida. Por favor, asegúrate de introducir una fecha válida.')
-                logger.warning(f"Intento de aprobar la solicitud '{participacion_id}' fallido debido a errores de validación del formulario: {error_message_combined}")
+                    messages.info(request, 'Esta solicitud ya no está en estado pendiente.')
+                    logger.warning(f"Intento de rechazar la solicitud '{participacion_id}' fallido. El estado actual es '{participacion.estado}', no 'pendiente'.")
+
                 return redirect('formacion:gestionar_solicitudes_obligatorias_rrhh')
 
         messages.error(request, 'Método de solicitud no válido.')
-        logger.warning(f"Intento de aprobar la solicitud '{participacion_id}' con un método no válido.")
+        logger.warning(f"Intento de procesar la solicitud '{participacion_id}' con un método no válido.")
         return redirect('formacion:gestionar_solicitudes_obligatorias_rrhh')
-        
+
     except Participacion.DoesNotExist:
         messages.error(request, 'La solicitud especificada no existe.')
-        logger.error(f"Intento de aprobar una solicitud inexistente con ID '{participacion_id}'.")
+        logger.error(f"Intento de procesar una solicitud inexistente con ID '{participacion_id}'.")
         return redirect('formacion:gestionar_solicitudes_obligatorias_rrhh')
     except Exception as e:
         # En caso de error inesperado, lo registramos
@@ -2942,16 +2909,17 @@ def rechazar_solicitud_obligatoria(request, participacion_id):
         if request.method == 'POST':
             if participacion.estado == 'pendiente':
                 try:
-                    participacion.estado = 'rechazada'
-                    participacion.fecha_confirmacion = timezone.now().date()
-                    participacion.save()
+                    with transaction.atomic():
+                        participacion.estado = 'rechazada'
+                        participacion.fecha_confirmacion = timezone.now().date()
+                        participacion.save()
 
-                    # Opcional: Crear una notificación para el empleado
-                    Notificacion.objects.create(
-                        usuario=participacion.empleado,
-                        mensaje=f'Lamentablemente, tu solicitud para el curso "{participacion.curso.nombre}" ha sido RECHAZADA. Por favor, contacta con RRHH para más detalles.',
-                        tipo='danger'
-                    )
+                        # Opcional: Crear una notificación para el empleado
+                        Notificacion.objects.create(
+                            usuario=participacion.empleado,
+                            mensaje=f'Lamentablemente, tu solicitud para el curso "{participacion.curso.nombre}" ha sido RECHAZADA. Por favor, contacta con RRHH para más detalles.',
+                            tipo='danger'
+                        )
 
                     messages.warning(request, f'La solicitud de {participacion.empleado.first_name} para "{participacion.curso.nombre}" ha sido RECHAZADA.')
                     logger.info(f"Solicitud '{participacion_id}' de '{participacion.empleado.username}' rechazada con éxito.")

@@ -45,7 +45,7 @@ ESTADO_PARTICIPACION_CHOICES = [
     ('cancelado', 'Cancelado'),
     ('abandonado', 'Abandonado'),
     ('rechazado', 'Rechazado'),
-    ('completado', 'Completado (Aprobado y Certificado)'),
+    ('completado', 'Completado'),
 ]
 
 # Para el modelo Proyecto
@@ -592,12 +592,8 @@ class Participacion(models.Model):
     nota_final = models.CharField(
         max_length=100,
         blank=True,
-        null=True, 
+        null=True,
         help_text="Calificación final o estado textual (ej. Aprobado, N/A, 7.5)."
-    )
-    validado = models.BooleanField(
-        default=False,
-        help_text="Indica si la participación y resultados han sido validados por RRHH."
     )
     certificado_obtenido = models.BooleanField(
         default=False,

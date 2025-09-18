@@ -30,8 +30,9 @@
     {% endif %}
 
     {% if page_obj %}
-        <input type="hidden" name="sort_by" value="{{ sort_by }}">
-        <input type="hidden" name="direction" value="{{ direction }}">
+        <form id="filtersForm" method="get">
+            <input type="hidden" name="sort_by" value="{{ sort_by }}">
+            <input type="hidden" name="direction" value="{{ direction }}">
 
         <div class="table-container">
             <div class="table-responsive-modern">
@@ -250,6 +251,7 @@
             </div>
         </div>
         {% include 'formacion/includes/pagination_controls2.html' %}
+        </form>
     {% else %}
         <div class="empty-state">
             <i class="bi bi-journal-check"></i>

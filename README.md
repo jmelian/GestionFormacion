@@ -10,14 +10,16 @@ El objetivo principal es centralizar y optimizar los procesos relacionados con l
 
 ## Características Principales
 
-- **Solicitud de Cursos:** Los coordinadores pueden proponer y solicitar nuevas formaciones para sus equipos/departamentos.
-- **Gestión de Solicitudes:** Roles de RRHH/Formación pueden revisar, aprobar, rechazar o poner en proceso las solicitudes de cursos.
-- **Gestión de Cursos:** Creación, edición y administración de la oferta formativa (cursos, fechas, plazas, proveedores).
-- **Gestión de Participantes:** Inscripción y seguimiento de empleados en cursos, registro de notas y emisión de certificados.
-- **Gestión de Titulaciones:** Registro y seguimiento de titulaciones y certificaciones obtenidas por los empleados.
-- **Gestión de Empleados:** Perfiles de empleados con su historial formativo.
-- **Notificaciones:** Sistema de notificaciones internas para informar sobre el estado de las solicitudes y otras acciones relevantes.
-- **Roles de Usuario:** Diferentes niveles de acceso y permisos (Coordinador, RRHH, Formación, Dirección, Administrador, Empleado).
+- **Sistema de Solicitudes de Cursos:** Coordinadores pueden proponer formaciones detalladas con justificación completa y seguimiento de aprobación jerárquica.
+- **Gestión Avanzada de Solicitudes:** RRHH/Formación/Dirección pueden revisar, aprobar, rechazar con motivos detallados y gestionar el flujo completo.
+- **Gestión Integral de Cursos:** Creación completa con modalidades (Presencial/Online/Blended), proveedores, plazas limitadas, tipos de formación y resultados formales.
+- **Sistema de Preselección:** Coordinadores pueden preseleccionar empleados con prioridades para optimizar la participación.
+- **Gestión Completa de Participantes:** Inscripciones múltiples, estados detallados, seguimiento de progreso y marcado unificado de completado.
+- **Sistema de Titulaciones MECES:** Gestión completa con niveles del Marco Español de Cualificaciones, validación RRHH y subida segura de documentos.
+- **Encuestas de Satisfacción Detalladas:** Sistema completo con valoraciones numéricas, comentarios y análisis estadístico.
+- **Notificaciones Contextuales:** Sistema automático de alertas con tipos diferenciados y enlaces de acción directa.
+- **Dashboard Ejecutivo:** Panel con métricas, KPIs y visión global del estado de formación organizacional.
+- **Roles y Permisos Granulares:** Sistema jerárquico con 6 roles (Empleado, Coordinador, RRHH, Formación, Dirección, Admin) y permisos específicos.
 
 ---
 
@@ -51,56 +53,126 @@ cd GestionFormacion
 ### 2. Configurar Variables de Entorno (.env)
 Crea un archivo llamado `.env` en la raíz de tu proyecto (al mismo nivel que `docker-compose.yml`).
 
-Copia el siguiente contenido en tu archivo `.env` y reemplaza los valores de ejemplo con los tuyos. Docker Compose usará estas variables para configurar los servicios:
+**Opción A: Usar la plantilla**
+```bash
+cp .env.example .env
+```
+
+**Opción B: Crear desde cero**
+Copia el siguiente contenido en tu archivo `.env` y reemplaza los valores de ejemplo con los tuyos. Docker Compose usará estas variables para configurar los servicios.
+
+**⚠️ Importante sobre seguridad:**
+- El archivo `.env` contiene información sensible y ya está configurado para NO subirse a Git
+- Usa `.env.example` como plantilla (este archivo SÍ se sube a Git)
+- Nunca compartas tu archivo `.env` real
 
 ```bash
-# .env
+# .env - Sistema de Gestión de Formación v1.0
 # Este archivo NO se sube a GitHub. Contiene información sensible.
+# IMPORTANTE: No uses comillas alrededor de los valores
 
-SECRET_KEY='tu_clave_secreta_generada_aqui_es_muy_larga_y_aleatoria'
+# === CONFIGURACIÓN BÁSICA DE DJANGO ===
+SECRET_KEY=rqrvmu&ug-oynsefgwi5d9bw528(!$v0p)^+j#q6*d-ahmrj2$
 DEBUG=True
-ALLOWED_HOSTS=127.0.0.1,localhost # Separa por comas, sin espacios
+ALLOWED_HOSTS=127.0.0.1,localhost
+CSRF_TRUSTED_ORIGINS=http://localhost:8082,http://127.0.0.1:8082
 
-# DB_ENGINE=django.db.backends.postgresql
-# POSTGRES_DB=nombre_de_tu_bd
-# POSTGRES_USER=usuario_bd
-# POSTGRES_PASSWORD=contraseña_bd
-# DB_HOST_LOCAL=localhost
-# DB_HOST_DOCKER=db
-# DB_PORT=5432
+# === CONFIGURACIÓN DE BASE DE DATOS ===
+DB_ENGINE=django.db.backends.postgresql
+POSTGRES_DB=formacion_db
+POSTGRES_USER=formacion_user
+POSTGRES_PASSWORD=tu_password_seguro_aqui
+DB_HOST_LOCAL=localhost
+DB_HOST_DOCKER=db
+DB_PORT=5432
 
-# Configuración de Email 
-# EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-# EMAIL_HOST=smtp.ejemplo.com
-# EMAIL_PORT=587
-# EMAIL_USE_TLS=True
-# EMAIL_HOST_USER=tu_email@ejemplo.com
-# EMAIL_HOST_PASSWORD=tu_password_email
-# DEFAULT_FROM_EMAIL=tu_email@ejemplo.com
+# === CONFIGURACIÓN DE ZONA HORARIA ===
+TIME_ZONE=Atlantic/Canary
+
+# === CONFIGURACIÓN DE EMAIL ===
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=tu_email@gmail.com
+EMAIL_HOST_PASSWORD=tu_app_password_o_password_normal
+DEFAULT_FROM_EMAIL=tu_email@gmail.com
 ```
 
 Para `SECRET_KEY`: Puedes generar una clave segura ejecutando en tu terminal (con el entorno virtual activado):
 ```bash
 python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
 ```
-### 3. Iniciar el servidor
+
+### Configuración de Email
+
+Para Gmail, necesitas:
+1. **EMAIL_HOST_USER**: Tu dirección de Gmail completa
+2. **EMAIL_HOST_PASSWORD**: Una "contraseña de aplicación" (no tu contraseña normal)
+   - Ve a https://myaccount.google.com/security
+   - Activa la verificación en 2 pasos
+   - Genera una contraseña de aplicación
+3. **EMAIL_PORT**: 587 (TLS) o 465 (SSL)
+
+### Variables Obligatorias vs Opcionales
+
+**Obligatorias:**
+- `SECRET_KEY`: Clave secreta de Django
+- `DB_ENGINE`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DB_PORT`: Base de datos
+- `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`: Email
+- `CSRF_TRUSTED_ORIGINS`: Orígenes confiables para CSRF
+
+**Opcionales (con valores por defecto):**
+- `DEBUG`: False por defecto
+- `ALLOWED_HOSTS`: '127.0.0.1,localhost' por defecto
+- `TIME_ZONE`: 'Atlantic/Canary' por defecto
+- `DB_HOST_LOCAL`: 'localhost' por defecto
+- `DB_HOST_DOCKER`: Solo para Docker
+
+### Mejores Prácticas de Seguridad
+
+1. **Nunca subas el archivo .env a Git**
+2. **Usa contraseñas fuertes y únicas**
+3. **Para producción:**
+   - `DEBUG=False`
+   - `SECRET_KEY` muy larga y aleatoria
+   - `ALLOWED_HOSTS` específicos (no '*')
+   - `SESSION_COOKIE_SECURE=True`
+   - `CSRF_COOKIE_SECURE=True`
+4. **Variables sensibles:**
+   - Mantén `SECRET_KEY` y contraseñas seguras
+   - Usa variables de entorno del sistema para producción
+   - Considera usar servicios como AWS Secrets Manager o Azure Key Vault
+### 3. Verificar Configuración del .env
+
+Antes de iniciar el servidor, verifica que tu archivo `.env` esté correctamente configurado:
+
+```bash
+# Verificar que el archivo existe
+ls -la .env
+
+# Verificar sintaxis básica (no debe haber errores de formato)
+python -c "import os; [print(f'{k}={v}') for k,v in os.environ.items() if k in open('.env').read()]" 2>/dev/null || echo "Archivo .env no encontrado o con errores"
+```
+
+### 4. Iniciar el servidor
 ```bash
 docker-compose up -d --build
 ```
 
-### 4. Base de Datos y Migraciones
+### 5. Base de Datos y Migraciones
 Aplica las migraciones de la base de datos para crear las tablas necesarias en el contenedor de PostgreSQL:
 ```bash
 docker-compose exec web python manage.py migrate
 ```
 
-### 5. Crear un Superusuario
+### 6. Crear un Superusuario
 Necesitarás un superusuario para acceder al panel de administración de Django:
 ```bash
 docker-compose exec web python manage.py createsuperuser
 ```
 
-### 6. Configuración Inicial de la Aplicación
+### 7. Configuración Inicial de la Aplicación
 Para asegurar que tu aplicación tenga los grupos de usuarios y permisos necesarios desde el principio (ej. `RRHH`, `Formación`, `Coordinador`, `Dirección`, `Empleado`), puedes cargar los datos iniciales proporcionados. Estos archivos definen la estructura de permisos y roles que la aplicación espera.
 
 #### Función de los archivos:
@@ -128,14 +200,14 @@ Con todos los pasos anteriores completados, tu proyecto ya debería estar en eje
 ```bash
 docker-compose up
 ```
-Tu proyecto estará disponible en `http://localhost/formacion` y el servidor Nginx se encargará de dirigir el tráfico a tu aplicación. Si necesitas detener los servicios, usa:
+Tu proyecto estará disponible en `http://localhost:8082/formacion` y el servidor Nginx se encargará de dirigir el tráfico a tu aplicación. Si necesitas detener los servicios, usa:
 ```bash
 docker-compose down
 ```
 
 ## Acceso al Panel de Administración
 Puedes acceder al panel de administración de Django en:
-`http://localhost/admin/`
+`http://localhost:8082/admin/`
 
 Usa las credenciales del superusuario que creaste.
 
@@ -152,5 +224,40 @@ docker-compose exec web sh -c "python manage.py dumpdata --indent 2 > /app/datos
 docker-compose exec web python manage.py loaddata backup_temp.json
 ```
 
+## Verificación de Instalación
+
+Después de completar todos los pasos, verifica que todo funciona correctamente:
+
+1. **Acceder a la aplicación**: `http://localhost:8082/formacion`
+2. **Panel de administración**: `http://localhost:8082/admin`
+3. **Base de datos**: Verificar que las tablas se crearon correctamente
+4. **Email**: Probar envío de emails desde el sistema
+5. **Logs**: Revisar que no hay errores en los logs de Docker
+
+### Comandos de Verificación
+
+```bash
+# Ver estado de contenedores
+docker-compose ps
+
+# Ver logs de la aplicación
+docker-compose logs web
+
+# Ver logs de la base de datos
+docker-compose logs db
+
+# Acceder a PostgreSQL
+docker-compose exec db psql -U formacion_user -d formacion_db
+
+# Verificar migraciones aplicadas
+docker-compose exec web python manage.py showmigrations
+```
+
 ## Licencia
 Este proyecto está bajo la [Licencia Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). Consulta el archivo `LICENSE` para más detalles.
+
+---
+
+**Versión**: 1.0
+**Última actualización**: 2025-01-16
+**Autor**: Sistema de Documentación Automática

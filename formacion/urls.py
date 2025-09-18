@@ -77,8 +77,7 @@ urlpatterns = [
 
     # URLs de gestión y roles
     path('equipo-departamento/', views.equipo_departamento, name='equipo_departamento'),
-    path('certificados-pendientes/', views.certificados_pendientes_rrhh, name='certificados_pendientes_rrhh'),
-    
+
     # URLs de Preselección y Participación
     path('preseleccion/', views.preseleccionar_empleado, name='preseleccionar_empleado'),
     path('preselecciones/lista/', views.confirmar_preseleccionados_lista, name='confirmar_preseleccionados_lista'),

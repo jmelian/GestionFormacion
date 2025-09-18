@@ -123,12 +123,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 DEFAULT_CHARSET = 'utf-8'
 
-TIME_ZONE = 'UTC'
-
 USE_I18N = True
 
 USE_TZ = True
-TIME_ZONE = config('TIME_ZONE')
+TIME_ZONE = config('TIME_ZONE', default='Atlantic/Canary')
 
 
 LANGUAGE_CODE = 'es-es'
@@ -153,12 +151,11 @@ STATIC_URL = '/static/'
 # Directorio donde se recolectarán los archivos estáticos para producción.
 STATIC_ROOT = '/vol/web/staticfiles/'
 
+
 # Sección de seguridad
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = [
-        'http://xwiki.contactel.es:8082',
-]
+CSRF_TRUSTED_ORIGINS = [config('CSRF_TRUSTED_ORIGINS')]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
