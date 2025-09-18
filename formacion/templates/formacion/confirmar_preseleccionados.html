@@ -99,9 +99,9 @@
     {% endif %}
 
     <div class="d-flex justify-content-start mt-4">
-        <a href="{{ referer_url|default:'{% url "formacion:dashboard" %}' }}" class="btn-back">
+        <button type="button" onclick="history.back()" class="btn-back">
             <i class="bi bi-arrow-left"></i> Volver
-        </a>
+        </button>
     </div>
 
 </div>

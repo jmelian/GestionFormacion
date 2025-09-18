@@ -129,7 +129,6 @@
                                 <th>Estado</th>
                                 <th>Nota Final</th>
                                 <th>Certificado</th>
-                                <th>Validación</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -143,13 +142,6 @@
                                         <span class="status-badge status-success">Sí</span>
                                     {% else %}
                                         <span class="status-badge status-danger">No</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if participacion.validado %}
-                                        <span class="status-badge status-success">Validado</span>
-                                    {% else %}
-                                        <span class="status-badge status-secondary">Pendiente</span>
                                     {% endif %}
                                 </td>
                             </tr>

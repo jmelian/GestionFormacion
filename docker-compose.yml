@@ -6,6 +6,7 @@ services:
     command: sh -c "
       mkdir -p /vol/web/staticfiles /vol/web/media &&
       chmod -R 755 /vol/web &&
+      python manage.py migrate &&
       python manage.py collectstatic --no-input &&
       gunicorn formacion_demo.wsgi:application --bind 0.0.0.0:8000"
     volumes:

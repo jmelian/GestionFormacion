@@ -1,22 +1,22 @@
+# Sistema de Gestión de Formación - Versión 1.0
+# Lista de tareas pendientes y mejoras futuras
 
-
-8 Comprobar qué pasa si das por terminado un curso sin haber marcado asistido (no debería haber problema) -> no se debe poder marcar como completado desde cualquier estado
-
-
-12 estudiar cómo tratar los cursos obligatorios y las fechas de inicio y fin a la hora de mostrarlos
-
-13 gestionar_solicitudes_obligatorias_rrhh -> loop el "volver" al validar una solicitud, puesto que la página anterior también era la misma
+## Problemas Identificados
 
 
 
+## Mejoras para Versiones Futuras
+- Acceso a la documentación de los cursos tanto desde Mis Cursos como desde Formación Planificada
+- Añadir sistema de reportes avanzados con gráficos
+- Mejorar interfaz de usuario con componentes modernos
+- Implementar notificaciones por email además de las internas
+- Añadir funcionalidad de backup automático de base de datos
+- Implementar sistema de auditoría completo de cambios
+- Añadir soporte para múltiples idiomas
+- Optimizar rendimiento con índices de base de datos adicionales
 
-17 quitar estilos locales de {# formacion/gestionar_solicitudes_obligatorias_rrhh.html #}
-
-
-
-ALTER TABLE formacion_participacion ADD COLUMN fecha_fin_real date NULL;
-
-
-
-
-
+## Documentación Versión 1.0
+- ✅ Documentación actualizada a versión 1.0
+- ✅ Descripciones de funcionalidades actualizadas según código actual
+- ✅ Estructura de documentación reorganizada
+- ✅ Versiones consistentes en todos los archivos
