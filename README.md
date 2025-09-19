@@ -253,6 +253,15 @@ docker-compose exec db psql -U formacion_user -d formacion_db
 docker-compose exec web python manage.py showmigrations
 ```
 
+## 📖 Documentación
+
+- **[📋 Documentación Técnica Completa](PROJECT_DOCUMENTATION.md)** - Arquitectura, funcionalidades detalladas, modelos de datos y API
+- **[🚀 Guía de Instalación](GUIA_INSTALACION.md)** - Instalación avanzada y configuración de producción
+- **[👥 Guía del Usuario](GUIA_USUARIO.md)** - Manual completo para usuarios finales
+- **[🔧 Documentación API](DOCUMENTACION_API.md)** - Referencia técnica de modelos y vistas
+- **[📝 Archivo de Configuración](.env.example)** - Plantilla completa de variables de entorno
+- **[✅ Lista de Tareas](TODO.txt)** - Estado del proyecto y mejoras planificadas
+
 ## Licencia
 Este proyecto está bajo la [Licencia Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). Consulta el archivo `LICENSE` para más detalles.
 
