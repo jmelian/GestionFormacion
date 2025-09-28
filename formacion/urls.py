@@ -88,4 +88,7 @@ urlpatterns = [
 
     # URLs de Notificaciones
     path('notificaciones/', NotificacionesListView.as_view(), name='ver_notificaciones'),
+
+    # URLs de Reportes
+    path('reportes/', views.reports_view, name='reports'),
 ]

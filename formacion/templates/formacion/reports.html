@@ -1,0 +1,482 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes Avanzados{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-bar-chart-line-fill me-2"></i>Reportes Avanzados
+        </h1>
+        <p class="page-description">Estadísticas y análisis visual de la formación organizacional</p>
+    </div>
+
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill stat-icon text-primary"></i>
+                    <h3 class="stat-number">{{ stats.total_employees }}</h3>
+                    <p class="stat-label">Empleados Activos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-book-fill stat-icon text-success"></i>
+                    <h3 class="stat-number">{{ stats.total_courses }}</h3>
+                    <p class="stat-label">Cursos Totales</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-check-fill stat-icon text-info"></i>
+                    <h3 class="stat-number">{{ stats.total_participations }}</h3>
+                    <p class="stat-label">Participaciones</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-trophy-fill stat-icon text-warning"></i>
+                    <h3 class="stat-number">{{ stats.completed_participations }}</h3>
+                    <p class="stat-label">Completadas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-percent stat-icon text-danger"></i>
+                    <h3 class="stat-number">{{ stats.completion_rate }}%</h3>
+                    <p class="stat-label">Tasa de Finalización</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-chat-quote-fill stat-icon text-secondary"></i>
+                    <h3 class="stat-number">{{ stats.total_surveys }}</h3>
+                    <p class="stat-label">Encuestas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Segunda fila de estadísticas -->
+    <div class="row mb-4">
+        <!-- ✨ Nueva tarjeta: Certificación ITIL -->
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-check stat-icon text-success"></i>
+                    <h3 class="stat-number">{{ stats.porcentaje_itil }}%</h3>
+                    <p class="stat-label">Con Cert. ITIL</p>
+                    <small class="text-muted">{{ stats.empleados_con_itil }}/{{ stats.total_employees }}</small>
+
+                    {% if stats.itil_breakdown %}
+                    <div class="mt-2">
+                        {% if stats.itil_breakdown.foundation > 0 %}
+                            <small class="badge bg-info text-white me-1" title="ITIL Foundation">
+                                F: {{ stats.itil_breakdown.foundation }}
+                            </small>
+                        {% endif %}
+                        {% if stats.itil_breakdown.practitioner > 0 %}
+                            <small class="badge bg-warning text-dark me-1" title="ITIL Practitioner">
+                                P: {{ stats.itil_breakdown.practitioner }}
+                            </small>
+                        {% endif %}
+                        {% if stats.itil_breakdown.expert > 0 %}
+                            <small class="badge bg-danger text-white" title="ITIL Expert/Master">
+                                E: {{ stats.itil_breakdown.expert }}
+                            </small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ✨ Nueva tarjeta: Certificación ITIL (sin Service Desk) -->
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-exclamation stat-icon text-warning"></i>
+                    <h3 class="stat-number">{{ stats.porcentaje_itil_sin_sd }}%</h3>
+                    <p class="stat-label">ITIL (sin SD)</p>
+                    <small class="text-muted">{{ stats.empleados_con_itil_sin_sd }}/{{ stats.total_employees_sin_sd }}</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Espacio para futuras métricas -->
+        <div class="col-lg-8 col-md-4">
+            <div class="alert alert-light border-0 h-100 d-flex align-items-center justify-content-center">
+                <div class="text-center text-muted">
+                    <i class="bi bi-plus-circle fs-3 mb-2 d-block"></i>
+                    <small>Espacio disponible para nuevas métricas</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row">
+        <!-- Participación por Tipo de Curso -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Participación por Tipo de Curso
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="courseTypeChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado de Formación de Empleados -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pie-chart me-2"></i>Estado de Formación de Empleados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trainingStatusChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Horas de Formación por Departamento -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>Horas de Formación por Departamento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="departmentHoursChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satisfacción de Encuestas -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-star-fill me-2"></i>Satisfacción Promedio (1-5)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="surveySatisfactionChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Niveles MECES de Titulaciones -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-diagram-3 me-2"></i>Distribución de Niveles MECES
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="mecesLevelsChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Distribución de Empleados por Departamento -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-people me-2"></i>Distribución de Empleados por Departamento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="employeeDepartmentChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cursos por Modalidad -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Cursos por Modalidad
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="coursesModalityChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuración común para gráficos
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.font.size = 12;
+    Chart.defaults.plugins.legend.position = 'bottom';
+
+    // Colores para los gráficos
+    const colors = [
+        '#007bff', '#28a745', '#ffc107', '#dc3545', '#6c757d',
+        '#17a2b8', '#e83e8c', '#6f42c1', '#fd7e14', '#20c997'
+    ];
+
+    // Parsear datos JSON
+    const courseTypes = JSON.parse('{{ course_types_json|escapejs }}');
+    const courseCounts = JSON.parse('{{ course_counts_json|escapejs }}');
+    const statusLabels = JSON.parse('{{ status_labels_json|escapejs }}');
+    const statusCounts = JSON.parse('{{ status_counts_json|escapejs }}');
+    const deptNames = JSON.parse('{{ dept_names_json|escapejs }}');
+    const deptHours = JSON.parse('{{ dept_hours_json|escapejs }}');
+    const surveyLabels = JSON.parse('{{ survey_labels_json|escapejs }}');
+    const surveyValues = JSON.parse('{{ survey_values_json|escapejs }}');
+    const mecesLabels = JSON.parse('{{ meces_labels_json|escapejs }}');
+    const mecesCounts = JSON.parse('{{ meces_counts_json|escapejs }}');
+
+    // Inicializar tooltips de Bootstrap para los badges ITIL
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Gráfico de Participación por Tipo de Curso
+    const courseTypeCtx = document.getElementById('courseTypeChart').getContext('2d');
+    new Chart(courseTypeCtx, {
+        type: 'bar',
+        data: {
+            labels: courseTypes,
+            datasets: [{
+                label: 'Participaciones',
+                data: courseCounts,
+                backgroundColor: colors.slice(0, courseTypes.length),
+                borderColor: colors.slice(0, courseTypes.length),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico de Estado de Formación
+    const trainingStatusCtx = document.getElementById('trainingStatusChart').getContext('2d');
+    new Chart(trainingStatusCtx, {
+        type: 'pie',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusCounts,
+                backgroundColor: colors.slice(0, statusLabels.length),
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+
+    // Gráfico de Horas por Departamento
+    const departmentHoursCtx = document.getElementById('departmentHoursChart').getContext('2d');
+    new Chart(departmentHoursCtx, {
+        type: 'bar',
+        data: {
+            labels: deptNames,
+            datasets: [{
+                label: 'Horas Totales',
+                data: deptHours,
+                backgroundColor: colors.slice(0, deptNames.length),
+                borderColor: colors.slice(0, deptNames.length),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico de Satisfacción de Encuestas
+    const surveyCtx = document.getElementById('surveySatisfactionChart').getContext('2d');
+    new Chart(surveyCtx, {
+        type: 'bar',
+        data: {
+            labels: surveyLabels,
+            datasets: [{
+                label: 'Promedio (1-5)',
+                data: surveyValues,
+                backgroundColor: '#ffc107',
+                borderColor: '#ffc107',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 5,
+                    ticks: {
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico de Niveles MECES
+    const mecesCtx = document.getElementById('mecesLevelsChart').getContext('2d');
+    new Chart(mecesCtx, {
+        type: 'doughnut',
+        data: {
+            labels: mecesLabels,
+            datasets: [{
+                data: mecesCounts,
+                backgroundColor: colors.slice(0, mecesLabels.length),
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+
+    // Gráfico de Distribución de Empleados por Departamento
+    const employeeDeptCtx = document.getElementById('employeeDepartmentChart').getContext('2d');
+    new Chart(employeeDeptCtx, {
+        type: 'pie',
+        data: {
+            labels: JSON.parse('{{ dept_employee_names_json|escapejs }}'),
+            datasets: [{
+                data: JSON.parse('{{ dept_employee_counts_json|escapejs }}'),
+                backgroundColor: colors.slice(0, JSON.parse('{{ dept_employee_names_json|escapejs }}').length),
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+
+    // Gráfico de Cursos por Modalidad
+    const coursesModalityCtx = document.getElementById('coursesModalityChart').getContext('2d');
+    new Chart(coursesModalityCtx, {
+        type: 'bar',
+        data: {
+            labels: JSON.parse('{{ modality_labels_json|escapejs }}'),
+            datasets: [{
+                label: 'Número de Cursos',
+                data: JSON.parse('{{ modality_counts_json|escapejs }}'),
+                backgroundColor: colors.slice(0, JSON.parse('{{ modality_labels_json|escapejs }}').length),
+                borderColor: colors.slice(0, JSON.parse('{{ modality_labels_json|escapejs }}').length),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
