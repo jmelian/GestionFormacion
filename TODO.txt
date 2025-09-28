@@ -7,7 +7,7 @@
 
 ## Mejoras para Versiones Futuras
 - Acceso a la documentación de los cursos tanto desde Mis Cursos como desde Formación Planificada
-- Añadir sistema de reportes avanzados con gráficos
+- ✅ Añadir sistema de reportes avanzados con gráficos
 - Mejorar interfaz de usuario con componentes modernos
 - Implementar notificaciones por email además de las internas
 - Añadir funcionalidad de backup automático de base de datos

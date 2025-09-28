@@ -1,16 +1,16 @@
 # formacion/views.py
-import datetime, os, mimetypes
+import datetime, os, mimetypes, json
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
-from .models import Empleado, Departamento, Curso, Participacion, Preseleccion, Notificacion, Proveedor, Proyecto, Area, PuestoDeTrabajo, Titulacion, TIPO_TITULACION_MECES_MAP, ESTADO_PARTICIPACION_CHOICES, SolicitudCurso, RequisitoPuestoFormacion, EncuestaSatisfaccion
+from .models import Empleado, Departamento, Curso, Participacion, Preseleccion, Notificacion, Proveedor, Proyecto, Area, PuestoDeTrabajo, Titulacion, TIPO_TITULACION_MECES_MAP, ESTADO_PARTICIPACION_CHOICES, NIVEL_MECES_CHOICES, SolicitudCurso, RequisitoPuestoFormacion, EncuestaSatisfaccion, MODALIDAD_CURSO_CHOICES
 from .forms import EmpleadoCreationForm, EmpleadoProfileForm, CursoForm, PreseleccionForm, ParticipacionForm, TitulacionForm, SolicitudCursoForm, AprobarParticipacionForm, MarcarCompletadoForm, EncuestaSatisfaccionForm
 from django.contrib.auth.models import Group
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from datetime import date
-from django.db.models import Count, Q, Prefetch, Avg, Sum
+from django.db.models import Count, Q, Prefetch, Avg, Sum, Case, When, Value, IntegerField, Max, Subquery, OuterRef
 from django.contrib.auth import logout
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -2857,7 +2857,7 @@ def aprobar_solicitud_obligatoria(request, participacion_id):
                 if participacion.estado == 'pendiente':
                     try:
                         with transaction.atomic():
-                            participacion.estado = 'rechazada'
+                            participacion.estado = 'rechazado'
                             participacion.fecha_confirmacion = timezone.now().date()
                             participacion.save()
 
@@ -2910,7 +2910,7 @@ def rechazar_solicitud_obligatoria(request, participacion_id):
             if participacion.estado == 'pendiente':
                 try:
                     with transaction.atomic():
-                        participacion.estado = 'rechazada'
+                        participacion.estado = 'rechazado'
                         participacion.fecha_confirmacion = timezone.now().date()
                         participacion.save()
 
@@ -3482,6 +3482,244 @@ def resumen_curso_finalizado(request, curso_id):
 
 
 @login_required
+def reports_view(request):
+    """
+    Vista para mostrar reportes avanzados con gráficos.
+    Incluye estadísticas de cursos, empleados, departamentos y encuestas.
+    """
+    logger.info(f"El usuario '{request.user.username}' ha accedido a la vista de reportes.")
+
+    # --- Datos para gráfico de participación por tipo de curso ---
+    course_type_participation = Participacion.objects.values('curso__tipo').annotate(
+        count=Count('id')
+    ).order_by('curso__tipo')
+
+    if course_type_participation:
+        course_types = [item['curso__tipo'] for item in course_type_participation]
+        course_counts = [item['count'] for item in course_type_participation]
+    else:
+        course_types = ['Sin datos']
+        course_counts = [0]
+
+    # --- Datos para gráfico de estado de formación de empleados ---
+    employee_training_status = Participacion.objects.values('estado').annotate(
+        count=Count('id')
+    ).order_by('estado')
+
+    if employee_training_status:
+        choices_dict = dict(ESTADO_PARTICIPACION_CHOICES)
+        status_labels = [choices_dict.get(item['estado'], item['estado']) for item in employee_training_status]
+        status_counts = [item['count'] for item in employee_training_status]
+    else:
+        status_labels = ['Sin datos']
+        status_counts = [0]
+
+    # --- Datos para gráfico de horas de formación por departamento ---
+    department_hours = Participacion.objects.filter(
+        estado__in=['completado', 'asistido']
+    ).values('empleado__departamento__nombre').annotate(
+        total_hours=Sum('curso__duracion_horas')
+    ).order_by('-total_hours')
+
+    if department_hours:
+        dept_names = [item['empleado__departamento__nombre'] for item in department_hours if item['empleado__departamento__nombre']]
+        dept_hours = [float(item['total_hours'] or 0) for item in department_hours if item['empleado__departamento__nombre']]
+    else:
+        dept_names = ['Sin datos']
+        dept_hours = [0]
+
+    # --- Datos para gráfico de satisfacción de encuestas ---
+    survey_averages = EncuestaSatisfaccion.objects.aggregate(
+        avg_contenido=Avg('opinion_contenido_curso'),
+        avg_profesor=Avg('conocimientos_profesor'),
+        avg_general=Avg('gusto_general_curso'),
+        avg_mejora=Avg('mejora_conocimientos_carrera'),
+        avg_habilidades=Avg('adquisicion_habilidades_puesto')
+    )
+
+    survey_labels = ['Contenido del Curso', 'Conocimientos del Profesor', 'Gusto General', 'Mejora de Conocimientos', 'Adquisición de Habilidades']
+    survey_values = [
+        round(survey_averages['avg_contenido'] or 0, 1),
+        round(survey_averages['avg_profesor'] or 0, 1),
+        round(survey_averages['avg_general'] or 0, 1),
+        round(survey_averages['avg_mejora'] or 0, 1),
+        round(survey_averages['avg_habilidades'] or 0, 1)
+    ]
+
+    # --- Datos para gráfico de niveles MECES de titulaciones ---
+    # Contar el nivel más alto por empleado para todos los empleados
+    max_level_subquery = Titulacion.objects.filter(empleado=OuterRef('pk')).annotate(
+        max_level=Max(
+            Case(
+                When(nivel_meces='nivel_0', then=Value(0)),
+                When(nivel_meces='nivel_1', then=Value(1)),
+                When(nivel_meces='nivel_2', then=Value(2)),
+                When(nivel_meces='nivel_3', then=Value(3)),
+                When(nivel_meces='nivel_4', then=Value(4)),
+                default=Value(-1),  # for otro_meces
+                output_field=IntegerField()
+            )
+        )
+    ).values('max_level')[:1]
+
+    employees = Empleado.objects.annotate(
+        max_meces=Case(
+            When(pk__in=Titulacion.objects.values('empleado').distinct(), then=Subquery(max_level_subquery, output_field=IntegerField())),
+            default=Value(-2),
+            output_field=IntegerField()
+        )
+    )
+
+    meces_levels = employees.values('max_meces').annotate(count=Count('id')).order_by('max_meces')
+
+    # Map back to labels
+    nivel_map = {
+        0: 'nivel_0',
+        1: 'nivel_1',
+        2: 'nivel_2',
+        3: 'nivel_3',
+        4: 'nivel_4',
+        -1: 'otro_meces',
+        -2: 'sin_titulo'
+    }
+
+    if meces_levels:
+        meces_labels = []
+        meces_counts = []
+        for item in meces_levels:
+            nivel_key = nivel_map.get(item['max_meces'], 'otro_meces')
+            if nivel_key == 'sin_titulo':
+                label = 'Sin título MECES'
+            else:
+                label = dict(NIVEL_MECES_CHOICES).get(nivel_key, nivel_key)
+            meces_labels.append(label)
+            meces_counts.append(item['count'])
+    else:
+        meces_labels = ['Sin datos']
+        meces_counts = [0]
+
+    # Calculate percentages
+    total_employees = Empleado.objects.filter(es_empleado_activo=True).count()
+    meces_percentages = [(count / total_employees * 100) if total_employees > 0 else 0 for count in meces_counts]
+    #meces_labels_with_info = [f"{label} ({count}, {perc:.1f}%)" for label, count, perc in zip(meces_labels, meces_counts, meces_percentages)]
+    meces_labels_with_info = [f"{label} ({perc:.1f}%)" for label, count, perc in zip(meces_labels, meces_counts, meces_percentages)]
+
+    # --- Estadísticas generales ---
+    total_employees = Empleado.objects.filter(es_empleado_activo=True).count()
+    total_courses = Curso.objects.count()
+    total_participations = Participacion.objects.count()
+    completed_participations = Participacion.objects.filter(estado='completado').count()
+    total_surveys = EncuestaSatisfaccion.objects.count()
+
+    # ✨ --- Estadísticas de certificaciones ITIL ---
+    empleados_con_itil = Empleado.objects.filter(
+        es_empleado_activo=True,
+        titulaciones__nombre__icontains='ITIL'
+        #titulaciones__estado='aprobado'
+    ).distinct().count()
+
+    # Calcular porcentaje de empleados con ITIL
+    porcentaje_itil = round(
+        (empleados_con_itil / total_employees * 100) if total_employees > 0 else 0,
+        1
+    )
+
+    # ✨ --- Estadísticas de certificaciones ITIL excluyendo Service Desk ---
+    empleados_con_itil_sin_sd = Empleado.objects.filter(
+        es_empleado_activo=True,
+        titulaciones__nombre__icontains='ITIL'
+        #titulaciones__estado='aprobado'
+    ).exclude(departamento__nombre='SD').distinct().count()
+
+    # Total empleados excluyendo Service Desk
+    total_employees_sin_sd = Empleado.objects.filter(es_empleado_activo=True).exclude(departamento__nombre='SD').count()
+
+    # Calcular porcentaje de empleados con ITIL excluyendo Service Desk
+    porcentaje_itil_sin_sd = round(
+        (empleados_con_itil_sin_sd / total_employees_sin_sd * 100) if total_employees_sin_sd > 0 else 0,
+        1
+    )
+
+    # 📊 Desglose detallado por niveles ITIL (opcional)
+    itil_breakdown = {
+        'foundation': Empleado.objects.filter(
+            es_empleado_activo=True,
+            titulaciones__nombre__iregex=r'ITIL.*Foundation',
+            titulaciones__estado='aprobado'
+        ).distinct().count(),
+
+        'practitioner': Empleado.objects.filter(
+            es_empleado_activo=True,
+            titulaciones__nombre__iregex=r'ITIL.*Practitioner',
+            titulaciones__estado='aprobado'
+        ).distinct().count(),
+
+        'expert': Empleado.objects.filter(
+            es_empleado_activo=True,
+            titulaciones__nombre__iregex=r'ITIL.*(Expert|Master)',
+            titulaciones__estado='aprobado'
+        ).distinct().count(),
+    }
+
+    # --- Datos para gráfico de distribución de empleados por departamento ---
+    dept_employee_counts = Empleado.objects.filter(es_empleado_activo=True).values('departamento__nombre').annotate(
+        count=Count('id')
+    ).order_by('-count')
+
+    if dept_employee_counts:
+        dept_employee_names = [item['departamento__nombre'] for item in dept_employee_counts if item['departamento__nombre']]
+        dept_employee_counts_list = [item['count'] for item in dept_employee_counts if item['departamento__nombre']]
+    else:
+        dept_employee_names = ['Sin datos']
+        dept_employee_counts_list = [0]
+
+    # --- Datos para gráfico de cursos por modalidad ---
+    modality_counts = Curso.objects.values('modalidad').annotate(count=Count('id')).order_by('modalidad')
+
+    if modality_counts:
+        modality_labels = [dict(MODALIDAD_CURSO_CHOICES).get(item['modalidad'], item['modalidad']) for item in modality_counts]
+        modality_counts_list = [item['count'] for item in modality_counts]
+    else:
+        modality_labels = ['Sin datos']
+        modality_counts_list = [0]
+
+    context = {
+        'course_types_json': json.dumps(course_types),
+        'course_counts_json': json.dumps(course_counts),
+        'status_labels_json': json.dumps(status_labels),
+        'status_counts_json': json.dumps(status_counts),
+        'dept_names_json': json.dumps(dept_names),
+        'dept_hours_json': json.dumps(dept_hours),
+        'survey_labels_json': json.dumps(survey_labels),
+        'survey_values_json': json.dumps(survey_values),
+        'meces_labels_json': json.dumps(meces_labels_with_info),
+        'meces_counts_json': json.dumps(meces_counts),
+        'dept_employee_names_json': json.dumps(dept_employee_names),
+        'dept_employee_counts_json': json.dumps(dept_employee_counts_list),
+        'modality_labels_json': json.dumps(modality_labels),
+        'modality_counts_json': json.dumps(modality_counts_list),
+        'stats': {
+            'total_employees': total_employees,
+            'total_courses': total_courses,
+            'total_participations': total_participations,
+            'completed_participations': completed_participations,
+            'completion_rate': round((completed_participations / total_participations * 100) if total_participations > 0 else 0, 1),
+            'total_surveys': total_surveys,
+            # ✨ Nuevas métricas ITIL
+            'empleados_con_itil': empleados_con_itil,
+            'porcentaje_itil': porcentaje_itil,
+            'empleados_con_itil_sin_sd': empleados_con_itil_sin_sd,
+            'porcentaje_itil_sin_sd': porcentaje_itil_sin_sd,
+            'total_employees_sin_sd': total_employees_sin_sd,
+            'itil_breakdown': itil_breakdown,
+        }
+    }
+
+    return render(request, 'formacion/reports.html', context)
+
+
+
+@login_required
 def serve_protected_titulacion(request, filename):
     """
     Vista para servir un archivo de titulación de forma segura.
@@ -3512,7 +3750,7 @@ def serve_protected_titulacion(request, filename):
         mime_type, _ = mimetypes.guess_type(file_path)
         if not mime_type:
             mime_type = 'application/octet-stream'
-            
+
         response = FileResponse(open(file_path, 'rb'), content_type=mime_type)
         response['Content-Disposition'] = f'inline; filename="{os.path.basename(file_path)}"'
         return response
