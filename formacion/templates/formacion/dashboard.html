@@ -157,6 +157,14 @@
                             <i class="bi bi-clipboard-data-fill"></i> Ver estado general
                         </a>
                     </div>
+                    <div class="dashboard-card card-rrhh">
+                        <span class="card-icon">📝</span>
+                        <h3 class="card-title">Solicitudes de Formación</h3>
+                        <p class="card-description">Revisa y gestiona las solicitudes de formación enviadas por los coordinadores.</p>
+                        <a href="{% url 'formacion:solicitudes_curso_gestion' %}" class="card-link">
+                            <i class="bi bi-list-check"></i> Ver Solicitudes
+                        </a>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -231,8 +239,8 @@
                 </a>
             </div>
             <div class="dashboard-card card-rrhh">
-                <span class="card-icon">📋</span>
-                <h3 class="card-title">Solicitudes de Curso</h3>
+                <span class="card-icon">📝</span>
+                <h3 class="card-title">Solicitudes de Formación</h3>
                 <p class="card-description">Revisa y gestiona las solicitudes de formación enviadas por los coordinadores.</p>
                 <a href="{% url 'formacion:solicitudes_curso_gestion' %}" class="card-link">
                     <i class="bi bi-list-check"></i> Ver Solicitudes

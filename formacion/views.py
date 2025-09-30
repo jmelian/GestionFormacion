@@ -2369,9 +2369,9 @@ class SolicitudesCursoGestionListView(LoginRequiredMixin, UserPassesTestMixin, L
 
     def test_func(self):
         """
-        Verifica si el usuario pertenece a los grupos de 'Formación' o 'Dirección'.
+        Verifica si el usuario pertenece a los grupos de 'Formación', 'Dirección' o es coordinador.
         """
-        return es_formacion_o_direccion(self.request.user)
+        return es_formacion_o_direccion(self.request.user) or es_coordinador(self.request.user)
 
     def handle_no_permission(self):
         """

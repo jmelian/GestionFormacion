@@ -26,7 +26,7 @@
                     <th class="text-center">Carácter</th>
                     <th class="text-center">Nº Part.</th>
                     <th class="text-center">Estado</th>
-                    <th class="text-center">Acciones</th>
+                    {% if not es_coordinador %}<th class="text-center">Acciones</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -59,12 +59,14 @@
                             {{ solicitud.get_estado_display }}
                         </span>
                     </td>
+                    {% if not es_coordinador %}
                     <td class="text-center">
                         {# Usa la clase general btn-action con btn-action-participants para este botón de "Ver Detalle" #}
                         <a href="{% url 'formacion:detalle_solicitud_curso' pk=solicitud.pk %}" class="btn-action btn-action-participants" title="Ver Detalle">
                             <i class="bi bi-eye-fill"></i>{# El texto "Ver Detalle" se omite para usar solo el icono, como en tus otros btn-action #}
                         </a>
                     </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
