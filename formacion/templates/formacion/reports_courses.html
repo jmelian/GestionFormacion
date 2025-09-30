@@ -1,0 +1,67 @@
+{% comment %}Dashboard 3: Courses (Análisis de Cursos){% endcomment %}
+<div id="dashboard-courses" class="dashboard-section active">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <i class="bi bi-book"></i>
+            Análisis de Cursos
+        </div>
+        <p class="dashboard-description">Perspectiva centrada en la oferta formativa y tendencias temporales</p>
+    </div>
+
+    <!-- Tarjeta de Cursos Totales -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-book-fill stat-icon text-success"></i>
+                    <h3 class="stat-number">{{ stats.total_courses }}</h3>
+                    <p class="stat-label">Cursos Totales</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos de Cursos -->
+    <div class="row">
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Cursos por Modalidad
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="coursesModalityChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-star-fill me-2"></i>Cursos Más Populares (por Preselecciones y Participaciones)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="popularCoursesChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Cursos por Mes en {{ selected_year }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="coursesPerMonthChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

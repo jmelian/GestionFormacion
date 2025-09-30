@@ -3571,9 +3571,12 @@ def reports_view(request):
     """
     Vista para mostrar reportes avanzados con gráficos.
     Incluye estadísticas de cursos, empleados, departamentos y encuestas.
-    Permite filtrar por año.
+    Permite filtrar por año y seleccionar dashboard.
     """
     logger.info(f"El usuario '{request.user.username}' ha accedido a la vista de reportes.")
+
+    # Obtener el dashboard seleccionado, por defecto 'overview'
+    active_dashboard = request.GET.get('dashboard', 'overview')
 
     # Obtener el año seleccionado, por defecto el año actual
     selected_year = request.GET.get('year')
@@ -3950,6 +3953,7 @@ def reports_view(request):
         }]
 
     context = {
+        'active_dashboard': active_dashboard,
         'course_types_json': json.dumps(course_types),
         'course_counts_json': json.dumps(course_counts),
         'status_labels_json': json.dumps(status_labels),

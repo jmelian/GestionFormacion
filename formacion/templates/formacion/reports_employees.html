@@ -1,0 +1,84 @@
+{% comment %}Dashboard 2: Employees (Análisis de Empleados){% endcomment %}
+<div id="dashboard-employees" class="dashboard-section active">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <i class="bi bi-people"></i>
+            Análisis de Empleados
+        </div>
+        <p class="dashboard-description">Vista enfocada en la composición y cualificación del personal</p>
+    </div>
+
+    <!-- Tarjetas de Certificaciones -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-check stat-icon text-success"></i>
+                    <h3 class="stat-number">{{ stats.porcentaje_itil }}%</h3>
+                    <p class="stat-label">Con Cert. ITIL</p>
+                    <small class="text-muted">{{ stats.empleados_con_itil }}/{{ stats.total_employees }}</small>
+
+                    {% if stats.itil_breakdown %}
+                    <div class="mt-2">
+                        {% if stats.itil_breakdown.foundation > 0 %}
+                            <small class="badge bg-info text-white me-1" title="ITIL Foundation">
+                                F: {{ stats.itil_breakdown.foundation }}
+                            </small>
+                        {% endif %}
+                        {% if stats.itil_breakdown.practitioner > 0 %}
+                            <small class="badge bg-warning text-dark me-1" title="ITIL Practitioner">
+                                P: {{ stats.itil_breakdown.practitioner }}
+                            </small>
+                        {% endif %}
+                        {% if stats.itil_breakdown.expert > 0 %}
+                            <small class="badge bg-danger text-white" title="ITIL Expert/Master">
+                                E: {{ stats.itil_breakdown.expert }}
+                            </small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-exclamation stat-icon text-warning"></i>
+                    <h3 class="stat-number">{{ stats.porcentaje_itil_sin_sd }}%</h3>
+                    <p class="stat-label">ITIL (sin SD)</p>
+                    <small class="text-muted">{{ stats.empleados_con_itil_sin_sd }}/{{ stats.total_employees_sin_sd }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos de Empleados -->
+    <div class="row">
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-people me-2"></i>Distribución de Empleados por Departamento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="employeeDepartmentChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-diagram-3 me-2"></i>Distribución de Niveles MECES
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="mecesLevelsChart" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
