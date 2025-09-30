@@ -1,0 +1,66 @@
+{# formacion/solicitud_rechazar_confirm.html #}
+
+{% extends 'base.html' %}
+
+{% block title %}Rechazar Solicitud de Curso: {{ solicitud.titulo_curso_solicitado }}{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-x-circle-fill me-2"></i> Rechazar Solicitud de Curso</h1>
+        <div class="page-description">
+            Proporciona el motivo del rechazo para la solicitud de curso.
+        </div>
+    </div>
+
+    <div class="card modern-card">
+        <div class="card-header">
+            <h5>Solicitud: {{ solicitud.titulo_curso_solicitado }}</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.motivo_rechazo.label_tag }}
+                    {{ form.motivo_rechazo }}
+                    {% if form.motivo_rechazo.errors %}
+                        <div class="invalid-feedback d-block">{{ form.motivo_rechazo.errors }}</div>
+                    {% endif %}
+                    <div class="form-text">{{ form.motivo_rechazo.help_text }}</div>
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'formacion:detalle_solicitud_curso' pk=solicitud.pk %}" class="btn-secondary-action">
+                        <i class="bi bi-arrow-left-circle-fill me-1"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn-primary-action btn-danger-action">
+                        <i class="bi bi-x-circle-fill me-1"></i> Rechazar Solicitud
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-danger-action {
+        background: linear-gradient(135deg, #ef4444, #f59e0b);
+        color: #fff !important;
+        border: none;
+        box-shadow: 0 5px 15px rgba(239,68,68,0.15);
+        text-decoration: none !important;
+    }
+    .btn-danger-action:hover {
+        background: linear-gradient(135deg, #b91c1c, #d97706);
+        color: #fff !important;
+        text-decoration: none !important;
+    }
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875em;
+    }
+    .form-text {
+        color: #6c757d;
+        font-size: 0.875em;
+    }
+</style>
+{% endblock %}
