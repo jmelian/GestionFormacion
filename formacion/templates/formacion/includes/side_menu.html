@@ -1,0 +1,73 @@
+{% load static %}
+<div class="side-menu">
+    <div class="side-menu-header">
+        <h5 class="side-menu-title">
+            <i class="bi bi-menu-button-wide me-2"></i>Panel de Control
+        </h5>
+    </div>
+    <nav class="side-menu-nav">
+        <a href="{% url 'formacion:dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="bi bi-house-door me-2"></i>Dashboard Principal
+        </a>
+
+        {% if es_formacion or es_direccion or es_admin %}
+        <a href="{% url 'formacion:reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+            <i class="bi bi-bar-chart-line me-2"></i>Reportes
+        </a>
+        {% endif %}
+
+        {% if es_formacion or es_rrhh or es_direccion or es_admin %}
+        <a href="{% url 'formacion:estado_cursos' %}" class="nav-item {% if request.resolver_match.url_name == 'estado_cursos' %}active{% endif %}">
+            <i class="bi bi-clipboard-data me-2"></i>Estado de Cursos
+        </a>
+        {% endif %}
+
+        {% if es_formacion or es_direccion or es_admin %}
+        <a href="{% url 'formacion:gestion_cursos_list' %}" class="nav-item {% if request.resolver_match.url_name == 'gestion_cursos_list' %}active{% endif %}">
+            <i class="bi bi-plus-circle me-2"></i>Gestión de Cursos
+        </a>
+        {% endif %}
+
+        {% if es_rrhh or es_admin %}
+        <a href="{% url 'formacion:empleados_con_formacion' %}" class="nav-item {% if request.resolver_match.url_name == 'empleados_con_formacion' %}active{% endif %}">
+            <i class="bi bi-people me-2"></i>Empleados
+        </a>
+        {% endif %}
+
+        {% if es_rrhh or es_admin %}
+        <a href="{% url 'formacion:titulaciones_pendientes_rrhh' %}" class="nav-item {% if request.resolver_match.url_name == 'titulaciones_pendientes_rrhh' %}active{% endif %}">
+            <i class="bi bi-patch-check me-2"></i>Validación de Certificados
+        </a>
+        {% endif %}
+
+        {% if es_formacion or es_direccion %}
+        <a href="{% url 'formacion:confirmar_preseleccionados_lista' %}" class="nav-item {% if request.resolver_match.url_name == 'confirmar_preseleccionados_lista' %}active{% endif %}">
+            <i class="bi bi-list-check me-2"></i>Preselecciones
+        </a>
+        {% endif %}
+
+        {% if es_formacion or es_direccion %}
+        <a href="{% url 'formacion:solicitudes_curso_gestion' %}" class="nav-item {% if request.resolver_match.url_name == 'solicitudes_curso_gestion' %}active{% endif %}">
+            <i class="bi bi-send me-2"></i>Solicitudes de Cursos
+        </a>
+        {% endif %}
+
+        {% if es_coordinador %}
+        <a href="{% url 'formacion:equipo_departamento' %}" class="nav-item {% if request.resolver_match.url_name == 'equipo_departamento' %}active{% endif %}">
+            <i class="bi bi-diagram-3 me-2"></i>Mi Equipo
+        </a>
+        {% endif %}
+
+        {% if es_empleado %}
+        <a href="{% url 'formacion:mis_cursos' %}" class="nav-item {% if request.resolver_match.url_name == 'mis_cursos' %}active{% endif %}">
+            <i class="bi bi-journal-bookmark me-2"></i>Mis Cursos
+        </a>
+        {% endif %}
+
+        {% if es_empleado %}
+        <a href="{% url 'formacion:mis_titulaciones_list' %}" class="nav-item {% if request.resolver_match.url_name == 'mis_titulaciones_list' %}active{% endif %}">
+            <i class="bi bi-mortarboard me-2"></i>Mis Titulaciones
+        </a>
+        {% endif %}
+    </nav>
+</div>

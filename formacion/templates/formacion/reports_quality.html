@@ -1,0 +1,52 @@
+{% comment %}Dashboard 5: Quality (Calidad y Satisfacción){% endcomment %}
+<div id="dashboard-quality" class="dashboard-section active">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <i class="bi bi-star"></i>
+            Calidad y Satisfacción
+        </div>
+        <p class="dashboard-description">Evaluación de la efectividad y percepción de la formación</p>
+    </div>
+
+    <!-- Tarjeta de Encuestas -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-chat-quote-fill stat-icon text-secondary"></i>
+                    <h3 class="stat-number">{{ stats.total_surveys }}</h3>
+                    <p class="stat-label">Encuestas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos de Satisfacción -->
+    <div class="row">
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-star-fill me-2"></i>Satisfacción Promedio (1-5)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="surveySatisfactionChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-star-fill me-2"></i>Satisfacción por Curso (Promedio 1-5)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="courseSatisfactionChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

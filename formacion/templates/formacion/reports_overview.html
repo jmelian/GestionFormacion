@@ -1,0 +1,97 @@
+{% comment %}Dashboard 1: Overview (Dashboard de Reportes){% endcomment %}
+<div id="dashboard-overview" class="dashboard-section active">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <i class="bi bi-speedometer2"></i>
+            Dashboard de Reportes
+        </div>
+        <p class="dashboard-description">Resumen ejecutivo con indicadores clave de rendimiento</p>
+    </div>
+
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill stat-icon text-primary"></i>
+                    <h3 class="stat-number">{{ stats.total_employees }}</h3>
+                    <p class="stat-label">Empleados Activos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-book-fill stat-icon text-success"></i>
+                    <h3 class="stat-number">{{ stats.total_courses }}</h3>
+                    <p class="stat-label">Cursos Totales</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-check-fill stat-icon text-info"></i>
+                    <h3 class="stat-number">{{ stats.total_participations }}</h3>
+                    <p class="stat-label">Participaciones</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-trophy-fill stat-icon text-warning"></i>
+                    <h3 class="stat-number">{{ stats.completed_participations }}</h3>
+                    <p class="stat-label">Completadas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-percent stat-icon text-danger"></i>
+                    <h3 class="stat-number">{{ stats.completion_rate }}%</h3>
+                    <p class="stat-label">Tasa de Finalización</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history stat-icon text-info"></i>
+                    <h3 class="stat-number">{{ stats.average_hours_per_employee }}</h3>
+                    <p class="stat-label">Horas Promedio de Formación por Empleado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos de Resumen -->
+    <div class="row">
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Participación por Tipo de Curso
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="courseTypeChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pie-chart me-2"></i>Estado de Formación de Empleados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trainingStatusChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

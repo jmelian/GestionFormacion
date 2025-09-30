@@ -1,0 +1,39 @@
+{% comment %}Dashboard 4: Participation (Participación y Rendimiento){% endcomment %}
+<div id="dashboard-participation" class="dashboard-section active">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <i class="bi bi-graph-up"></i>
+            Participación y Rendimiento
+        </div>
+        <p class="dashboard-description">Análisis del compromiso y actividad formativa por área organizacional</p>
+    </div>
+
+    <!-- Gráficos de Participación -->
+    <div class="row">
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>Horas de Formación por Departamento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="departmentHoursChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Estado de Solicitudes de Cursos por Departamento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="solicitudStatusChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
