@@ -10,7 +10,8 @@ from django.contrib.auth.models import Group
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from datetime import date
-from django.db.models import Count, Q, Prefetch, Avg, Sum, Case, When, Value, IntegerField, Max, Subquery, OuterRef
+from django.db.models import Count, Q, Prefetch, Avg, Sum, Case, When, Value, IntegerField, Max, Subquery, OuterRef, F
+from django.db.models.functions import ExtractMonth
 from django.contrib.auth import logout
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -18,6 +19,7 @@ from django.views.generic import ListView, CreateView, DetailView, UpdateView, D
 from django.urls import reverse_lazy, reverse
 from django.template.loader import render_to_string # Para renderizar el contenido del email
 from django.utils.html import strip_tags
+from django.core.mail import send_mail
 from django import forms
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.transaction import TransactionManagementError
@@ -2079,16 +2081,29 @@ def crear_editar_curso(request, curso_id=None):
     Vista para crear o editar un curso.
 
     Si se proporciona un `curso_id`, se recupera un objeto Curso existente para editar.
+    Si se proporciona un `solicitud_id` en GET, se pre-llena el formulario con datos de la solicitud.
     De lo contrario, se prepara la vista para la creación de un nuevo curso.
     """
     curso = None
+    solicitud = None
     if curso_id:
         # Si se recibe un ID, intentamos obtener el curso. Si no existe, Django
         # mostrará un error 404.
         curso = get_object_or_404(Curso, id=curso_id)
         logger.info(f"El usuario '{request.user.username}' está editando el curso con ID {curso_id}.")
     else:
-        logger.info(f"El usuario '{request.user.username}' está creando un nuevo curso.")
+        # Verificar si se proporciona solicitud_id para pre-llenar
+        solicitud_id = request.GET.get('solicitud_id')
+        if solicitud_id:
+            try:
+                solicitud = get_object_or_404(SolicitudCurso, id=solicitud_id, estado='en_proceso')
+                logger.info(f"El usuario '{request.user.username}' está creando un curso basado en la solicitud ID {solicitud_id}.")
+            except Exception as e:
+                logger.error(f"Error al obtener la solicitud con ID '{solicitud_id}': {e}", exc_info=True)
+                messages.error(request, "La solicitud especificada no existe o no está en estado procesable.")
+                return redirect('formacion:solicitudes_curso_gestion')
+        else:
+            logger.info(f"El usuario '{request.user.username}' está creando un nuevo curso.")
 
     if request.method == 'POST':
         # Si la solicitud es POST, el usuario está enviando los datos del formulario.
@@ -2103,9 +2118,20 @@ def crear_editar_curso(request, curso_id=None):
                 messages.success(request, f"El curso '{saved_curso.nombre}' ha sido actualizado correctamente.")
                 logger.info(f"Curso '{saved_curso.nombre}' (ID: {saved_curso.id}) actualizado por '{request.user.username}'.")
             else:
-                messages.success(request, f"El curso '{saved_curso.nombre}' ha sido creado correctamente.")
-                logger.info(f"Curso '{saved_curso.nombre}' (ID: {saved_curso.id}) creado por '{request.user.username}'.")
-            
+                # Si se creó un curso basado en una solicitud, aprobar la solicitud
+                if solicitud:
+                    with transaction.atomic():
+                        solicitud.estado = 'aprobada'
+                        solicitud.save()
+                        # Opcional: link the curso to the solicitud if needed
+                        # saved_curso.solicitud_origen = solicitud
+                        # saved_curso.save()
+                        messages.success(request, f"El curso '{saved_curso.nombre}' ha sido creado y la solicitud aprobada correctamente.")
+                        logger.info(f"Curso '{saved_curso.nombre}' (ID: {saved_curso.id}) creado y solicitud '{solicitud.id}' aprobada por '{request.user.username}'.")
+                else:
+                    messages.success(request, f"El curso '{saved_curso.nombre}' ha sido creado correctamente.")
+                    logger.info(f"Curso '{saved_curso.nombre}' (ID: {saved_curso.id}) creado por '{request.user.username}'.")
+
             # Redirige a la lista de gestión de cursos tras el éxito.
             return redirect('formacion:gestion_cursos_list')
         else:
@@ -2113,12 +2139,21 @@ def crear_editar_curso(request, curso_id=None):
             # se renderiza de nuevo la página con los errores del formulario.
             messages.error(request, "Error al guardar el curso. Revisa los datos.")
             logger.warning(f"Error de validación del formulario al intentar guardar un curso por '{request.user.username}'. Errores: {form.errors}")
-            return render(request, 'formacion/crear_editar_curso.html', {'form': form, 'curso': curso})
+            return render(request, 'formacion/crear_editar_curso.html', {'form': form, 'curso': curso, 'solicitud': solicitud})
     else:
         # Si la solicitud es GET, se inicializa el formulario.
         # Si estamos editando, el formulario se precarga con los datos del curso.
-        # Si estamos creando, el formulario estará vacío.
-        form = CursoForm(instance=curso)
+        # Si hay solicitud, pre-llenar con datos de la solicitud.
+        initial_data = {}
+        if solicitud:
+            initial_data = {
+                'nombre': solicitud.titulo_curso_solicitado,
+                'contenido': solicitud.objetivo_curso,
+                'duracion_horas': solicitud.duracion_estimada,
+                'modalidad': solicitud.formato_preferido,
+                'departamento_solicitante': solicitud.departamento_solicitante,
+            }
+        form = CursoForm(instance=curso, initial=initial_data)
         logger.debug(f"Formulario de curso inicializado para '{request.user.username}'.")
 
     # Renderiza la plantilla con el formulario y, si existe, el objeto curso.
@@ -2217,8 +2252,8 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
         form.instance.solicitante = self.request.user
         
         # Intenta asignar el departamento del usuario si existe
-        if hasattr(self.request.user, 'empleado') and self.request.user.empleado.departamento:
-            form.instance.departamento_solicitante = self.request.user.empleado.departamento
+        if self.request.user.departamento:
+            form.instance.departamento_solicitante = self.request.user.departamento
         else:
             # Si no se puede determinar el departamento, se registra un error
             error_message = "No se pudo determinar el departamento del solicitante."
@@ -2274,14 +2309,14 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
                         id=solicitud_curso.solicitante.id
                     ).exclude(
                         id__in=usuarios_notificados_ids
-                    ).select_related('user') # Optimiza la consulta
+                    )
 
                     for usuario_grupo in usuarios_del_grupo:
                         Notificacion.objects.create(
                             usuario=usuario_grupo,
                             mensaje=mensaje,
                             tipo=tipo_notificacion,
-                            url=reverse_lazy('formacion:solicitudes_curso_pendientes_rrhh')
+                            url=reverse_lazy('formacion:solicitudes_curso_gestion')
                         )
                         usuarios_notificados_ids.add(usuario_grupo.id)
                     
@@ -2301,14 +2336,14 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
                 id__in=usuarios_notificados_ids
             ).exclude(
                 id=solicitud_curso.solicitante.id
-            ).distinct().select_related('user')
+            ).distinct()
 
             for admin_user in super_usuarios:
                 Notificacion.objects.create(
                     usuario=admin_user,
                     mensaje=mensaje,
                     tipo=tipo_notificacion,
-                    url=reverse_lazy('formacion:solicitudes_curso_pendientes_rrhh')
+                    url=reverse_lazy('formacion:solicitudes_curso_gestion')
                 )
                 usuarios_notificados_ids.add(admin_user.id)
             
@@ -2350,15 +2385,18 @@ class SolicitudesCursoGestionListView(LoginRequiredMixin, UserPassesTestMixin, L
     def get_queryset(self):
         """
         Obtiene el conjunto de solicitudes a mostrar.
-        
-        Filtra las solicitudes por los estados 'pendiente', 'aprobada' o 'en_proceso'
+
+        Filtra las solicitudes por los estados 'pendiente', 'aprobada', 'en_proceso' o 'rechazada'
         y las ordena por fecha de solicitud descendente.
         """
         try:
             queryset = SolicitudCurso.objects.filter(
-                estado__in=['pendiente', 'aprobada', 'en_proceso']
+                estado__in=['pendiente', 'aprobada', 'en_proceso', 'rechazada']
             ).order_by('-fecha_solicitud')
             logger.info(f"Mostrando {queryset.count()} solicitudes de curso activas para el usuario '{self.request.user.username}'.")
+            # Log the state of each solicitud for debugging
+            for solicitud in queryset:
+                logger.info(f"Solicitud ID {solicitud.id}: '{solicitud.titulo_curso_solicitado}' - Estado: '{solicitud.estado}' - Solicitante: '{solicitud.solicitante.username}'")
             return queryset
         except Exception as e:
             logger.error(f"Error al obtener el queryset de solicitudes para '{self.request.user.username}': {e}", exc_info=True)
@@ -2457,7 +2495,7 @@ class NotificacionMixin:
         context = {
             'solicitud': solicitud,
             'dominio': self.request.get_host(),
-            'solicitud_url': self.request.build_absolute_uri(
+            'link_dashboard': self.request.build_absolute_uri(
                 reverse_lazy('formacion:dashboard')
             ),
         }
@@ -2491,32 +2529,38 @@ class AceptarSolicitudView(SolicitudCursoAccionBase, NotificacionMixin):
     def form_valid(self, form):
         """
         Se ejecuta cuando el formulario es válido.
-        
+
         Actualiza el estado de la solicitud y envía la notificación.
         """
         solicitud = self.get_object()
-        
+        logger.info(f"DEBUG: AceptarSolicitudView.form_valid() - Solicitud ID: {solicitud.pk}, Estado actual: {solicitud.estado}, Usuario: {self.request.user.username}")
+
         # Validación para evitar procesar solicitudes ya finalizadas
         if solicitud.estado in ['aprobada', 'rechazada']:
+            logger.warning(f"DEBUG: Solicitud '{solicitud.pk}' ya procesada (estado: {solicitud.estado}), no se puede aprobar")
             messages.error(self.request, "Esta solicitud ya ha sido procesada y no se puede aprobar.")
             logger.warning(f"Intento de aprobar solicitud '{solicitud.pk}' ya procesada por '{self.request.user.username}'.")
             return redirect(self.get_success_url())
 
+        logger.info(f"DEBUG: Cambiando estado de solicitud '{solicitud.pk}' de '{solicitud.estado}' a 'aprobada'")
         # Actualiza el estado de la solicitud
         solicitud.estado = 'aprobada'
         solicitud.save()
+        logger.info(f"DEBUG: Solicitud '{solicitud.pk}' guardada con estado 'aprobada'")
 
         # Envia la notificación usando el método del Mixin
-        self.enviar_notificacion_a_solicitante(
-            solicitud,
-            f"Tu Solicitud de Curso '{solicitud.titulo_curso_solicitado}' ha sido Aprobada",
-            'formacion/email/solicitud_aprobada.html',
-        )
+        # DESACTIVADO TEMPORALMENTE: self.enviar_notificacion_a_solicitante(
+        #     solicitud,
+        #     f"Tu Solicitud de Curso '{solicitud.titulo_curso_solicitado}' ha sido Aprobada",
+        #     'formacion/email/solicitud_aprobada.html',
+        # )
 
         messages.success(self.request, f"Solicitud '{solicitud.titulo_curso_solicitado}' aceptada correctamente.")
+        logger.info(f"DEBUG: Mensaje de éxito enviado para solicitud '{solicitud.pk}'")
         logger.info(f"Solicitud '{solicitud.pk}' aceptada por el usuario '{self.request.user.username}'.")
-        
+
         # Redirige a la URL de éxito definida en la clase base
+        logger.info(f"DEBUG: Redirigiendo a URL de éxito para solicitud '{solicitud.pk}'")
         return super().form_valid(form)
 
 # Convierte la clase en una vista para usar en urls.py
@@ -2538,61 +2582,93 @@ class RechazarSolicitudView(SolicitudCursoAccionBase, NotificacionMixin):
     def form_valid(self, form):
         """
         Se ejecuta cuando el formulario de rechazo es válido.
-        
+
         Actualiza el estado de la solicitud, guarda el motivo del rechazo y
         envía la notificación.
         """
         solicitud = self.get_object()
-        
+        logger.info(f"DEBUG: RechazarSolicitudView.form_valid() - Solicitud ID: {solicitud.pk}, Estado actual: {solicitud.estado}, Usuario: {self.request.user.username}")
+
         # Validación para evitar procesar solicitudes ya finalizadas
         if solicitud.estado in ['aprobada', 'rechazada']:
+            logger.warning(f"DEBUG: Solicitud '{solicitud.pk}' ya procesada (estado: {solicitud.estado}), no se puede rechazar")
             messages.error(self.request, "Esta solicitud ya ha sido procesada y no se puede rechazar.")
             logger.warning(f"Intento de rechazar solicitud '{solicitud.pk}' ya procesada por '{self.request.user.username}'.")
             return redirect(self.get_success_url())
 
+        logger.info(f"DEBUG: Cambiando estado de solicitud '{solicitud.pk}' de '{solicitud.estado}' a 'rechazada', motivo: '{form.cleaned_data['motivo']}'")
         # Actualiza el estado y el motivo con los datos del formulario
         solicitud.estado = 'rechazada'
         solicitud.motivo_rechazo = form.cleaned_data['motivo']
         solicitud.save()
+        logger.info(f"DEBUG: Solicitud '{solicitud.pk}' guardada con estado 'rechazada' y motivo")
 
         # Envía la notificación al solicitante usando el Mixin.
         # Se incluye el motivo del rechazo como contexto adicional.
-        self.enviar_notificacion_a_solicitante(
-            solicitud,
-            f"Tu Solicitud de Curso '{solicitud.titulo_curso_solicitado}' ha sido Rechazada",
-            'formacion/email/solicitud_rechazada.html',
-            contexto_extra={'motivo_rechazo': solicitud.motivo_rechazo}
-        )
-        
+        # DESACTIVADO TEMPORALMENTE: self.enviar_notificacion_a_solicitante(
+        #     solicitud,
+        #     f"Tu Solicitud de Curso '{solicitud.titulo_curso_solicitado}' ha sido Rechazada",
+        #     'formacion/email/solicitud_rechazada.html',
+        #     contexto_extra={'motivo_rechazo': solicitud.motivo_rechazo}
+        # )
+
         messages.success(self.request, f"Solicitud '{solicitud.titulo_curso_solicitado}' rechazada correctamente.")
+        logger.info(f"DEBUG: Mensaje de éxito enviado para solicitud '{solicitud.pk}'")
         logger.info(f"Solicitud '{solicitud.pk}' rechazada por el usuario '{self.request.user.username}'.")
-        
+
         # Redirige a la URL de éxito definida en la clase base
+        logger.info(f"DEBUG: Redirigiendo a URL de éxito para solicitud '{solicitud.pk}'")
         return redirect(self.get_success_url())
 
 # Convierte la clase en una vista para usar en urls.py
 rechazar_solicitud = RechazarSolicitudView.as_view()
 
 
-class ProcesarSolicitudView(SolicitudCursoAccionBase):
+class ProcesarSolicitudView(SolicitudCursoAccionBase, NotificacionMixin):
     """
-    Cambia el estado de una solicitud a 'completada' (asumiendo que se convierte en curso formal).
-    No envía notificación al coordinador.
+    Cambia el estado de una solicitud a 'en_proceso' para indicar que está siendo atendida.
+    Envía notificación al solicitante.
     """
-    def perform_action(self, solicitud):
-        # Registramos el inicio del procesamiento de la solicitud
-        logger.info(f"Iniciando el procesamiento de la solicitud '{solicitud.pk}' del curso '{solicitud.titulo_curso_solicitado}' para cambiar su estado a 'completada'.")
+    def form_valid(self, form):
+        """
+        Se ejecuta cuando el formulario es válido.
+        Actualiza el estado de la solicitud a 'en_proceso'.
+        """
+        solicitud = self.get_object()
+        logger.info(f"DEBUG: ProcesarSolicitudView.form_valid() - Solicitud ID: {solicitud.pk}, Estado actual: {solicitud.estado}, Usuario: {self.request.user.username}")
 
-        solicitud.estado = 'completada'
-        solicitud.save()
-        
-        # Registramos que el procesamiento ha sido completado con éxito
-        logger.info(f"Solicitud '{solicitud.pk}' del curso '{solicitud.titulo_curso_solicitado}' cambiada a 'completada' con éxito.")
-        
-        # NO se envía notificación al coordinador para esta acción
+        # Validación para evitar procesar solicitudes ya finalizadas
+        if solicitud.estado in ['aprobada', 'rechazada']:
+            logger.warning(f"DEBUG: Solicitud '{solicitud.pk}' ya procesada (estado: {solicitud.estado}), no se puede marcar como en proceso")
+            messages.error(self.request, "Esta solicitud ya ha sido procesada y no se puede marcar como en proceso.")
+            logger.warning(f"Intento de procesar solicitud '{solicitud.pk}' ya procesada por '{self.request.user.username}'.")
+            return redirect(self.get_success_url())
 
-    def get_success_message(self, solicitud):
-        return f"Solicitud '{solicitud.titulo_curso_solicitado}' procesada, asumiendo que se convertirá en curso formal."
+        logger.info(f"DEBUG: Iniciando transacción atómica para solicitud '{solicitud.pk}'")
+        # Actualiza el estado de la solicitud
+        with transaction.atomic():
+            logger.info(f"DEBUG: Cambiando estado de solicitud '{solicitud.pk}' de '{solicitud.estado}' a 'en_proceso'")
+            solicitud.estado = 'en_proceso'
+            solicitud.save()
+            logger.info(f"DEBUG: Solicitud '{solicitud.pk}' guardada con estado 'en_proceso'")
+
+            # Envía la notificación usando el método del Mixin
+            # DESACTIVADO TEMPORALMENTE: self.enviar_notificacion_a_solicitante(
+            #     solicitud,
+            #     f"Tu Solicitud de Curso '{solicitud.titulo_curso_solicitado}' está siendo procesada",
+            #     'formacion/email/solicitud_procesada.html',
+            # )
+
+        messages.success(self.request, f"Solicitud '{solicitud.titulo_curso_solicitado}' marcada como en proceso.")
+        logger.info(f"DEBUG: Mensaje de éxito enviado para solicitud '{solicitud.pk}'")
+        logger.info(f"Solicitud '{solicitud.pk}' procesada por el usuario '{self.request.user.username}'.")
+
+        # Redirige a la URL de éxito definida en la clase base
+        logger.info(f"DEBUG: Redirigiendo a URL de éxito para solicitud '{solicitud.pk}'")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('formacion:detalle_solicitud_curso', kwargs={'pk': self.object.pk})
 
 # Convierte la clase en una vista para usar en urls.py
 procesar_solicitud = ProcesarSolicitudView.as_view()
@@ -3486,11 +3562,27 @@ def reports_view(request):
     """
     Vista para mostrar reportes avanzados con gráficos.
     Incluye estadísticas de cursos, empleados, departamentos y encuestas.
+    Permite filtrar por año.
     """
     logger.info(f"El usuario '{request.user.username}' ha accedido a la vista de reportes.")
 
+    # Obtener el año seleccionado, por defecto el año actual
+    selected_year = request.GET.get('year')
+    if selected_year:
+        try:
+            selected_year = int(selected_year)
+        except ValueError:
+            selected_year = datetime.date.today().year
+    else:
+        selected_year = datetime.date.today().year
+
+    # Obtener años disponibles con datos (solo de cursos)
+    available_years = sorted(set(Participacion.objects.dates('created_at', 'year').values_list('created_at__year', flat=True)))
+    if not available_years:
+        available_years = [selected_year]
+
     # --- Datos para gráfico de participación por tipo de curso ---
-    course_type_participation = Participacion.objects.values('curso__tipo').annotate(
+    course_type_participation = Participacion.objects.filter(created_at__year=selected_year).values('curso__tipo').annotate(
         count=Count('id')
     ).order_by('curso__tipo')
 
@@ -3502,7 +3594,7 @@ def reports_view(request):
         course_counts = [0]
 
     # --- Datos para gráfico de estado de formación de empleados ---
-    employee_training_status = Participacion.objects.values('estado').annotate(
+    employee_training_status = Participacion.objects.filter(created_at__year=selected_year).values('estado').annotate(
         count=Count('id')
     ).order_by('estado')
 
@@ -3516,6 +3608,7 @@ def reports_view(request):
 
     # --- Datos para gráfico de horas de formación por departamento ---
     department_hours = Participacion.objects.filter(
+        created_at__year=selected_year,
         estado__in=['completado', 'asistido']
     ).values('empleado__departamento__nombre').annotate(
         total_hours=Sum('curso__duracion_horas')
@@ -3529,26 +3622,50 @@ def reports_view(request):
         dept_hours = [0]
 
     # --- Datos para gráfico de satisfacción de encuestas ---
-    survey_averages = EncuestaSatisfaccion.objects.aggregate(
-        avg_contenido=Avg('opinion_contenido_curso'),
-        avg_profesor=Avg('conocimientos_profesor'),
-        avg_general=Avg('gusto_general_curso'),
-        avg_mejora=Avg('mejora_conocimientos_carrera'),
-        avg_habilidades=Avg('adquisicion_habilidades_puesto')
-    )
+    total_surveys_check = EncuestaSatisfaccion.objects.count()
+    if total_surveys_check > 0:
+        survey_averages = EncuestaSatisfaccion.objects.aggregate(
+            avg_contenido=Avg('opinion_contenido_curso'),
+            avg_profesor=Avg('conocimientos_profesor'),
+            avg_general=Avg('gusto_general_curso'),
+            avg_mejora=Avg('mejora_conocimientos_carrera'),
+            avg_habilidades=Avg('adquisicion_habilidades_puesto')
+        )
 
-    survey_labels = ['Contenido del Curso', 'Conocimientos del Profesor', 'Gusto General', 'Mejora de Conocimientos', 'Adquisición de Habilidades']
-    survey_values = [
-        round(survey_averages['avg_contenido'] or 0, 1),
-        round(survey_averages['avg_profesor'] or 0, 1),
-        round(survey_averages['avg_general'] or 0, 1),
-        round(survey_averages['avg_mejora'] or 0, 1),
-        round(survey_averages['avg_habilidades'] or 0, 1)
-    ]
+        survey_labels = ['Contenido del Curso', 'Conocimientos del Profesor', 'Gusto General', 'Mejora de Conocimientos', 'Adquisición de Habilidades']
+        survey_values = [
+            round(survey_averages['avg_contenido'] or 0, 1),
+            round(survey_averages['avg_profesor'] or 0, 1),
+            round(survey_averages['avg_general'] or 0, 1),
+            round(survey_averages['avg_mejora'] or 0, 1),
+            round(survey_averages['avg_habilidades'] or 0, 1)
+        ]
+    else:
+        survey_labels = ['Sin datos']
+        survey_values = [0]
+
+    # --- Datos para gráfico de satisfacción por curso ---
+    course_satisfaction = EncuestaSatisfaccion.objects.values('participacion__curso__nombre').annotate(
+        avg_satisfaction=Avg(
+            (F('opinion_contenido_curso') + F('conocimientos_profesor') + F('gusto_general_curso') + F('mejora_conocimientos_carrera') + F('adquisicion_habilidades_puesto')) / 5.0
+        ),
+        survey_count=Count('id')
+    ).order_by('-avg_satisfaction')
+
+    if course_satisfaction:
+        course_satisfaction_labels = [item['participacion__curso__nombre'] for item in course_satisfaction]
+        course_satisfaction_values = [round(item['avg_satisfaction'], 1) for item in course_satisfaction]
+        course_satisfaction_counts = [item['survey_count'] for item in course_satisfaction]
+    else:
+        course_satisfaction_labels = ['Sin datos']
+        course_satisfaction_values = [0]
+        course_satisfaction_counts = [0]
 
     # --- Datos para gráfico de niveles MECES de titulaciones ---
-    # Contar el nivel más alto por empleado para todos los empleados
-    max_level_subquery = Titulacion.objects.filter(empleado=OuterRef('pk')).annotate(
+    # Contar el nivel más alto por empleado para titulaciones
+    max_level_subquery = Titulacion.objects.filter(
+        empleado=OuterRef('pk')
+    ).annotate(
         max_level=Max(
             Case(
                 When(nivel_meces='nivel_0', then=Value(0)),
@@ -3607,9 +3724,18 @@ def reports_view(request):
     # --- Estadísticas generales ---
     total_employees = Empleado.objects.filter(es_empleado_activo=True).count()
     total_courses = Curso.objects.count()
-    total_participations = Participacion.objects.count()
-    completed_participations = Participacion.objects.filter(estado='completado').count()
+    total_participations = Participacion.objects.filter(created_at__year=selected_year).count()
+    completed_participations = Participacion.objects.filter(created_at__year=selected_year, estado='completado').count()
     total_surveys = EncuestaSatisfaccion.objects.count()
+
+    # --- Horas promedio de formación por empleado ---
+    total_training_hours = Participacion.objects.filter(
+        estado__in=['completado', 'asistido']
+    ).aggregate(total=Sum('curso__duracion_horas'))['total'] or 0
+    average_hours_per_employee = round(
+        (total_training_hours / total_employees) if total_employees > 0 else 0,
+        1
+    )
 
     # ✨ --- Estadísticas de certificaciones ITIL ---
     empleados_con_itil = Empleado.objects.filter(
@@ -3683,6 +3809,137 @@ def reports_view(request):
         modality_labels = ['Sin datos']
         modality_counts_list = [0]
 
+    # --- Datos para gráfico de cursos por mes ---
+    # Excluir cursos obligatorios y contar por fecha de inicio/fin
+    # Incluir cursos que ocurren durante el año seleccionado
+    courses = Curso.objects.filter(
+        Q(fecha_inicio__year=selected_year) |
+        Q(fecha_fin__year=selected_year) |
+        (Q(fecha_inicio__year__lt=selected_year) & Q(fecha_fin__year__gt=selected_year))
+    ).exclude(es_obligatorio=True).exclude(
+        Q(fecha_inicio__isnull=True) | Q(fecha_fin__isnull=True)
+    )
+
+    month_names = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+
+    courses_per_month = [[] for _ in range(12)]
+    courses_month_counts = [0] * 12
+
+    for course in courses:
+        start_date = course.fecha_inicio
+        end_date = course.fecha_fin
+
+        # Determinar el rango de fechas dentro del año seleccionado
+        year_start = datetime.date(selected_year, 1, 1)
+        year_end = datetime.date(selected_year, 12, 31)
+
+        effective_start = max(start_date, year_start)
+        effective_end = min(end_date, year_end)
+
+        # Solo procesar si el curso tiene fechas dentro del año seleccionado
+        if effective_start <= effective_end:
+            # Determinar los meses que cubre el curso dentro del año
+            current_date = effective_start
+            while current_date <= effective_end:
+                month_index = current_date.month - 1  # Convertir a índice 0-based
+                courses_per_month[month_index].append(course.nombre)
+                courses_month_counts[month_index] += 1
+                # Avanzar al siguiente mes
+                if current_date.month == 12:
+                    break  # No continuar al siguiente año
+                else:
+                    # Calcular el primer día del siguiente mes
+                    next_month = current_date.month + 1
+                    next_year = current_date.year
+                    if next_month > 12:
+                        next_month = 1
+                        next_year += 1
+                    # Si el siguiente mes está fuera del año seleccionado, terminar
+                    if next_year > selected_year:
+                        break
+                    current_date = datetime.date(next_year, next_month, 1)
+
+    courses_month_labels = month_names
+
+    # --- Datos para gráfico de cursos más populares (por preselecciones y participaciones) ---
+    # Obtener conteos de preselecciones
+    preselecciones_counts = Preseleccion.objects.values('curso__nombre').annotate(
+        count=Count('id')
+    )
+
+    # Obtener conteos de participaciones
+    participaciones_counts = Participacion.objects.values('curso__nombre').annotate(
+        count=Count('id')
+    )
+
+    # Combinar los conteos en un diccionario
+    combined_counts = {}
+    for item in preselecciones_counts:
+        name = item['curso__nombre']
+        combined_counts[name] = combined_counts.get(name, 0) + item['count']
+
+    for item in participaciones_counts:
+        name = item['curso__nombre']
+        combined_counts[name] = combined_counts.get(name, 0) + item['count']
+
+    # Ordenar por conteo descendente y tomar top 10
+    popular_courses_list = sorted(combined_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+
+    if popular_courses_list:
+        popular_course_names = [item[0] for item in popular_courses_list]
+        popular_course_counts = [item[1] for item in popular_courses_list]
+    else:
+        popular_course_names = ['Sin datos']
+        popular_course_counts = [0]
+
+    # --- Datos para gráfico de estado de solicitudes de cursos por departamento ---
+    solicitud_status_by_dept = SolicitudCurso.objects.values('departamento_solicitante__nombre', 'estado').annotate(
+        count=Count('id')
+    ).order_by('departamento_solicitante__nombre', 'estado')
+
+    # Obtener todos los departamentos únicos
+    dept_solicitud_names = list(set(item['departamento_solicitante__nombre'] for item in solicitud_status_by_dept if item['departamento_solicitante__nombre']))
+
+    # Obtener todos los estados únicos
+    solicitud_statuses = list(set(item['estado'] for item in solicitud_status_by_dept))
+
+    # Crear diccionario para mapear departamento -> estado -> count
+    dept_status_counts = {}
+    for item in solicitud_status_by_dept:
+        dept = item['departamento_solicitante__nombre']
+        status = item['estado']
+        count = item['count']
+        if dept not in dept_status_counts:
+            dept_status_counts[dept] = {}
+        dept_status_counts[dept][status] = count
+
+    # Preparar datos para gráfico stacked bar
+    if dept_solicitud_names and solicitud_statuses:
+        solicitud_dept_labels = dept_solicitud_names
+        solicitud_datasets = []
+        colors = ['#5569c2', '#667eea', '#7793e5', '#88a8e0', '#a9d2d5', '#9db1c9', '#908fbc', '#836daf', '#764ba2']
+
+        for i, status in enumerate(solicitud_statuses):
+            data = []
+            for dept in dept_solicitud_names:
+                data.append(dept_status_counts.get(dept, {}).get(status, 0))
+            solicitud_datasets.append({
+                'label': dict(SolicitudCurso.ESTADO_CHOICES).get(status, status),
+                'data': data,
+                'backgroundColor': colors[i % len(colors)],
+                'borderColor': colors[i % len(colors)],
+                'borderWidth': 1
+            })
+    else:
+        solicitud_dept_labels = ['Sin datos']
+        solicitud_datasets = [{
+            'label': 'Sin datos',
+            'data': [0],
+            'backgroundColor': '#5569c2',
+            'borderColor': '#5569c2',
+            'borderWidth': 1
+        }]
+
     context = {
         'course_types_json': json.dumps(course_types),
         'course_counts_json': json.dumps(course_counts),
@@ -3692,12 +3949,24 @@ def reports_view(request):
         'dept_hours_json': json.dumps(dept_hours),
         'survey_labels_json': json.dumps(survey_labels),
         'survey_values_json': json.dumps(survey_values),
+        'course_satisfaction_labels_json': json.dumps(course_satisfaction_labels),
+        'course_satisfaction_values_json': json.dumps(course_satisfaction_values),
+        'course_satisfaction_counts_json': json.dumps(course_satisfaction_counts),
         'meces_labels_json': json.dumps(meces_labels_with_info),
         'meces_counts_json': json.dumps(meces_counts),
         'dept_employee_names_json': json.dumps(dept_employee_names),
         'dept_employee_counts_json': json.dumps(dept_employee_counts_list),
         'modality_labels_json': json.dumps(modality_labels),
         'modality_counts_json': json.dumps(modality_counts_list),
+        'courses_month_labels_json': json.dumps(courses_month_labels),
+        'courses_month_counts_json': json.dumps(courses_month_counts),
+        'courses_per_month_json': json.dumps(courses_per_month),
+        'popular_course_names_json': json.dumps(popular_course_names),
+        'popular_course_counts_json': json.dumps(popular_course_counts),
+        'solicitud_dept_labels_json': json.dumps(solicitud_dept_labels),
+        'solicitud_datasets_json': json.dumps(solicitud_datasets),
+        'selected_year': selected_year,
+        'available_years': available_years,
         'stats': {
             'total_employees': total_employees,
             'total_courses': total_courses,
@@ -3712,6 +3981,8 @@ def reports_view(request):
             'porcentaje_itil_sin_sd': porcentaje_itil_sin_sd,
             'total_employees_sin_sd': total_employees_sin_sd,
             'itil_breakdown': itil_breakdown,
+            # ✨ Nueva métrica: Horas promedio de formación por empleado
+            'average_hours_per_employee': average_hours_per_employee,
         }
     }
 
