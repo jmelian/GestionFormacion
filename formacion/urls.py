@@ -7,7 +7,7 @@ from django.views.generic import TemplateView
 from . import views
 
 # Importamos específicamente las nuevas vistas de clase para el dashboard y notificaciones.
-from .views import custom_logout, empleado_list_view, DashboardView, NotificacionesListView
+from .views import custom_logout, empleado_list_view, DashboardView, NotificacionesListView, AceptarSolicitudView, ProcesarSolicitudView, RechazarSolicitudView
 
 app_name = 'formacion' 
 
@@ -71,9 +71,9 @@ urlpatterns = [
     # path('participaciones/<int:participacion_id>/marcar-completado/', views.marcar_completado, name='marcar_completado'),
 
     # URLs para acciones sobre solicitudes
-    path('solicitudes-gestion/<int:pk>/aceptar/', views.aceptar_solicitud, name='aceptar_solicitud'),
-    path('solicitudes-gestion/<int:pk>/rechazar/', views.rechazar_solicitud, name='rechazar_solicitud'),
-    path('solicitudes-gestion/<int:pk>/procesar/', views.procesar_solicitud, name='procesar_solicitud'),
+    path('solicitudes-gestion/<int:pk>/aceptar/', AceptarSolicitudView.as_view(), name='aceptar_solicitud'),
+    path('solicitudes-gestion/<int:pk>/rechazar/', RechazarSolicitudView.as_view(), name='rechazar_solicitud'),
+    path('solicitudes-gestion/<int:pk>/procesar/', ProcesarSolicitudView.as_view(), name='procesar_solicitud'),
 
     # URLs de gestión y roles
     path('equipo-departamento/', views.equipo_departamento, name='equipo_departamento'),

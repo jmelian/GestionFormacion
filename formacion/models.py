@@ -469,6 +469,14 @@ class Curso(models.Model):
 
 
 class SolicitudCurso(models.Model):
+    # Choices for estado field
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+        ('en_proceso', 'En Proceso')
+    ]
+
     # Información básica y de solicitante (gestionada automáticamente)
     solicitante = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -539,13 +547,7 @@ class SolicitudCurso(models.Model):
     # Estado de la solicitud (para el seguimiento interno por RRHH/Formación)
     estado = models.CharField(
         max_length=20,
-        choices=[
-            ('pendiente', 'Pendiente'),
-            ('aprobada', 'Aprobada'),
-            ('rechazada', 'Rechazada'),
-            ('en_proceso', 'En Proceso'),
-            ('completada', 'Completada')
-        ],
+        choices=ESTADO_CHOICES,
         default='pendiente',
         verbose_name='Estado de la Solicitud'
     )

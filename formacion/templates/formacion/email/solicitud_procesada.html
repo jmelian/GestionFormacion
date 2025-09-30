@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Curso en Proceso</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <tr>
+                        <td style="padding: 40px;">
+                            <h1 style="color: #2196F3; text-align: center;">Tu Solicitud está siendo Procesada</h1>
+                            <p style="font-size: 16px; color: #555555;">Hola,</p>
+                            <p style="font-size: 16px; color: #555555;">Te informamos que tu solicitud de curso está siendo procesada por nuestro equipo.</p>
+                            <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                                <h3 style="color: #1976d2; margin-top: 0;">Detalles de la Solicitud</h3>
+                                <p style="font-size: 16px; color: #555555;"><strong>Curso:</strong> {{ solicitud.titulo_curso_solicitado }}</p>
+                                <p style="font-size: 16px; color: #555555;"><strong>Fecha de Procesamiento:</strong> {{ now }}</p>
+                            </div>
+                            <p style="font-size: 16px; color: #555555;">Puedes revisar el estado de tu solicitud en tu panel de control. Te notificaremos cuando haya actualizaciones.</p>
+                            <div style="text-align: center; margin-top: 30px;">
+                                <a href="{{ link_dashboard }}" style="background-color: #2196F3; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Ver mi Panel de Control</a>
+                            </div>
+                            <p style="font-size: 16px; color: #555555; margin-top: 40px;">Saludos cordiales,<br>El equipo de Formación</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

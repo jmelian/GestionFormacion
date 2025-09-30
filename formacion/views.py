@@ -2442,16 +2442,22 @@ solicitud_curso_detail = SolicitudCursoDetailView.as_view()
 
 # --- Vistas de Acción sobre Solicitudes (para RRHH/Formación/Dirección) ---
 
-class MotivoRechazoForm(forms.Form):
+class MotivoRechazoForm(forms.ModelForm):
     """
-    Formulario simple para capturar el motivo del rechazo de una solicitud de curso.
+    Formulario para capturar el motivo del rechazo de una solicitud de curso.
     """
-    motivo = forms.CharField(
-        # Utiliza un widget de Textarea para un campo de texto multilinea
-        widget=forms.Textarea(attrs={'rows': 4}),
-        label="Motivo del Rechazo",
-        help_text="Por favor, explica por qué se ha rechazado esta solicitud."
-    )
+    class Meta:
+        model = SolicitudCurso
+        fields = ['motivo_rechazo']
+        widgets = {
+            'motivo_rechazo': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+        }
+        labels = {
+            'motivo_rechazo': "Motivo del Rechazo",
+        }
+        help_texts = {
+            'motivo_rechazo': "Por favor, explica por qué se ha rechazado esta solicitud.",
+        }
 
 class SolicitudCursoAccionBase(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
@@ -2461,7 +2467,6 @@ class SolicitudCursoAccionBase(LoginRequiredMixin, UserPassesTestMixin, UpdateVi
     y la URL de redirección en caso de éxito.
     """
     model = SolicitudCurso
-    fields = []  # No se necesitan campos del formulario, solo se actualiza el objeto
     success_url = reverse_lazy('formacion:solicitudes_curso_gestion')
 
     def test_func(self):
@@ -2523,9 +2528,13 @@ class NotificacionMixin:
 class AceptarSolicitudView(SolicitudCursoAccionBase, NotificacionMixin):
     """
     Vista que maneja la aceptación de una solicitud de curso.
-    
+
     Cambia el estado de una solicitud a 'aprobada' y notifica al solicitante.
     """
+    fields = []
+
+    def get_success_url(self):
+        return reverse('formacion:detalle_solicitud_curso', kwargs={'pk': self.object.pk})
     def form_valid(self, form):
         """
         Se ejecuta cuando el formulario es válido.
@@ -2544,24 +2553,25 @@ class AceptarSolicitudView(SolicitudCursoAccionBase, NotificacionMixin):
 
         logger.info(f"DEBUG: Cambiando estado de solicitud '{solicitud.pk}' de '{solicitud.estado}' a 'aprobada'")
         # Actualiza el estado de la solicitud
-        solicitud.estado = 'aprobada'
-        solicitud.save()
+        with transaction.atomic():
+            self.object.estado = 'aprobada'
+            self.object.save()
         logger.info(f"DEBUG: Solicitud '{solicitud.pk}' guardada con estado 'aprobada'")
 
         # Envia la notificación usando el método del Mixin
         # DESACTIVADO TEMPORALMENTE: self.enviar_notificacion_a_solicitante(
-        #     solicitud,
-        #     f"Tu Solicitud de Curso '{solicitud.titulo_curso_solicitado}' ha sido Aprobada",
+        #     self.object,
+        #     f"Tu Solicitud de Curso '{self.object.titulo_curso_solicitado}' ha sido Aprobada",
         #     'formacion/email/solicitud_aprobada.html',
         # )
 
-        messages.success(self.request, f"Solicitud '{solicitud.titulo_curso_solicitado}' aceptada correctamente.")
+        messages.success(self.request, f"Solicitud '{self.object.titulo_curso_solicitado}' aceptada correctamente.")
         logger.info(f"DEBUG: Mensaje de éxito enviado para solicitud '{solicitud.pk}'")
         logger.info(f"Solicitud '{solicitud.pk}' aceptada por el usuario '{self.request.user.username}'.")
 
         # Redirige a la URL de éxito definida en la clase base
         logger.info(f"DEBUG: Redirigiendo a URL de éxito para solicitud '{solicitud.pk}'")
-        return super().form_valid(form)
+        return redirect(self.get_success_url())
 
 # Convierte la clase en una vista para usar en urls.py
 aceptar_solicitud = AceptarSolicitudView.as_view()
@@ -2596,12 +2606,10 @@ class RechazarSolicitudView(SolicitudCursoAccionBase, NotificacionMixin):
             logger.warning(f"Intento de rechazar solicitud '{solicitud.pk}' ya procesada por '{self.request.user.username}'.")
             return redirect(self.get_success_url())
 
-        logger.info(f"DEBUG: Cambiando estado de solicitud '{solicitud.pk}' de '{solicitud.estado}' a 'rechazada', motivo: '{form.cleaned_data['motivo']}'")
-        # Actualiza el estado y el motivo con los datos del formulario
-        solicitud.estado = 'rechazada'
-        solicitud.motivo_rechazo = form.cleaned_data['motivo']
-        solicitud.save()
-        logger.info(f"DEBUG: Solicitud '{solicitud.pk}' guardada con estado 'rechazada' y motivo")
+        logger.info(f"DEBUG: Cambiando estado de solicitud '{solicitud.pk}' de '{solicitud.estado}' a 'rechazada'")
+        # Actualiza el estado
+        self.object.estado = 'rechazada'
+        logger.info(f"DEBUG: Solicitud '{solicitud.pk}' preparada con estado 'rechazada'")
 
         # Envía la notificación al solicitante usando el Mixin.
         # Se incluye el motivo del rechazo como contexto adicional.
@@ -2609,16 +2617,16 @@ class RechazarSolicitudView(SolicitudCursoAccionBase, NotificacionMixin):
         #     solicitud,
         #     f"Tu Solicitud de Curso '{solicitud.titulo_curso_solicitado}' ha sido Rechazada",
         #     'formacion/email/solicitud_rechazada.html',
-        #     contexto_extra={'motivo_rechazo': solicitud.motivo_rechazo}
+        #     contexto_extra={'motivo_rechazo': self.object.motivo_rechazo}
         # )
 
-        messages.success(self.request, f"Solicitud '{solicitud.titulo_curso_solicitado}' rechazada correctamente.")
+        messages.success(self.request, f"Solicitud '{self.object.titulo_curso_solicitado}' rechazada correctamente.")
         logger.info(f"DEBUG: Mensaje de éxito enviado para solicitud '{solicitud.pk}'")
         logger.info(f"Solicitud '{solicitud.pk}' rechazada por el usuario '{self.request.user.username}'.")
 
         # Redirige a la URL de éxito definida en la clase base
         logger.info(f"DEBUG: Redirigiendo a URL de éxito para solicitud '{solicitud.pk}'")
-        return redirect(self.get_success_url())
+        return super().form_valid(form)
 
 # Convierte la clase en una vista para usar en urls.py
 rechazar_solicitud = RechazarSolicitudView.as_view()
@@ -2629,6 +2637,7 @@ class ProcesarSolicitudView(SolicitudCursoAccionBase, NotificacionMixin):
     Cambia el estado de una solicitud a 'en_proceso' para indicar que está siendo atendida.
     Envía notificación al solicitante.
     """
+    fields = []
     def form_valid(self, form):
         """
         Se ejecuta cuando el formulario es válido.
@@ -2648,24 +2657,24 @@ class ProcesarSolicitudView(SolicitudCursoAccionBase, NotificacionMixin):
         # Actualiza el estado de la solicitud
         with transaction.atomic():
             logger.info(f"DEBUG: Cambiando estado de solicitud '{solicitud.pk}' de '{solicitud.estado}' a 'en_proceso'")
-            solicitud.estado = 'en_proceso'
-            solicitud.save()
+            self.object.estado = 'en_proceso'
+            self.object.save()
             logger.info(f"DEBUG: Solicitud '{solicitud.pk}' guardada con estado 'en_proceso'")
 
             # Envía la notificación usando el método del Mixin
             # DESACTIVADO TEMPORALMENTE: self.enviar_notificacion_a_solicitante(
-            #     solicitud,
-            #     f"Tu Solicitud de Curso '{solicitud.titulo_curso_solicitado}' está siendo procesada",
+            #     self.object,
+            #     f"Tu Solicitud de Curso '{self.object.titulo_curso_solicitado}' está siendo procesada",
             #     'formacion/email/solicitud_procesada.html',
             # )
 
-        messages.success(self.request, f"Solicitud '{solicitud.titulo_curso_solicitado}' marcada como en proceso.")
+        messages.success(self.request, f"Solicitud '{self.object.titulo_curso_solicitado}' marcada como en proceso.")
         logger.info(f"DEBUG: Mensaje de éxito enviado para solicitud '{solicitud.pk}'")
         logger.info(f"Solicitud '{solicitud.pk}' procesada por el usuario '{self.request.user.username}'.")
 
         # Redirige a la URL de éxito definida en la clase base
         logger.info(f"DEBUG: Redirigiendo a URL de éxito para solicitud '{solicitud.pk}'")
-        return super().form_valid(form)
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse('formacion:detalle_solicitud_curso', kwargs={'pk': self.object.pk})

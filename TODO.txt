@@ -4,8 +4,8 @@
 ## Problemas Identificados
 
 
-
 ## Mejoras para Versiones Futuras
+- Que los coordinadores puedan acceder al listado de solicitudes de cursos.
 - Acceso a la documentación de los cursos tanto desde Mis Cursos como desde Formación Planificada
 - ✅ Añadir sistema de reportes avanzados con gráficos
 - Mejorar interfaz de usuario con componentes modernos

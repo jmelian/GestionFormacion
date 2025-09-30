@@ -67,7 +67,7 @@
             </div>
             {% endif %}
 
-            {% if solicitud.estado == 'completada' and solicitud.comentarios_procesamiento %}
+            {% if solicitud.estado == 'aprobada' and solicitud.comentarios_procesamiento %}
             <div class="alert alert-info" role="alert">
                 <h6>Comentarios de Procesamiento:</h6>
                 <p>{{ solicitud.comentarios_procesamiento }}</p>
@@ -81,23 +81,26 @@
                 {% if solicitud.estado == 'pendiente' %}
                     <form action="{% url 'formacion:aceptar_solicitud' pk=solicitud.pk %}" method="post" class="d-inline">
                         {% csrf_token %}
-                        <button type="submit" class="btn-primary-action btn-success-action confirm-action-btn" data-confirm-message="¿Estás seguro de que deseas aprobar esta solicitud? Se notificará al coordinador.">
+                        <button type="submit" class="btn-primary-action btn-success-action confirm-action-btn" data-confirm-message="¿Estás seguro de que deseas aprobar esta solicitud? Esto la marcará como aprobada.">
                             <i class="bi bi-check-circle-fill me-1"></i> Aprobar Solicitud
                         </button>
                     </form>
-                {% endif %}
-                {% if solicitud.estado == 'pendiente' or solicitud.estado == 'aprobada' or solicitud.estado == 'en_proceso' %}
-                    <a href="{% url 'formacion:rechazar_solicitud' pk=solicitud.pk %}" class="btn-primary-action btn-danger-action">
-                        <i class="bi bi-x-circle-fill me-1"></i> Rechazar Solicitud
-                    </a>
-                {% endif %}
-                {% if solicitud.estado == 'pendiente' or solicitud.estado == 'aprobada' or solicitud.estado == 'en_proceso' %}
                     <form action="{% url 'formacion:procesar_solicitud' pk=solicitud.pk %}" method="post" class="d-inline">
                         {% csrf_token %}
-                        <button type="submit" class="btn-primary-action btn-info-action confirm-action-btn" data-confirm-message="¿Estás seguro de que deseas procesar esta solicitud? Esto la marcará como completada y la eliminará de la lista activa.">
+                        <button type="submit" class="btn-primary-action btn-info-action confirm-action-btn" data-confirm-message="¿Estás seguro de que deseas procesar esta solicitud? Esto la marcará como en proceso.">
                             <i class="bi bi-gear-fill me-1"></i> Procesar Solicitud
                         </button>
                     </form>
+                {% endif %}
+                {% if solicitud.estado == 'en_proceso' or solicitud.estado == 'aprobada' %}
+                    <a href="{% url 'formacion:crear_curso' %}?solicitud_id={{ solicitud.pk }}" class="btn-primary-action btn-success-action">
+                        <i class="bi bi-plus-circle-fill me-1"></i> Crear Curso
+                    </a>
+                {% endif %}
+                {% if solicitud.estado == 'pendiente' or solicitud.estado == 'en_proceso' %}
+                    <a href="{% url 'formacion:rechazar_solicitud' pk=solicitud.pk %}" class="btn-primary-action btn-danger-action">
+                        <i class="bi bi-x-circle-fill me-1"></i> Rechazar Solicitud
+                    </a>
                 {% endif %}
                 <a href="{% url 'formacion:solicitudes_curso_gestion' %}" class="btn-secondary-action">
                     <i class="bi bi-arrow-left-circle-fill me-1"></i> Volver a Solicitudes
