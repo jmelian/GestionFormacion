@@ -138,6 +138,10 @@ formacion_demo_casa/
 8. **Proveedor**: Entidades externas que imparten formación
 9. **SolicitudCurso**: Peticiones de nuevos cursos
 10. **Notificación**: Mensajes del sistema
+11. **Proyecto**: Iniciativas de formación
+12. **Preseleccion**: Candidatos preseleccionados para cursos
+13. **EncuestaSatisfaccion**: Evaluaciones de cursos completados
+14. **RequisitoPuestoFormacion**: Requisitos formativos por puesto
 
 ### Relaciones Clave
 
@@ -214,6 +218,6 @@ Para continuar con la documentación detallada, consulte los siguientes archivos
 
 ---
 
-**Versión**: 1.1
+**Versión**: 1.2
 **Última actualización**: 2025-10-01
 **Autor**: Sistema de Documentación Automática

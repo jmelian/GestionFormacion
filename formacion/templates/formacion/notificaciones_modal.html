@@ -1,0 +1,50 @@
+<div class="modal-header">
+    <h5 class="modal-title">
+        <i class="bi bi-bell-fill me-2"></i>Mis Notificaciones
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+</div>
+<div class="modal-body">
+    <div class="notificaciones-list">
+        {% if notificaciones %}
+            <div class="list-group list-group-flush">
+                {% for notif in notificaciones %}
+                    <div class="list-group-item d-flex align-items-start {% if not notif.leida %}bg-light{% endif %}">
+                        <span class="me-3">
+                            {% if notif.leida %}
+                                <i class="bi bi-envelope-open text-secondary"></i>
+                            {% else %}
+                                <i class="bi bi-envelope-fill text-primary"></i>
+                            {% endif %}
+                        </span>
+                        <div class="flex-grow-1">
+                            <div class="small text-muted">{{ notif.fecha|date:"d/m/Y H:i" }}</div>
+                            <div>
+                                {% if notif.url %}
+                                    <a href="{{ notif.url }}" class="text-decoration-none" onclick="closeNotificationModal()">
+                                        <strong>{{ notif.mensaje }}</strong>
+                                        {% if not notif.leida %}<span class="badge bg-primary ms-2">Nueva</span>{% endif %}
+                                    </a>
+                                {% else %}
+                                    <strong>{{ notif.mensaje }}</strong>
+                                    {% if not notif.leida %}<span class="badge bg-primary ms-2">Nueva</span>{% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-info-circle text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-2">No tienes notificaciones.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+<div class="modal-footer">
+    <a href="{% url 'formacion:ver_notificaciones' %}" class="btn btn-outline-primary" onclick="closeNotificationModal()">
+        <i class="bi bi-eye me-1"></i>Ver todas las notificaciones
+    </a>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+</div>

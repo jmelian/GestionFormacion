@@ -270,6 +270,6 @@ Este proyecto está bajo la [Licencia Apache 2.0](https://www.apache.org/license
 
 ---
 
-**Versión**: 1.1
+**Versión**: 1.2
 **Última actualización**: 2025-10-01
 **Autor**: Sistema de Documentación Automática

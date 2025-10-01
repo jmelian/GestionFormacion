@@ -13,18 +13,26 @@
     font-weight: 600;
     font-size: 1.08rem;
     box-shadow: 0 2px 10px #3b82f632;
-    transition: background 0.18s, box-shadow 0.14s, color 0.13s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transform: translateY(0);
 }
 .btn-primary:hover,
 .btn-primary:focus {
     background: linear-gradient(135deg, #2563eb, #3b82f6);
     color: #fff;
-    box-shadow: 0 5px 18px #6366f133;
+    box-shadow: 0 8px 25px #6366f133;
     outline: none;
+    transform: translateY(-2px);
+}
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px #3b82f632;
 }
 
 /* Botón secundario */
@@ -37,18 +45,26 @@
     font-weight: 500;
     font-size: 1.06rem;
     box-shadow: 0 1px 7px #64748b29;
-    transition: background 0.17s, box-shadow 0.12s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transform: translateY(0);
 }
 .btn-secondary:hover,
 .btn-secondary:focus {
     background: linear-gradient(135deg, #475569, #64748b);
     color: #fff;
-    box-shadow: 0 5px 20px #47556944;
+    box-shadow: 0 6px 20px #47556944;
     outline: none;
+    transform: translateY(-1px);
+}
+.btn-secondary:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 7px #64748b29;
 }
 
 /* Botón de volver */
@@ -60,18 +76,26 @@
     border-radius: 0.75rem;
     font-weight: 500;
     font-size: 1.05rem;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     text-decoration: none;
     margin-top: 1.2em;
     box-shadow: 0 2px 12px #64748b18;
+    position: relative;
+    overflow: hidden;
+    transform: translateY(0);
 }
 .btn-back:hover {
     background: linear-gradient(135deg, #475569, #64748b);
     color: #fff;
-    box-shadow: 0 7px 24px #6366f144;
+    box-shadow: 0 8px 25px #6366f144;
+    transform: translateY(-2px);
+}
+.btn-back:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 12px #64748b18;
 }
 
 /* Botones de filtro y limpiar */
@@ -452,6 +476,49 @@
 .btn-action-confirm-small i,
 .btn-action-reject-small i {
     font-size: 1rem;
+}
+
+/* Estados de carga y efectos especiales */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ripple::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn-ripple:active::before {
+    width: 300px;
+    height: 300px;
 }
 
 /* Responsive */

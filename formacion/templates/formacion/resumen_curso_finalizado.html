@@ -51,25 +51,25 @@
             <h5 class="card-title">Estadísticas de Participación</h5>
             <div class="row">
                 <div class="col-md-3">
-                    <div class="stat-card">
+                    <div class="stat-card-simple">
                         <span class="stat-value">{{ estadisticas.total_participantes }}</span>
                         <span class="stat-label">Total Participantes</span>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
+                    <div class="stat-card-simple">
                         <span class="stat-value">{{ estadisticas.asistidos }}</span>
                         <span class="stat-label">Asistidos</span>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
+                    <div class="stat-card-simple">
                         <span class="stat-value">{{ estadisticas.completados }}</span>
                         <span class="stat-label">Completados</span>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
+                    <div class="stat-card-simple">
                         <span class="stat-value">{{ estadisticas.certificados_obtenidos }}</span>
                         <span class="stat-label">Certificados Obtenidos</span>
                     </div>
@@ -83,19 +83,19 @@
             <h5 class="card-title">Resumen de Encuestas de Satisfacción ({{ total_encuestas }} encuestas)</h5>
             <div class="row">
                 <div class="col-md-4">
-                    <div class="stat-card">
+                    <div class="stat-card-simple">
                         <span class="stat-value">{{ promedios_encuesta.opinion_contenido_curso_avg|floatformat:1 }}</span>
                         <span class="stat-label">Contenido del Curso</span>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="stat-card">
+                    <div class="stat-card-simple">
                         <span class="stat-value">{{ promedios_encuesta.conocimientos_profesor_avg|floatformat:1 }}</span>
                         <span class="stat-label">Conocimientos del Profesor</span>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="stat-card">
+                    <div class="stat-card-simple">
                         <span class="stat-value">{{ promedios_encuesta.gusto_general_curso_avg|floatformat:1 }}</span>
                         <span class="stat-label">Gusto General</span>
                     </div>
@@ -103,13 +103,13 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-6">
-                    <div class="stat-card">
+                    <div class="stat-card-simple">
                         <span class="stat-value">{{ promedios_encuesta.mejora_conocimientos_carrera_avg|floatformat:1 }}</span>
                         <span class="stat-label">Mejora de Conocimientos</span>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="stat-card">
+                    <div class="stat-card-simple">
                         <span class="stat-value">{{ promedios_encuesta.adquisicion_habilidades_puesto_avg|floatformat:1 }}</span>
                         <span class="stat-label">Adquisición de Habilidades</span>
                     </div>
