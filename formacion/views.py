@@ -1903,15 +1903,26 @@ class NotificacionesListView(LoginRequiredMixin, ListView):
         logger.info(f"El usuario '{self.request.user.username}' está consultando sus notificaciones.")
         return Notificacion.objects.filter(usuario=self.request.user).order_by('-fecha')
 
+    def get_template_names(self):
+        """
+        Devuelve el nombre de la plantilla apropiada basado en si es una petición AJAX (para modal)
+        o una petición normal (página completa).
+        """
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return ['formacion/notificaciones_modal.html']
+        return [self.template_name]
+
     def get(self, request, *args, **kwargs):
         """
         Sobrescribe el método `get` para realizar una acción antes de renderizar la plantilla:
-        marcar todas las notificaciones no leídas como leídas.
+        marcar todas las notificaciones no leídas como leídas solo si NO es una petición AJAX.
         """
-        # Se obtiene el queryset de notificaciones no leídas y se actualiza su estado.
-        num_actualizadas = self.get_queryset().filter(leida=False).update(leida=True)
-        logger.info(f"Se marcaron {num_actualizadas} notificaciones como leídas para el usuario '{request.user.username}'.")
-        
+        # Solo marcar como leídas si no es una petición AJAX (modal)
+        if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            # Se obtiene el queryset de notificaciones no leídas y se actualiza su estado.
+            num_actualizadas = self.get_queryset().filter(leida=False).update(leida=True)
+            logger.info(f"Se marcaron {num_actualizadas} notificaciones como leídas para el usuario '{request.user.username}'.")
+
         # Se llama al método `get` de la clase padre para manejar la renderización.
         return super().get(request, *args, **kwargs)
 

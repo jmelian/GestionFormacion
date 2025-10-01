@@ -416,5 +416,5 @@ Para soporte técnico:
 ---
 
 **Guía del Usuario**
-**Versión**: 1.1
+**Versión**: 1.2
 **Última actualización**: 2025-10-01

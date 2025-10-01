@@ -141,6 +141,57 @@
 - `leida`: Estado de lectura
 - `url`: URL relacionada (opcional)
 
+### 11. Proyecto (Project)
+
+**Campos principales**:
+- `nombre`: Nombre del proyecto o iniciativa de formación
+- `descripcion`: Descripción detallada del proyecto
+- `jefe_proyecto`: Empleado responsable del proyecto
+- `estado`: Estado del proyecto (planificado/en_curso/completado/cancelado)
+- `fecha_inicio`/`fecha_fin_prevista`/`fecha_fin_real`: Fechas del proyecto
+
+### 12. RequisitoPuestoFormacion (JobPositionRequirement)
+
+**Campos principales**:
+- `puesto`: Puesto de trabajo al que aplica el requisito
+- `curso`: Curso obligatorio o recomendado
+- `tipo_requisito`: Obligatorio o recomendado
+- `fecha_implementacion`: Fecha a partir de la cual es efectivo
+
+### 13. Preseleccion (Preselection)
+
+**Campos principales**:
+- `curso`: Curso para el que se postula
+- `empleado`: Empleado preseleccionado
+- `prioridad`: Orden de prioridad (1-5)
+- `observaciones`: Comentarios del coordinador
+- `creado_por`: Coordinador que realizó la preselección
+- `fecha`: Fecha de la preselección
+
+### 14. PreguntaEncuesta (SurveyQuestion)
+
+**Campos principales**:
+- `encuesta`: Encuesta relacionada
+- `texto_pregunta`: Texto de la pregunta
+- `tipo_pregunta`: Tipo (texto/opcion_multiple/escala)
+- `orden`: Orden en que aparece
+
+### 15. RespuestaEncuesta (SurveyResponse)
+
+**Campos principales**:
+- `participacion`: Participación relacionada
+- `encuesta`: Encuesta específica
+- `fecha_respuesta`: Fecha de respuesta
+- `completada`: Si está completada
+
+### 16. DetalleRespuesta (ResponseDetail)
+
+**Campos principales**:
+- `respuesta_encuesta`: Respuesta padre
+- `pregunta`: Pregunta específica
+- `respuesta_texto`: Respuesta de texto
+- `respuesta_escala`: Respuesta numérica
+
 ## Vistas Principales
 
 ### Vistas de Autenticación
@@ -243,11 +294,105 @@
 - **Validaciones**: Curso completado, encuesta no existente
 - **Campos**: Valoración contenido, profesor, eficacia
 
+### Vistas de Reportes
+
 #### `reports_view(request)`
 - **Función**: Mostrar reportes avanzados con gráficos
 - **Permisos**: Acceso general con métricas específicas por rol
 - **Características**: Dashboard con ITIL, satisfacción, formación por departamento
 - **Filtros**: Por año seleccionado
+
+### Vistas de Gestión de Cursos
+
+#### `estado_cursos(request)`
+- **Función**: Estado general de todos los cursos
+- **Permisos**: RRHH, Formación, Dirección, Coordinador
+- **Filtros**: Mostrar cursos terminados
+- **Estadísticas**: Participantes por estado
+
+#### `crear_editar_curso(request, curso_id=None)`
+- **Función**: Crear o editar cursos
+- **Permisos**: Formación, Dirección
+- **Características**: Soporte para solicitudes de curso
+
+#### `gestion_cursos_list(request)`
+- **Función**: Lista de gestión de cursos para RRHH
+- **Características**: Filtrado, ordenación, paginación
+
+### Vistas de Participaciones
+
+#### `cancelar_participacion(request, participacion_id)`
+- **Función**: Cancelar participación en curso
+- **Validaciones**: Estado del curso, permisos del usuario
+- **Notificaciones**: Al empleado y coordinador
+
+#### `rechazar_participacion(request, participacion_id)`
+- **Función**: Rechazar participación
+- **Permisos**: RRHH, Formación, Dirección, Coordinador
+
+#### `marcar_completado_unificado(request, participacion_id)`
+- **Función**: Marcar participación como completada
+- **Lógica**: Diferente según resultado formal del curso
+- **Notificaciones**: Automáticas al completar
+
+### Vistas de Preselecciones
+
+#### `preseleccionar_empleado(request)`
+- **Función**: Coordinadores preseleccionan empleados
+- **Permisos**: Coordinador
+- **Características**: Gestión de prioridades
+
+#### `gestionar_preselecciones_curso(request, curso_id)`
+- **Función**: Gestionar preselecciones de un curso
+- **Permisos**: Formación, RRHH, Dirección
+
+#### `confirmar_preseleccionados_lista(request)`
+- **Función**: Lista de cursos con preselecciones pendientes
+- **Permisos**: Formación, Dirección
+
+### Vistas de Solicitudes de Cursos
+
+#### `SolicitudCursoCreateView`
+- **Función**: Crear solicitud de curso
+- **Permisos**: Coordinador
+- **Notificaciones**: Automáticas a RRHH/Formación/Dirección
+
+#### `SolicitudesCursoGestionListView`
+- **Función**: Lista de solicitudes para gestión
+- **Permisos**: Formación, Dirección
+
+#### `AceptarSolicitudView`, `RechazarSolicitudView`, `ProcesarSolicitudView`
+- **Función**: Gestionar estado de solicitudes
+- **Permisos**: Formación, Dirección
+
+### Vistas de Empleados
+
+#### `empleados_con_formacion(request)`
+- **Función**: Lista de empleados con formación
+- **Filtros**: Por departamento, palabra clave
+- **Anotaciones**: Número de participaciones y titulaciones
+
+#### `empleado_formacion_detalle(request, empleado_id)`
+- **Función**: Detalle de formación de un empleado
+- **Permisos**: RRHH, Formación, Dirección, Admin
+
+### Vistas de Titulaciones
+
+#### `MisTitulacionesListView`, `MiTitulacionCreateView`, `MiTitulacionUpdateView`, `MiTitulacionDeleteView`
+- **Función**: Auto-servicio de titulaciones para empleados
+- **Permisos**: Propietario, con validaciones de estado
+
+### Vistas de Notificaciones
+
+#### `NotificacionesListView`
+- **Función**: Lista de notificaciones del usuario
+- **Características**: Paginación, marcado automático como leídas
+
+### Vistas de Dashboard
+
+#### `DashboardView`
+- **Función**: Panel principal con métricas
+- **Contexto**: Roles del usuario, número de notificaciones
 
 #### `marcar_completado_unificado(request, participacion_id)`
 - **Función**: Marcar participación como completada de forma unificada
@@ -418,5 +563,5 @@ LOGGING = {
 ---
 
 **Documentación Técnica - API**
-**Versión**: 1.1
+**Versión**: 1.2
 **Última actualización**: 2025-10-01
