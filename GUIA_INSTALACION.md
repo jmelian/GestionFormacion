@@ -443,5 +443,5 @@ SECURE_SSL_REDIRECT=True
 ---
 
 **Guía de Instalación**
-**Versión**: 1.0
-**Última actualización**: 2025-01-16
+**Versión**: 1.1
+**Última actualización**: 2025-10-01

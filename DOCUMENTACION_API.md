@@ -116,6 +116,21 @@
 - `numero_participantes_estimado`: Número estimado
 - `estado`: Estado de la solicitud
 - `departamento_solicitante`: Departamento solicitante
+- `caracter_formacion`: Carácter de la formación (urgente, planificado, etc.)
+- `comentarios_adicionales`: Comentarios adicionales
+- `motivo_rechazo`: Motivo del rechazo si aplica
+
+### 10. EncuestaSatisfaccion (Survey)
+
+**Campos principales**:
+- `participacion`: Participación relacionada
+- `empleado`: Empleado que responde
+- `opinion_contenido_curso`: Valoración contenido (1-5)
+- `conocimientos_profesor`: Valoración profesor (1-5)
+- `gusto_general_curso`: Valoración general (1-5)
+- `mejora_conocimientos_carrera`: Mejora conocimientos (1-5)
+- `adquisicion_habilidades_puesto`: Adquisición habilidades (1-5)
+- `sugerencias_observaciones`: Comentarios abiertos
 
 ### 10. Notificacion (Notification)
 
@@ -227,6 +242,17 @@
 - **Función**: Rellenar encuesta de satisfacción
 - **Validaciones**: Curso completado, encuesta no existente
 - **Campos**: Valoración contenido, profesor, eficacia
+
+#### `reports_view(request)`
+- **Función**: Mostrar reportes avanzados con gráficos
+- **Permisos**: Acceso general con métricas específicas por rol
+- **Características**: Dashboard con ITIL, satisfacción, formación por departamento
+- **Filtros**: Por año seleccionado
+
+#### `marcar_completado_unificado(request, participacion_id)`
+- **Función**: Marcar participación como completada de forma unificada
+- **Lógica**: Diferente según resultado formal del curso
+- **Validaciones**: Permisos del usuario, estado de la participación
 
 ## URLs y Rutas
 
@@ -392,5 +418,5 @@ LOGGING = {
 ---
 
 **Documentación Técnica - API**
-**Versión**: 1.0
-**Última actualización**: 2025-01-16
+**Versión**: 1.1
+**Última actualización**: 2025-10-01

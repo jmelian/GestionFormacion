@@ -135,7 +135,14 @@ Después de completar un curso:
    - Número estimado de participantes
    - Formato preferido (presencial/online)
    - Duración estimada
+   - Carácter de la formación (urgente/planificado/obligatorio)
 3. Enviar solicitud
+
+##### Seguir Solicitudes
+
+1. Ver estado de solicitudes enviadas
+2. Recibir notificaciones de cambios de estado
+3. Estados: Pendiente, En Proceso, Aprobada, Rechazada
 
 ##### Seguir Solicitudes
 
@@ -275,6 +282,17 @@ Después de completar un curso:
 2. Aprobar formaciones estratégicas
 3. Supervisar grandes iniciativas
 
+##### Ver Reportes Avanzados
+
+1. Acceder al módulo de "Reportes"
+2. Seleccionar dashboard: Overview, Empleados, Cursos, Calidad, SLA
+3. Filtrar por año
+4. Analizar métricas:
+   - Estadísticas de ITIL por departamento
+   - Satisfacción de cursos
+   - Horas de formación por empleado
+   - Distribución de empleados por departamento
+
 ## Funcionalidades Comunes
 
 ### Notificaciones
@@ -398,5 +416,5 @@ Para soporte técnico:
 ---
 
 **Guía del Usuario**
-**Versión**: 1.0
-**Última actualización**: 2025-01-16
+**Versión**: 1.1
+**Última actualización**: 2025-10-01

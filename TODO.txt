@@ -15,8 +15,9 @@
 - Añadir soporte para múltiples idiomas
 - Optimizar rendimiento con índices de base de datos adicionales
 
-## Documentación Versión 1.0
-- ✅ Documentación actualizada a versión 1.0
+## Documentación Versión 1.1
+- ✅ Documentación actualizada a versión 1.1
 - ✅ Descripciones de funcionalidades actualizadas según código actual
 - ✅ Estructura de documentación reorganizada
 - ✅ Versiones consistentes en todos los archivos
+- ✅ Nuevas funcionalidades documentadas: reportes avanzados, gestión de solicitudes de cursos, marcado unificado de completado
