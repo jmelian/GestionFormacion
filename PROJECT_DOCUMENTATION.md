@@ -112,6 +112,17 @@ formacion_demo_casa/
 - **Estados de Seguimiento**: Pendiente, Aprobada, Rechazada, En Proceso, Completada
 - **Comentarios y Motivos**: Sistema de feedback detallado para rechazos
 - **Notificaciones Automáticas**: Alertas a todos los interesados en cada cambio de estado
+- **Conversión a Cursos**: Solicitudes aprobadas pueden convertirse automáticamente en cursos
+
+### 9. Sistema de Reportes Avanzados
+
+- **Dashboard Ejecutivo**: Panel con métricas, KPIs y visión global del estado de formación organizacional
+- **Estadísticas de ITIL**: Seguimiento específico de certificaciones ITIL con porcentajes por departamento
+- **Análisis de Satisfacción**: Promedios detallados de encuestas de satisfacción por curso y profesor
+- **Métricas de Formación**: Horas promedio de formación por empleado, tasas de completitud
+- **Gráficos Interactivos**: Visualizaciones con Chart.js para datos de formación
+- **Filtros por Año**: Análisis histórico de datos de formación
+- **Distribución por Departamentos**: Análisis de formación por áreas organizacionales
 
 ## Modelo de Datos
 
@@ -203,6 +214,6 @@ Para continuar con la documentación detallada, consulte los siguientes archivos
 
 ---
 
-**Versión**: 1.0
-**Última actualización**: 2025-01-16
+**Versión**: 1.1
+**Última actualización**: 2025-10-01
 **Autor**: Sistema de Documentación Automática

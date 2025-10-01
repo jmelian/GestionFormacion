@@ -19,6 +19,9 @@ El objetivo principal es centralizar y optimizar los procesos relacionados con l
 - **Encuestas de Satisfacción Detalladas:** Sistema completo con valoraciones numéricas, comentarios y análisis estadístico.
 - **Notificaciones Contextuales:** Sistema automático de alertas con tipos diferenciados y enlaces de acción directa.
 - **Dashboard Ejecutivo:** Panel con métricas, KPIs y visión global del estado de formación organizacional.
+- **Sistema de Solicitudes de Cursos:** Coordinadores pueden proponer cursos con justificación completa y seguimiento de aprobación.
+- **Reportes Avanzados:** Análisis detallado con estadísticas ITIL, satisfacción de cursos y métricas de formación.
+- **Marcado Unificado de Completado:** Sistema inteligente que adapta el proceso según el tipo de resultado formal.
 - **Roles y Permisos Granulares:** Sistema jerárquico con 6 roles (Empleado, Coordinador, RRHH, Formación, Dirección, Admin) y permisos específicos.
 
 ---
@@ -267,6 +270,6 @@ Este proyecto está bajo la [Licencia Apache 2.0](https://www.apache.org/license
 
 ---
 
-**Versión**: 1.0
-**Última actualización**: 2025-01-16
+**Versión**: 1.1
+**Última actualización**: 2025-10-01
 **Autor**: Sistema de Documentación Automática
