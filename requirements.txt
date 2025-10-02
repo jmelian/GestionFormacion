@@ -17,3 +17,6 @@ sqlparse==0.5.3
 tzdata==2025.2
 gunicorn==23.0.0
 psutil==6.0.0
+django-auth-ldap==2.4.0
+python-ldap==3.4.4
+
