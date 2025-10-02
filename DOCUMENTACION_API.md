@@ -562,6 +562,93 @@ LOGGING = {
 
 ---
 
+## API de Monitorización
+
+### Endpoint de Health Check
+
+**URL**: `/formacion/api/health/`
+
+**Método**: GET
+
+**Autenticación**: No requerida (pública para monitoreo)
+
+**Descripción**: Proporciona el estado de salud de la aplicación y sus servicios.
+
+**Respuesta JSON**:
+```json
+{
+  "status": "healthy|unhealthy",
+  "timestamp": "2025-10-02T12:01:06.377025+00:00",
+  "services": {
+    "database": {
+      "status": "healthy|unhealthy",
+      "message": "Descripción del estado",
+      "type": "PostgreSQL"
+    },
+    "application": {
+      "status": "healthy|unhealthy",
+      "message": "Descripción del estado",
+      "version": "Django 5.2.3"
+    },
+    "server": {
+      "status": "healthy|warning|unhealthy",
+      "message": "Descripción del estado",
+      "info": {
+        "hostname": "nombre_del_servidor",
+        "platform": "sistema_operativo",
+        "python_version": "3.13.7",
+        "cpu_count": 12,
+        "memory": {
+          "total": 8207421440,
+          "available": 7300870144,
+          "percent": 11.0
+        },
+        "disk": {
+          "total": 1081101176832,
+          "free": 1016919330816,
+          "percent": 0.9
+        }
+      }
+    },
+    "container": {
+      "status": "healthy|info",
+      "message": "Descripción del estado"
+    },
+    "email": {
+      "status": "healthy|warning|info",
+      "message": "Descripción del estado"
+    }
+  }
+}
+```
+
+**Estados posibles**:
+- `healthy`: Servicio funcionando correctamente
+- `warning`: Servicio con advertencias (no crítico)
+- `unhealthy`: Servicio con problemas
+- `info`: Información adicional (no afecta salud)
+
+### Página de Monitorización
+
+**URL**: `/formacion/monitorizacion/`
+
+**Método**: GET
+
+**Autenticación**: Requerida (solo administradores)
+
+**Descripción**: Página web que muestra el estado de los servicios de forma visual con actualizaciones en tiempo real.
+
+**Características**:
+- Dashboard visual con tarjetas para cada servicio
+- Indicadores de estado con colores (verde=healthy, amarillo=warning, rojo=unhealthy)
+- Información detallada del servidor (CPU, memoria, disco)
+- Actualización automática cada 30 segundos
+- Botón manual de actualización
+
+**Permisos**: Solo usuarios con rol de administrador (`is_superuser = True`)
+
+---
+
 **Documentación Técnica - API**
-**Versión**: 1.2
-**Última actualización**: 2025-10-01
+**Versión**: 1.3
+**Última actualización**: 2025-10-02

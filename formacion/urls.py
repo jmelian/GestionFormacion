@@ -91,4 +91,8 @@ urlpatterns = [
 
     # URLs de Reportes
     path('reportes/', views.reports_view, name='reports'),
+
+    # URLs de Monitorización
+    path('api/health/', views.health_check_api, name='health_check_api'),
+    path('monitorizacion/', views.monitoring_page, name='monitoring'),
 ]

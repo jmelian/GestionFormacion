@@ -6,8 +6,8 @@ FROM python:3.13-alpine
 WORKDIR /app
 
 # Instala las dependencias de sistema necesarias para compilar ciertos
-# paquetes de Python (como `psycopg2` para PostgreSQL).
-RUN apk add --no-cache postgresql-dev build-base
+# paquetes de Python (como `psycopg2` para PostgreSQL y `psutil`).
+RUN apk add --no-cache postgresql-dev build-base linux-headers
 
 # Copia el archivo de requisitos primero. Esto permite a Docker usar
 # su caché para evitar reinstalar si `requirements.txt` no cambia.

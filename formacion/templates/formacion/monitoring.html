@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Monitorización del Sistema{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-heartbeat"></i> Monitorización del Sistema
+                    </h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-success btn-sm" id="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Estado General -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="alert alert-info" id="overall-status" role="alert">
+                                <h4 class="alert-heading">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span id="overall-status-text">Cargando estado del sistema...</span>
+                                </h4>
+                                <p class="mb-0">Última actualización: <span id="last-update">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Servicios -->
+                    <div class="row">
+                        <!-- Base de Datos -->
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="card h-100 border-secondary" id="db-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-database"></i> Base de Datos
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="status-indicator mb-2">
+                                        <span class="badge badge-secondary" id="db-status">Cargando...</span>
+                                    </div>
+                                    <p class="card-text small" id="db-message">Verificando conexión...</p>
+                                    <div class="text-muted small" id="db-details"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aplicación -->
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="card h-100 border-secondary" id="app-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-cogs"></i> Aplicación
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="status-indicator mb-2">
+                                        <span class="badge badge-secondary" id="app-status">Cargando...</span>
+                                    </div>
+                                    <p class="card-text small" id="app-message">Verificando funcionamiento...</p>
+                                    <div class="text-muted small" id="app-details"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Servidor -->
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="card h-100 border-secondary" id="server-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-server"></i> Servidor
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="status-indicator mb-2">
+                                        <span class="badge badge-secondary" id="server-status">Cargando...</span>
+                                    </div>
+                                    <p class="card-text small" id="server-message">Obteniendo información...</p>
+                                    <div class="text-muted small" id="server-details"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contenedor -->
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="card h-100 border-secondary" id="container-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-box"></i> Contenedor
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="status-indicator mb-2">
+                                        <span class="badge badge-secondary" id="container-status">Cargando...</span>
+                                    </div>
+                                    <p class="card-text small" id="container-message">Verificando entorno...</p>
+                                    <div class="text-muted small" id="container-details"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Service -->
+                    <div class="row">
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="card h-100 border-secondary" id="email-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-envelope"></i> Servicio Email
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="status-indicator mb-2">
+                                        <span class="badge badge-secondary" id="email-status">Cargando...</span>
+                                    </div>
+                                    <p class="card-text small" id="email-message">Verificando conexión SMTP...</p>
+                                    <div class="text-muted small" id="email-details"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detalles del Servidor -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-info-circle"></i> Información Detallada del Servidor
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Recursos del Sistema</h6>
+                                            <div id="system-resources">
+                                                <p class="mb-1"><strong>CPU:</strong> <span id="cpu-info">-</span></p>
+                                                <p class="mb-1"><strong>Memoria:</strong> <span id="memory-info">-</span></p>
+                                                <p class="mb-1"><strong>Disco:</strong> <span id="disk-info">-</span></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Información del Sistema</h6>
+                                            <div id="system-info">
+                                                <p class="mb-1"><strong>Hostname:</strong> <span id="hostname">-</span></p>
+                                                <p class="mb-1"><strong>Plataforma:</strong> <span id="platform">-</span></p>
+                                                <p class="mb-1"><strong>Python:</strong> <span id="python-version">-</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Monitoring page loaded');
+
+    // Simple function to load health data
+    function loadHealthData() {
+        console.log('Loading health data...');
+
+        fetch('{% url "formacion:health_check_api" %}')
+        .then(response => {
+            console.log('Response received:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data);
+            updateStatus(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('overall-status-text').textContent = 'Error al cargar datos';
+        });
+    }
+
+    function updateStatus(data) {
+        // Update overall status
+        const statusText = document.getElementById('overall-status-text');
+        const lastUpdate = document.getElementById('last-update');
+
+        if (statusText) {
+            statusText.textContent = 'Estado del Sistema: ' + (data.status === 'healthy' ? 'Saludable' : 'Problemas');
+        }
+
+        if (lastUpdate) {
+            lastUpdate.textContent = new Date(data.timestamp).toLocaleString('es-ES');
+        }
+
+        // Update services
+        if (data.services) {
+            updateService('db', data.services.database);
+            updateService('app', data.services.application);
+            updateService('server', data.services.server);
+            updateService('container', data.services.container);
+            updateService('email', data.services.email);
+        }
+    }
+
+    function updateService(prefix, service) {
+        if (!service) return;
+
+        const statusEl = document.getElementById(prefix + '-status');
+        const messageEl = document.getElementById(prefix + '-message');
+        const detailsEl = document.getElementById(prefix + '-details');
+
+        if (statusEl) {
+            statusEl.textContent = service.status === 'healthy' ? 'OK' : 'Error';
+            statusEl.className = 'badge ' + (service.status === 'healthy' ? 'badge-success' : 'badge-danger');
+        }
+
+        if (messageEl) {
+            messageEl.textContent = service.message || 'Sin información';
+        }
+
+        // Update detailed information for server
+        if (prefix === 'server' && service.info && detailsEl) {
+            detailsEl.innerHTML = `
+                <strong>CPU:</strong> ${service.info.cpu_count || '-'} cores<br>
+                <strong>Memoria:</strong> ${formatBytes(service.info.memory?.available || 0)} / ${formatBytes(service.info.memory?.total || 0)} (${service.info.memory?.percent?.toFixed(1) || '-'}%)<br>
+                <strong>Disco:</strong> ${formatBytes(service.info.disk?.free || 0)} / ${formatBytes(service.info.disk?.total || 0)} (${service.info.disk?.percent?.toFixed(1) || '-'}%)
+            `;
+
+            // Update system info section
+            document.getElementById('cpu-info').textContent = `${service.info.cpu_count || '-'} cores`;
+            document.getElementById('memory-info').textContent = `${formatBytes(service.info.memory?.available || 0)} / ${formatBytes(service.info.memory?.total || 0)} (${service.info.memory?.percent?.toFixed(1) || '-'}%)`;
+            document.getElementById('disk-info').textContent = `${formatBytes(service.info.disk?.free || 0)} / ${formatBytes(service.info.disk?.total || 0)} (${service.info.disk?.percent?.toFixed(1) || '-'}%)`;
+            document.getElementById('hostname').textContent = service.info.hostname || '-';
+            document.getElementById('platform').textContent = service.info.platform || '-';
+            document.getElementById('python-version').textContent = service.info.python_version || '-';
+        } else if (prefix === 'app' && detailsEl) {
+            detailsEl.innerHTML = `<strong>Versión:</strong> ${service.version || '-'}<br><strong>Framework:</strong> Django`;
+        } else if (prefix === 'db' && detailsEl) {
+            detailsEl.innerHTML = `<strong>Tipo:</strong> ${service.type || '-'}<br><strong>Estado:</strong> ${service.status === 'healthy' ? 'Conectado' : 'Error'}`;
+        }
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Button click handler
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+
+            loadHealthData();
+
+            setTimeout(() => {
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
+            }, 1000);
+        });
+    }
+
+    // Auto refresh every 30 seconds
+    setInterval(loadHealthData, 30000);
+
+    // Initial load
+    loadHealthData();
+});
+</script>
+{% endblock %}

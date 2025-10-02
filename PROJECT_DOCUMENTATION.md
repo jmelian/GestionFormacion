@@ -218,6 +218,6 @@ Para continuar con la documentación detallada, consulte los siguientes archivos
 
 ---
 
-**Versión**: 1.2
-**Última actualización**: 2025-10-01
+**Versión**: 1.3
+**Última actualización**: 2025-10-02
 **Autor**: Sistema de Documentación Automática
