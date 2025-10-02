@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os, sys
 from decouple import config, Csv
+import ldap
+from django_auth_ldap.config import LDAPSearch
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -99,6 +102,32 @@ DATABASES = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/vol/web/media/'
 
+
+# AUTHENTICATION_BACKENDS
+AUTHENTICATION_BACKENDS = [
+    'django_auth_ldap.backend.LDAPBackend',
+    #'django.contrib.auth.backends.ModelBackend',
+]
+
+# Configuración de Conexión sin cifrado (LDAP)
+# Esto es solo para la prueba. NO lo uses en producción.
+AUTH_LDAP_SERVER_URI = config('AUTH_LDAP_SERVER_URI')
+
+
+# AUTH_LDAP_TLS_CACERTFILE = "/ruta/a/tu/proyecto/certs/ldap.crt"
+# AUTH_LDAP_TLS_VERIFY_SERVER_CERT = True
+
+# Mapeo de Atributos LDAP a Campos del Modelo de Usuario de Django
+AUTH_LDAP_USER_DN_TEMPLATE = config('LDAP_BIND_DN')
+
+AUTH_LDAP_USER_ATTR_MAP = {
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email": "mail",
+}
+
+AUTH_LDAP_ALWAYS_UPDATE_USER = True
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -123,10 +152,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 DEFAULT_CHARSET = 'utf-8'
 
+TIME_ZONE = config('TIME_ZONE', default='Atlantic/Canary')
+
+
 USE_I18N = True
 
 USE_TZ = True
-TIME_ZONE = config('TIME_ZONE', default='Atlantic/Canary')
 
 
 LANGUAGE_CODE = 'es-es'
@@ -150,7 +181,6 @@ STATIC_URL = '/static/'
 
 # Directorio donde se recolectarán los archivos estáticos para producción.
 STATIC_ROOT = '/vol/web/staticfiles/'
-
 
 # Sección de seguridad
 SESSION_COOKIE_SECURE = False
