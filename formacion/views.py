@@ -23,9 +23,12 @@ from django.core.mail import send_mail
 from django import forms
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.transaction import TransactionManagementError
-from django.http import FileResponse, Http404, HttpResponseForbidden
+from django.http import FileResponse, Http404, HttpResponseForbidden, JsonResponse
 from django.db.utils import OperationalError, DatabaseError
 import logging
+import os
+import psutil
+import platform
 
 
 
@@ -4053,4 +4056,141 @@ def serve_protected_titulacion(request, filename):
         # El archivo no se encontró físicamente, lo que es un problema serio.
         logger.error(f"Archivo físico no encontrado para la titulación '{titulacion.id}': {file_path}")
         raise Http404("El archivo físico no existe en el servidor.")
+
+
+def health_check_api(request):
+    """
+    API endpoint para verificar el estado de salud de la aplicación.
+    Retorna JSON con información sobre base de datos, aplicación y servidor/contenedor.
+    """
+    health_status = {
+        'status': 'healthy',
+        'timestamp': timezone.now().isoformat(),
+        'services': {}
+    }
+
+    # Verificar base de datos
+    try:
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+        db_status = 'healthy'
+        db_message = 'Conexión exitosa'
+    except Exception as e:
+        db_status = 'unhealthy'
+        db_message = f'Error de conexión: {str(e)}'
+        health_status['status'] = 'unhealthy'
+
+    health_status['services']['database'] = {
+        'status': db_status,
+        'message': db_message,
+        'type': 'PostgreSQL'
+    }
+
+    # Verificar aplicación Django
+    try:
+        # Verificar que podemos hacer una consulta simple
+        Empleado.objects.count()
+        app_status = 'healthy'
+        app_message = 'Aplicación funcionando correctamente'
+    except Exception as e:
+        app_status = 'unhealthy'
+        app_message = f'Error en aplicación: {str(e)}'
+        health_status['status'] = 'unhealthy'
+
+    health_status['services']['application'] = {
+        'status': app_status,
+        'message': app_message,
+        'version': 'Django 5.2.3'
+    }
+
+    # Información del servidor/contenedor
+    try:
+        server_info = {
+            'hostname': platform.node(),
+            'platform': platform.platform(),
+            'python_version': platform.python_version(),
+            'cpu_count': os.cpu_count(),
+            'memory': {
+                'total': psutil.virtual_memory().total,
+                'available': psutil.virtual_memory().available,
+                'percent': psutil.virtual_memory().percent
+            },
+            'disk': {
+                'total': psutil.disk_usage('/').total,
+                'free': psutil.disk_usage('/').free,
+                'percent': psutil.disk_usage('/').percent
+            }
+        }
+        server_status = 'healthy'
+        server_message = 'Información del servidor obtenida'
+    except Exception as e:
+        server_status = 'warning'
+        server_message = f'Error obteniendo info del servidor: {str(e)}'
+        server_info = {}
+
+    health_status['services']['server'] = {
+        'status': server_status,
+        'message': server_message,
+        'info': server_info
+    }
+
+    # Verificar si estamos en un contenedor Docker
+    try:
+        # Método 1: Verificar /proc/1/cgroup
+        is_docker = False
+        try:
+            with open('/proc/1/cgroup', 'r') as f:
+                if 'docker' in f.read().lower():
+                    is_docker = True
+        except:
+            pass
+
+        # Método 2: Verificar variables de entorno comunes de Docker
+        if not is_docker:
+            docker_env_vars = ['DOCKER_CONTAINER', 'DOCKER_HOST', 'DOCKER_TLS_VERIFY']
+            for var in docker_env_vars:
+                if os.environ.get(var):
+                    is_docker = True
+                    break
+
+        # Método 3: Verificar .dockerenv file
+        if not is_docker:
+            if os.path.exists('/.dockerenv'):
+                is_docker = True
+
+        if is_docker:
+            container_status = 'healthy'
+            container_message = 'Ejecutándose en contenedor Docker'
+        else:
+            container_status = 'info'
+            container_message = 'No se detecta contenedor Docker'
+    except Exception as e:
+        container_status = 'warning'
+        container_message = f'Error detectando contenedor: {str(e)}'
+
+    health_status['services']['container'] = {
+        'status': container_status,
+        'message': container_message
+    }
+
+    # Verificar servicios externos si es necesario (ejemplo: email)
+    # Deshabilitado temporalmente para evitar timeouts
+    health_status['services']['email'] = {
+        'status': 'info',
+        'message': 'Verificación SMTP deshabilitada'
+    }
+
+    return JsonResponse(health_status)
+
+
+@login_required
+@user_passes_test(es_admin, login_url='formacion:dashboard')
+def monitoring_page(request):
+    """
+    Página de monitorización que muestra el estado de los servicios.
+    Solo accesible para administradores.
+    """
+    return render(request, 'formacion/monitoring.html')
     

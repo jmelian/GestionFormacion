@@ -18,6 +18,15 @@ Si olvida su contraseña, contacte con el administrador del sistema.
 
 ## Roles de Usuario
 
+El sistema cuenta con los siguientes roles de usuario, cada uno con funcionalidades específicas:
+
+- **Empleado**: Gestión personal de formación y titulaciones
+- **Coordinador**: Gestión del equipo departamental y preselecciones
+- **RRHH**: Validación de certificados y gestión de personal
+- **Formación**: Gestión de cursos y proveedores
+- **Dirección**: Supervisión estratégica y reportes avanzados
+- **Administrador**: Configuración del sistema y monitorización
+
 ### 1. Empleado
 
 #### Dashboard Principal
@@ -293,6 +302,47 @@ Después de completar un curso:
    - Horas de formación por empleado
    - Distribución de empleados por departamento
 
+### 6. Administrador
+
+#### Dashboard
+
+- **Panel de Administración**: Acceso completo al backend de Django para configuración avanzada
+- **Monitorización del Sistema**: Visualización en tiempo real del estado de salud del sistema
+- **Registro de Empleados**: Alta de nuevos empleados y configuración inicial
+
+#### Gestión del Sistema
+
+##### Panel de Administración
+
+1. Ir a "Panel de Administración"
+2. Acceder a la interfaz de Django Admin
+3. Gestionar modelos de datos, usuarios y permisos
+4. Configuraciones avanzadas del sistema
+
+##### Monitorización del Sistema
+
+1. Ir a "Monitorización del Sistema"
+2. Ver estado de servicios en tiempo real:
+   - **Base de Datos**: Conexión y estado de PostgreSQL
+   - **Aplicación**: Estado de la aplicación Django
+   - **Servidor**: Información de CPU, memoria y disco
+   - **Contenedor**: Estado del contenedor Docker
+   - **Email**: Configuración y estado del servicio de correo
+3. Indicadores visuales con colores:
+   - Verde: Servicio funcionando correctamente (healthy)
+   - Amarillo: Advertencias (warning)
+   - Rojo: Problemas (unhealthy)
+4. Actualización automática cada 30 segundos
+5. Botón para actualización manual
+
+##### Registro de Empleados
+
+1. Ir a "Registro de Empleados"
+2. Completar formulario de alta con datos personales
+3. Configurar perfil profesional y permisos iniciales
+4. Asignar departamento y rol en el sistema
+5. Establecer credenciales de acceso
+
 ## Funcionalidades Comunes
 
 ### Notificaciones
@@ -372,6 +422,13 @@ Después de completar un curso:
 3. **Monitorear ROI**: Retorno de inversión en formación
 4. **Fomentar Cultura**: Formación como valor organizacional
 
+### Para Administrador
+
+1. **Monitorear Sistema**: Revisar estado de servicios y recursos regularmente
+2. **Gestionar Usuarios**: Mantener perfiles, permisos y accesos actualizados
+3. **Configurar Sistema**: Realizar ajustes avanzados y mantenimiento preventivo
+4. **Seguridad**: Gestionar accesos, auditorías y cumplimiento normativo
+
 ## Solución de Problemas
 
 ### Problemas Comunes
@@ -416,5 +473,5 @@ Para soporte técnico:
 ---
 
 **Guía del Usuario**
-**Versión**: 1.2
-**Última actualización**: 2025-10-01
+**Versión**: 1.3
+**Última actualización**: 2025-10-02
