@@ -7,5 +7,6 @@ class FormacionConfig(AppConfig):
     name = 'formacion'
 
     def ready(self):
-        pass
+        # Importar y conectar las señales
+        import formacion.signals
     
