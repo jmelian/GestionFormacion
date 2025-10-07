@@ -4180,6 +4180,36 @@ def health_check_api(request):
         'message': container_message
     }
 
+    # Verificar LDAP si está configurado
+    if getattr(settings, 'USE_LDAP', False):
+        try:
+            import ldap
+            ldap_client = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
+            ldap_client.set_option(ldap.OPT_NETWORK_TIMEOUT, 5)  # Timeout de 5 segundos
+            # Intentar bind anónimo o con credenciales de test si están disponibles
+            # Para una verificación básica, solo comprobamos que el servidor responda
+            ldap_client.simple_bind_s()  # Bind anónimo
+            ldap_status = 'healthy'
+            ldap_message = 'Conexión LDAP exitosa'
+        except ldap.LDAPError as e:
+            ldap_status = 'unhealthy'
+            ldap_message = f'Error de conexión LDAP: {str(e)}'
+            health_status['status'] = 'unhealthy'
+        except Exception as e:
+            ldap_status = 'warning'
+            ldap_message = f'Error al verificar LDAP: {str(e)}'
+
+        health_status['services']['ldap'] = {
+            'status': ldap_status,
+            'message': ldap_message,
+            'server': settings.AUTH_LDAP_SERVER_URI
+        }
+    else:
+        health_status['services']['ldap'] = {
+            'status': 'info',
+            'message': 'LDAP no configurado'
+        }
+
     # Verificar servicios externos si es necesario (ejemplo: email)
     # Deshabilitado temporalmente para evitar timeouts
     health_status['services']['email'] = {

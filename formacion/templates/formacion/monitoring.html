@@ -107,8 +107,27 @@
                         </div>
                     </div>
 
-                    <!-- Email Service -->
+                    <!-- LDAP and Email Services -->
                     <div class="row">
+                        <!-- LDAP Service -->
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="card h-100 border-secondary" id="ldap-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-users"></i> Servicio LDAP
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="status-indicator mb-2">
+                                        <span class="badge badge-secondary" id="ldap-status">Cargando...</span>
+                                    </div>
+                                    <p class="card-text small" id="ldap-message">Verificando conexión LDAP...</p>
+                                    <div class="text-muted small" id="ldap-details"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email Service -->
                         <div class="col-md-6 col-lg-3 mb-4">
                             <div class="card h-100 border-secondary" id="email-card">
                                 <div class="card-header">
@@ -253,6 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateService('app', data.services.application);
             updateService('server', data.services.server);
             updateService('container', data.services.container);
+            updateService('ldap', data.services.ldap);
             updateService('email', data.services.email);
         }
 
@@ -302,6 +322,8 @@ document.addEventListener('DOMContentLoaded', function() {
             detailsEl.innerHTML = `<strong>Versión:</strong> ${service.version || '-'}<br><strong>Framework:</strong> Django`;
         } else if (prefix === 'db' && detailsEl) {
             detailsEl.innerHTML = `<strong>Tipo:</strong> ${service.type || '-'}<br><strong>Estado:</strong> ${service.status === 'healthy' ? 'Conectado' : 'Error'}`;
+        } else if (prefix === 'ldap' && detailsEl) {
+            detailsEl.innerHTML = `<strong>Servidor:</strong> ${service.server || '-'}<br><strong>Estado:</strong> ${service.status === 'healthy' ? 'Conectado' : 'Error'}`;
         }
     }
 
