@@ -473,5 +473,5 @@ Para soporte técnico:
 ---
 
 **Guía del Usuario**
-**Versión**: 1.3
-**Última actualización**: 2025-10-02
+**Versión**: 1.4
+**Última actualización**: 2025-10-07

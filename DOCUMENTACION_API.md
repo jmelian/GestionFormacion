@@ -572,13 +572,86 @@ LOGGING = {
 
 **Autenticación**: No requerida (pública para monitoreo)
 
-**Descripción**: Proporciona el estado de salud de la aplicación y sus servicios.
+**Descripción**: Proporciona el estado de salud de la aplicación, métricas actuales, umbrales de monitorización y estado de servicios.
 
 **Respuesta JSON**:
 ```json
 {
   "status": "healthy|unhealthy",
-  "timestamp": "2025-10-02T12:01:06.377025+00:00",
+  "timestamp": "2025-10-07T08:49:33.628Z",
+  "thresholds": {
+    "cpu": {"critical": 95, "high": 85, "medium": 70, "unit": "percent"},
+    "memory": {"critical": 95, "high": 85, "medium": 70, "unit": "percent"},
+    "disk": {"critical": 95, "high": 90, "medium": 80, "unit": "percent"},
+    "response_time": {"critical": 10.0, "high": 5.0, "medium": 2.0, "unit": "seconds"},
+    "error_rate": {"critical": 5.0, "high": 1.0, "medium": 0.5, "unit": "percent"},
+    "availability": {"target": 99.9, "unit": "percent"}
+  },
+  "metrics": {
+    "internal": {
+      "cpu_percent": {
+        "value": 0.1,
+        "unit": "percent",
+        "description": "CPU utilization percentage"
+      },
+      "memory_percent": {
+        "value": 11.5,
+        "unit": "percent",
+        "description": "Memory utilization percentage"
+      },
+      "memory_used_gb": {
+        "value": 0.67,
+        "unit": "GB",
+        "description": "Memory used"
+      },
+      "memory_total_gb": {
+        "value": 7.64,
+        "unit": "GB",
+        "description": "Total memory available"
+      },
+      "disk_percent": {
+        "value": 1.2,
+        "unit": "percent",
+        "description": "Disk utilization percentage"
+      },
+      "disk_used_gb": {
+        "value": 11.49,
+        "unit": "GB",
+        "description": "Disk space used"
+      },
+      "disk_total_gb": {
+        "value": 1006.85,
+        "unit": "GB",
+        "description": "Total disk space"
+      },
+      "load_average": {
+        "value": [0.0, 0.016, 0.0],
+        "unit": "processes",
+        "description": "System load average (1min, 5min, 15min)",
+        "periods": ["1_minute", "5_minutes", "15_minutes"]
+      }
+    },
+    "external": {
+      "error_rate_1h": {
+        "value": 0.0,
+        "unit": "percent",
+        "description": "Application error rate in last hour",
+        "source": "external_monitoring"
+      },
+      "response_time_avg": {
+        "value": 0.0,
+        "unit": "seconds",
+        "description": "Average response time in last hour",
+        "source": "external_monitoring"
+      },
+      "availability_24h": {
+        "value": 100.0,
+        "unit": "percent",
+        "description": "System availability in last 24 hours",
+        "source": "external_monitoring"
+      }
+    }
+  },
   "services": {
     "database": {
       "status": "healthy|unhealthy",
@@ -596,17 +669,17 @@ LOGGING = {
       "info": {
         "hostname": "nombre_del_servidor",
         "platform": "sistema_operativo",
-        "python_version": "3.13.7",
+        "python_version": "3.12.11",
         "cpu_count": 12,
         "memory": {
-          "total": 8207421440,
-          "available": 7300870144,
-          "percent": 11.0
+          "total": 8207409152,
+          "available": 7263838208,
+          "percent": 11.5
         },
         "disk": {
           "total": 1081101176832,
-          "free": 1016919330816,
-          "percent": 0.9
+          "free": 1013773336576,
+          "percent": 1.2
         }
       }
     },
@@ -627,6 +700,27 @@ LOGGING = {
 - `warning`: Servicio con advertencias (no crítico)
 - `unhealthy`: Servicio con problemas
 - `info`: Información adicional (no afecta salud)
+
+**Umbrales de Monitorización**:
+Los umbrales se configuran en `settings.py` y pueden ser sobreescritos por variables de entorno. Los valores críticos marcan el estado general como `unhealthy` cuando se exceden.
+
+**Métricas del Sistema**:
+
+**Métricas Internas** (calculadas por la aplicación):
+- `cpu_percent`: Porcentaje de uso de CPU
+- `memory_percent`: Porcentaje de uso de memoria
+- `memory_used_gb/total_gb`: Memoria usada/total en GB
+- `disk_percent`: Porcentaje de uso de disco
+- `disk_used_gb/total_gb`: Disco usado/total en GB
+- `load_average`: Carga promedio del sistema (1min, 5min, 15min)
+
+**Métricas Externas** (calculadas por sistemas de monitoreo):
+- `error_rate_1h`: Tasa de error de aplicación en la última hora
+- `response_time_avg`: Tiempo de respuesta promedio en la última hora
+- `availability_24h`: Disponibilidad del sistema en las últimas 24 horas
+
+**Estructura de Métricas**:
+Cada métrica incluye `value` (valor), `unit` (unidad), `description` (descripción), y opcionalmente `source` (origen) para métricas externas.
 
 ### Página de Monitorización
 
@@ -650,5 +744,5 @@ LOGGING = {
 ---
 
 **Documentación Técnica - API**
-**Versión**: 1.3
-**Última actualización**: 2025-10-02
+**Versión**: 1.4
+**Última actualización**: 2025-10-07

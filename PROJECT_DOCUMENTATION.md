@@ -15,7 +15,7 @@ Este proyecto es un **Sistema de Gestión de Formación** desarrollado con **Dja
 | **Servidor Web** | Gunicorn + Nginx | - |
 | **Contenedor** | Docker + Docker Compose | - |
 | **Frontend** | HTML5, CSS3, Bootstrap | - |
-| **Autenticación** | Django Auth con modelo personalizado | - |
+| **Autenticación** | Django Auth con modelo personalizado + LDAP opcional | - |
 
 ### Estructura del Proyecto
 
@@ -159,10 +159,12 @@ formacion_demo_casa/
 
 ### Autenticación y Autorización
 
-- **Autenticación**: Basada en Django Auth
+- **Autenticación**: Basada en Django Auth con soporte opcional para LDAP/Active Directory
+- **Autenticación LDAP**: Integración con django-auth-ldap para autenticación contra servidores LDAP
 - **Grupos de Usuarios**: Control de acceso por roles
 - **Decoradores**: `@login_required`, `@user_passes_test`
 - **Permisos**: Modelo de permisos de Django
+- **Configuración Condicional**: Autenticación LDAP activable mediante variable de entorno
 
 ### Roles del Sistema
 
@@ -188,6 +190,9 @@ formacion_demo_casa/
 - **DEBUG**: Modo de desarrollo
 - **DATABASE_URL**: Configuración de base de datos
 - **EMAIL_***: Configuración de correo electrónico
+- **LDAP**: Habilitar/deshabilitar autenticación LDAP
+- **AUTH_LDAP_SERVER_URI**: URI del servidor LDAP
+- **LDAP_BIND_DN**: Plantilla DN para usuarios LDAP
 
 ## API y Endpoints
 
@@ -218,6 +223,6 @@ Para continuar con la documentación detallada, consulte los siguientes archivos
 
 ---
 
-**Versión**: 1.3
-**Última actualización**: 2025-10-02
+**Versión**: 1.4
+**Última actualización**: 2025-10-07
 **Autor**: Sistema de Documentación Automática

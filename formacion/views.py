@@ -4061,12 +4061,17 @@ def serve_protected_titulacion(request, filename):
 def health_check_api(request):
     """
     API endpoint para verificar el estado de salud de la aplicación.
-    Retorna JSON con información sobre base de datos, aplicación y servidor/contenedor.
+    Retorna JSON con información sobre base de datos, aplicación, servidor/contenedor,
+    métricas actuales y umbrales de monitorización.
     """
+    from django.conf import settings
+
     health_status = {
         'status': 'healthy',
         'timestamp': timezone.now().isoformat(),
-        'services': {}
+        'services': {},
+        'thresholds': settings.MONITORING_THRESHOLDS,
+        'metrics': {}
     }
 
     # Verificar base de datos
@@ -4181,6 +4186,106 @@ def health_check_api(request):
         'status': 'info',
         'message': 'Verificación SMTP deshabilitada'
     }
+
+    # Recopilar métricas actuales del sistema (MÉTRICAS INTERNAS - cálculo inmediato)
+    try:
+        # Métricas básicas del sistema
+        cpu_percent = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+
+        # Métricas internas (calculadas por la aplicación)
+        internal_metrics = {
+            'cpu_percent': {
+                'value': round(cpu_percent, 1),
+                'unit': 'percent',
+                'description': 'CPU utilization percentage'
+            },
+            'memory_percent': {
+                'value': round(memory.percent, 1),
+                'unit': 'percent',
+                'description': 'Memory utilization percentage'
+            },
+            'memory_used_gb': {
+                'value': round(memory.used / (1024**3), 2),
+                'unit': 'GB',
+                'description': 'Memory used'
+            },
+            'memory_total_gb': {
+                'value': round(memory.total / (1024**3), 2),
+                'unit': 'GB',
+                'description': 'Total memory available'
+            },
+            'disk_percent': {
+                'value': round(disk.percent, 1),
+                'unit': 'percent',
+                'description': 'Disk utilization percentage'
+            },
+            'disk_used_gb': {
+                'value': round(disk.used / (1024**3), 2),
+                'unit': 'GB',
+                'description': 'Disk space used'
+            },
+            'disk_total_gb': {
+                'value': round(disk.total / (1024**3), 2),
+                'unit': 'GB',
+                'description': 'Total disk space'
+            },
+            'load_average': {
+                'value': psutil.getloadavg() if hasattr(psutil, 'getloadavg') else [0, 0, 0],
+                'unit': 'processes',
+                'description': 'System load average (1min, 5min, 15min)',
+                'periods': ['1_minute', '5_minutes', '15_minutes']
+            }
+        }
+
+        # Métricas externas (calculadas por sistemas de monitoreo - placeholders por ahora)
+        external_metrics = {
+            'error_rate_1h': {
+                'value': 0.0,  # Placeholder - calculado externamente
+                'unit': 'percent',
+                'description': 'Application error rate in last hour',
+                'source': 'external_monitoring'
+            },
+            'response_time_avg': {
+                'value': 0.0,  # Placeholder - calculado externamente
+                'unit': 'seconds',
+                'description': 'Average response time in last hour',
+                'source': 'external_monitoring'
+            },
+            'availability_24h': {
+                'value': 100.0,  # Placeholder - calculado externamente
+                'unit': 'percent',
+                'description': 'System availability in last 24 hours',
+                'source': 'external_monitoring'
+            }
+        }
+
+        health_status['metrics'] = {
+            'internal': internal_metrics,
+            'external': external_metrics
+        }
+
+        # Verificar si las métricas internas exceden umbrales críticos
+        thresholds = settings.MONITORING_THRESHOLDS
+        if cpu_percent >= thresholds['cpu']['critical']:
+            health_status['status'] = 'unhealthy'
+            health_status['services']['server']['status'] = 'unhealthy'
+            health_status['services']['server']['message'] = f'CPU crítica: {cpu_percent}% (umbral: {thresholds["cpu"]["critical"]}%)'
+        elif memory.percent >= thresholds['memory']['critical']:
+            health_status['status'] = 'unhealthy'
+            health_status['services']['server']['status'] = 'unhealthy'
+            health_status['services']['server']['message'] = f'Memoria crítica: {memory.percent}% (umbral: {thresholds["memory"]["critical"]}%)'
+        elif disk.percent >= thresholds['disk']['critical']:
+            health_status['status'] = 'unhealthy'
+            health_status['services']['server']['status'] = 'unhealthy'
+            health_status['services']['server']['message'] = f'Disco crítico: {disk.percent}% (umbral: {thresholds["disk"]["critical"]}%)'
+
+    except Exception as e:
+        logger.warning(f"Error recopilando métricas del sistema: {e}")
+        health_status['metrics'] = {
+            'error': 'No se pudieron recopilar métricas del sistema'
+        }
 
     return JsonResponse(health_status)
 

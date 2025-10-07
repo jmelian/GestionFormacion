@@ -1,4 +1,4 @@
-# Sistema de Gestión de Formación - Versión 1.0
+# Sistema de Gestión de Formación - Versión 1.4
 # Lista de tareas pendientes y mejoras futuras
 
 ## Problemas Identificados
@@ -10,6 +10,14 @@
 - Añadir funcionalidad de backup automático de base de datos
 - Implementar sistema de auditoría completo de cambios
 - Optimizar rendimiento con índices de base de datos adicionales
+
+## Documentación Versión 1.4
+- ✅ Documentación actualizada a versión 1.4
+- ✅ Soporte LDAP documentado: configuración de autenticación contra servidores LDAP/Active Directory
+- ✅ Archivo .env.example actualizado con variables LDAP
+- ✅ Guía de instalación ampliada con sección de configuración LDAP
+- ✅ Documentación técnica actualizada con información de autenticación LDAP
+- ✅ Versiones consistentes en todos los archivos (2025-10-07)
 
 ## Documentación Versión 1.2
 - ✅ Documentación actualizada a versión 1.2

@@ -13,9 +13,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os, sys
 from decouple import config, Csv
+import ldap
+from django_auth_ldap.config import LDAPSearch
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -28,7 +32,9 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
 
+
 # Application definition
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -72,6 +78,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'formacion_demo.wsgi.application'
 
+
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 # Lógica para determinar el HOST de la base de datos
@@ -95,48 +102,35 @@ DATABASES = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/vol/web/media/'
 
-# ============================================================================
-# CONFIGURACIÓN DE AUTENTICACIÓN (Condicional basada en variable de entorno)
-# ============================================================================
 
-# Variable de entorno para controlar el uso de LDAP
-USE_LDAP = config('LDAP', default=False, cast=bool)
+# AUTHENTICATION_BACKENDS
+AUTHENTICATION_BACKENDS = [
+    'django_auth_ldap.backend.LDAPBackend',
+    #'django.contrib.auth.backends.ModelBackend',
+]
 
-if USE_LDAP:
-    # Importaciones necesarias para LDAP
-    import ldap
-    from django_auth_ldap.config import LDAPSearch
-    
-    # Configuración de autenticación con LDAP
-    AUTHENTICATION_BACKENDS = [
-        'django_auth_ldap.backend.LDAPBackend',
-        'django.contrib.auth.backends.ModelBackend',  # Backup para admin
-    ]
-    
-    # Configuración de Conexión LDAP
-    AUTH_LDAP_SERVER_URI = config('AUTH_LDAP_SERVER_URI')
-    AUTH_LDAP_USER_DN_TEMPLATE = config('LDAP_BIND_DN')
-    
-    AUTH_LDAP_USER_ATTR_MAP = {
-        "first_name": "givenName",
-        "last_name": "sn",
-        "email": "mail",
-    }
-    
-    AUTH_LDAP_ALWAYS_UPDATE_USER = True
-    
-    # Opciones adicionales de seguridad (comentadas por defecto)
-    # AUTH_LDAP_TLS_CACERTFILE = "/ruta/a/tu/proyecto/certs/ldap.crt"
-    # AUTH_LDAP_TLS_VERIFY_SERVER_CERT = True
-    
-else:
-    # Configuración de autenticación estándar de Django
-    AUTHENTICATION_BACKENDS = [
-        'django.contrib.auth.backends.ModelBackend',
-    ]
+# Configuración de Conexión sin cifrado (LDAP)
+# Esto es solo para la prueba. NO lo uses en producción.
+AUTH_LDAP_SERVER_URI = config('AUTH_LDAP_SERVER_URI')
+
+
+# AUTH_LDAP_TLS_CACERTFILE = "/ruta/a/tu/proyecto/certs/ldap.crt"
+# AUTH_LDAP_TLS_VERIFY_SERVER_CERT = True
+
+# Mapeo de Atributos LDAP a Campos del Modelo de Usuario de Django
+AUTH_LDAP_USER_DN_TEMPLATE = config('LDAP_BIND_DN')
+
+AUTH_LDAP_USER_ATTR_MAP = {
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email": "mail",
+}
+
+AUTH_LDAP_ALWAYS_UPDATE_USER = True
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -152,20 +146,40 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
+
 DEFAULT_CHARSET = 'utf-8'
+
 TIME_ZONE = config('TIME_ZONE', default='Atlantic/Canary')
+
+
 USE_I18N = True
+
 USE_TZ = True
+
+
 LANGUAGE_CODE = 'es-es'
+
 USE_L10N = True
 
 AUTH_USER_MODEL = 'formacion.Empleado'
 
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+
 STATIC_URL = '/static/'
+
+# Directorio donde Django buscará archivos estáticos durante el desarrollo.
+# Asegúrate de que esta ruta sea correcta para tu proyecto.
+#STATICFILES_DIRS = [
+#    os.path.join(BASE_DIR, 'formacion/static/'),
+#]
+
+# Directorio donde se recolectarán los archivos estáticos para producción.
 STATIC_ROOT = '/vol/web/staticfiles/'
 
 # Sección de seguridad
@@ -175,6 +189,7 @@ CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=Csv())
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'formacion:dashboard'
@@ -182,40 +197,62 @@ LOGIN_URL = '/formacion/login/'
 LOGOUT_REDIRECT_URL = 'formacion:login'
 
 # --- Configuración del Servidor de Email ---
+
+# El backend de email que utilizará Django. 'smtp.EmailBackend' es el estándar.
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# El servidor SMTP que vas a utilizar (ej. para Gmail)
 EMAIL_HOST = config('EMAIL_HOST')
+
+# El puerto del servidor SMTP
 EMAIL_PORT = config('EMAIL_PORT')
+
+# Tu dirección de correo electrónico que se usará para enviar los emails
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+
+# Tu contraseña o, lo más recomendable, una "contraseña de aplicación" generada
+# en la configuración de seguridad de tu cuenta de email.
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+# Utilizar TLS (Transport Layer Security) para la conexión
 EMAIL_USE_TLS = True
+
 
 # LOGGING
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
+        # Define el formato que incluye la fecha, nivel, nombre y número de línea.
         'verbose': {
             'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s'
         },
     },
     'handlers': {
+        # Configura el handler de consola para usar el formateador 'verbose'.
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
     },
     'root': {
+        # El logger raíz usa el handler de consola por defecto.
+        # Es el que atraparía los logs si 'propagate' estuviera en True.
         'level': 'INFO',
         'handlers': ['console'],
     },
     'loggers': {
+        # Logger específico para la aplicación 'formacion'.
         'formacion': {
-            'handlers': ['console'],
+            'handlers': ['console'], # Usa el handler de consola.
             'level': 'INFO',
-            'propagate': False,
+            'propagate': False, # ¡La clave para evitar la duplicación!
+                               # Esto evita que los logs de 'formacion'
+                               # se propaguen al logger raíz y se procesen de nuevo.
         },
     },
 }
+
 
 # --- NOMBRES DE GRUPOS DE USUARIO ---
 GRUPO_EMPLEADO = 'Empleado'
@@ -228,38 +265,3 @@ GRUPO_ADMINISTRACION = 'Administración'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-# ============================================================================
-# CONFIGURACIÓN DE MONITORIZACIÓN Y UMBRALES
-# ============================================================================
-
-# Umbrales de monitorización para alertas y health checks
-MONITORING_THRESHOLDS = {
-    'cpu': {
-        'critical': config('MONITORING_CPU_CRITICAL', default=95, cast=int),  # %
-        'high': config('MONITORING_CPU_HIGH', default=85, cast=int),        # %
-        'medium': config('MONITORING_CPU_MEDIUM', default=70, cast=int),    # %
-    },
-    'memory': {
-        'critical': config('MONITORING_MEMORY_CRITICAL', default=95, cast=int),  # %
-        'high': config('MONITORING_MEMORY_HIGH', default=85, cast=int),        # %
-        'medium': config('MONITORING_MEMORY_MEDIUM', default=70, cast=int),    # %
-    },
-    'disk': {
-        'critical': config('MONITORING_DISK_CRITICAL', default=95, cast=int),  # %
-        'high': config('MONITORING_DISK_HIGH', default=90, cast=int),        # %
-        'medium': config('MONITORING_DISK_MEDIUM', default=80, cast=int),    # %
-    },
-    'response_time': {
-        'critical': config('MONITORING_RESPONSE_TIME_CRITICAL', default=10.0, cast=float),  # segundos
-        'high': config('MONITORING_RESPONSE_TIME_HIGH', default=5.0, cast=float),          # segundos
-        'medium': config('MONITORING_RESPONSE_TIME_MEDIUM', default=2.0, cast=float),      # segundos
-    },
-    'error_rate': {
-        'critical': config('MONITORING_ERROR_RATE_CRITICAL', default=5.0, cast=float),   # %
-        'high': config('MONITORING_ERROR_RATE_HIGH', default=1.0, cast=float),           # %
-        'medium': config('MONITORING_ERROR_RATE_MEDIUM', default=0.5, cast=float),       # %
-    },
-    'availability': {
-        'target': config('MONITORING_AVAILABILITY_TARGET', default=99.9, cast=float),    # % SLA objetivo
-    }
-}

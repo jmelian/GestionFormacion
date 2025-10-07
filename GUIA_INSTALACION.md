@@ -71,7 +71,36 @@ DEFAULT_FROM_EMAIL=tu-email@gmail.com
 python -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
-### 4. Construir e Iniciar los Contenedores
+### 4. Configuración de LDAP (Opcional)
+
+El sistema soporta autenticación contra servidores LDAP o Active Directory. Para habilitar esta funcionalidad:
+
+1. **Instalar dependencias LDAP** (solo para desarrollo local):
+   ```bash
+   pip install django-auth-ldap python-ldap
+   ```
+
+2. **Configurar variables de entorno**:
+   ```bash
+   # Habilitar LDAP
+   LDAP=True
+
+   # URI del servidor LDAP (ejemplo para Active Directory)
+   AUTH_LDAP_SERVER_URI=ldap://tu-servidor-ldap.com:389
+
+   # Plantilla DN para buscar usuarios
+   LDAP_BIND_DN=uid={0},ou=users,dc=empresa,dc=com
+   ```
+
+3. **Configuración para Active Directory**:
+   ```bash
+   AUTH_LDAP_SERVER_URI=ldap://tu-ad-server.com:389
+   LDAP_BIND_DN=CN={0},OU=Users,DC=empresa,DC=com
+   ```
+
+**Nota**: Cuando LDAP está habilitado, los usuarios se autenticarán contra el servidor LDAP. Los usuarios locales (como el superusuario) seguirán funcionando como respaldo.
+
+### 5. Construir e Iniciar los Contenedores
 
 ```bash
 # Construir las imágenes
@@ -84,7 +113,7 @@ docker-compose up -d
 docker-compose ps
 ```
 
-### 5. Ejecutar Migraciones de Base de Datos
+### 6. Ejecutar Migraciones de Base de Datos
 
 ```bash
 # Acceder al contenedor de la aplicación
@@ -94,7 +123,7 @@ docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
 ```
 
-### 6. Cargar Datos Iniciales
+### 7. Cargar Datos Iniciales
 
 ```bash
 # Cargar grupos de usuarios
@@ -104,7 +133,7 @@ docker-compose exec web python manage.py loaddata initial_groups.json
 docker-compose exec web python manage.py loaddata initial_permissions.json
 ```
 
-### 7. Verificar Instalación
+### 8. Verificar Instalación
 
 Acceder a la aplicación en: `http://localhost:8082/formacion/`
 
@@ -434,6 +463,11 @@ EMAIL_HOST_USER=tu-email@gmail.com
 EMAIL_HOST_PASSWORD=tu-app-password
 DEFAULT_FROM_EMAIL=tu-email@gmail.com
 
+# LDAP (Opcional - para autenticación contra servidor LDAP/Active Directory)
+LDAP=False
+AUTH_LDAP_SERVER_URI=ldap://tu-servidor-ldap.com:389
+LDAP_BIND_DN=uid={0},ou=users,dc=empresa,dc=com
+
 # Seguridad adicional
 SESSION_COOKIE_SECURE=True
 CSRF_COOKIE_SECURE=True
@@ -443,5 +477,5 @@ SECURE_SSL_REDIRECT=True
 ---
 
 **Guía de Instalación**
-**Versión**: 1.3
-**Última actualización**: 2025-10-02
+**Versión**: 1.4
+**Última actualización**: 2025-10-07

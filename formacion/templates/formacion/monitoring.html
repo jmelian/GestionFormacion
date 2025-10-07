@@ -127,31 +127,75 @@
                         </div>
                     </div>
 
-                    <!-- Detalles del Servidor -->
+                    <!-- Métricas y Umbrales -->
                     <div class="row mt-4">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
                                     <h5 class="card-title mb-0">
-                                        <i class="fas fa-info-circle"></i> Información Detallada del Servidor
+                                        <i class="fas fa-chart-line"></i> Métricas del Sistema y Umbrales
                                     </h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h6>Recursos del Sistema</h6>
-                                            <div id="system-resources">
-                                                <p class="mb-1"><strong>CPU:</strong> <span id="cpu-info">-</span></p>
-                                                <p class="mb-1"><strong>Memoria:</strong> <span id="memory-info">-</span></p>
-                                                <p class="mb-1"><strong>Disco:</strong> <span id="disk-info">-</span></p>
+                                            <h6>Métricas Actuales</h6>
+                                            <div id="current-metrics">
+                                                <p class="mb-1"><strong>CPU:</strong> <span id="cpu-percent">-</span>%</p>
+                                                <p class="mb-1"><strong>Memoria:</strong> <span id="memory-percent">-</span>% (<span id="memory-used">-</span>GB / <span id="memory-total">-</span>GB)</p>
+                                                <p class="mb-1"><strong>Disco:</strong> <span id="disk-percent">-</span>% (<span id="disk-used">-</span>GB / <span id="disk-total">-</span>GB)</p>
+                                                <p class="mb-1"><strong>Load Average:</strong> <span id="load-average">-</span></p>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <h6>Información del Sistema</h6>
+                                            <h6>Umbrales de Alerta</h6>
+                                            <div id="thresholds-info">
+                                                <p class="mb-1"><strong>CPU Crítico:</strong> <span id="cpu-critical">-</span>%</p>
+                                                <p class="mb-1"><strong>Memoria Crítica:</strong> <span id="memory-critical">-</span>%</p>
+                                                <p class="mb-1"><strong>Disco Crítico:</strong> <span id="disk-critical">-</span>%</p>
+                                                <p class="mb-1"><strong>Tiempo Respuesta Crítico:</strong> <span id="response-critical">-</span>s</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <h6>Estado de Umbrales</h6>
+                                            <div id="thresholds-status" class="alert alert-info small">
+                                                <i class="fas fa-info-circle"></i>
+                                                <span id="thresholds-status-text">Analizando umbrales...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información del Sistema -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-info-circle"></i> Información del Sistema
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Información del Servidor</h6>
                                             <div id="system-info">
                                                 <p class="mb-1"><strong>Hostname:</strong> <span id="hostname">-</span></p>
                                                 <p class="mb-1"><strong>Plataforma:</strong> <span id="platform">-</span></p>
                                                 <p class="mb-1"><strong>Python:</strong> <span id="python-version">-</span></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Configuración de Monitorización</h6>
+                                            <div id="monitoring-config">
+                                                <p class="mb-1"><strong>Actualización:</strong> Cada 30 segundos</p>
+                                                <p class="mb-1"><strong>API Health:</strong> <code>/formacion/api/health/</code></p>
+                                                <p class="mb-1"><strong>Umbrales:</strong> Configurables via settings</p>
                                             </div>
                                         </div>
                                     </div>
@@ -196,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const lastUpdate = document.getElementById('last-update');
 
         if (statusText) {
-            statusText.textContent = 'Estado del Sistema: ' + (data.status === 'healthy' ? 'Saludable' : 'Problemas');
+            statusText.textContent = 'Estado del Sistema: ' + (data.status === 'healthy' ? 'Saludable' : 'Problemas Detectados');
         }
 
         if (lastUpdate) {
@@ -211,6 +255,19 @@ document.addEventListener('DOMContentLoaded', function() {
             updateService('container', data.services.container);
             updateService('email', data.services.email);
         }
+
+        // Update metrics
+        if (data.metrics) {
+            updateMetrics(data.metrics);
+        }
+
+        // Update thresholds
+        if (data.thresholds) {
+            updateThresholds(data.thresholds);
+        }
+
+        // Update thresholds status
+        updateThresholdsStatus(data);
     }
 
     function updateService(prefix, service) {
@@ -248,6 +305,105 @@ document.addEventListener('DOMContentLoaded', function() {
             detailsEl.innerHTML = `<strong>Versión:</strong> ${service.version || '-'}<br><strong>Framework:</strong> Django`;
         } else if (prefix === 'db' && detailsEl) {
             detailsEl.innerHTML = `<strong>Tipo:</strong> ${service.type || '-'}<br><strong>Estado:</strong> ${service.status === 'healthy' ? 'Conectado' : 'Error'}`;
+        }
+    }
+
+    function updateMetrics(metrics) {
+        if (metrics.error) {
+            document.getElementById('current-metrics').innerHTML = '<p class="text-danger">Error recopilando métricas</p>';
+            return;
+        }
+
+        // Métricas internas (calculadas por la aplicación)
+        if (metrics.internal) {
+            document.getElementById('cpu-percent').textContent = formatMetric(metrics.internal.cpu_percent);
+            document.getElementById('memory-percent').textContent = formatMetric(metrics.internal.memory_percent);
+            document.getElementById('memory-used').textContent = formatMetric(metrics.internal.memory_used_gb);
+            document.getElementById('memory-total').textContent = formatMetric(metrics.internal.memory_total_gb);
+            document.getElementById('disk-percent').textContent = formatMetric(metrics.internal.disk_percent);
+            document.getElementById('disk-used').textContent = formatMetric(metrics.internal.disk_used_gb);
+            document.getElementById('disk-total').textContent = formatMetric(metrics.internal.disk_total_gb);
+
+            if (metrics.internal.load_average && metrics.internal.load_average.value) {
+                const loadAvg = metrics.internal.load_average.value;
+                document.getElementById('load-average').textContent = loadAvg.map(x => x.toFixed(2)).join(', ') + ' (1m, 5m, 15m)';
+            } else {
+                document.getElementById('load-average').textContent = '-';
+            }
+        }
+
+        // Métricas externas (calculadas por sistemas de monitoreo)
+        if (metrics.external) {
+            // Mostrar métricas externas en una sección separada si es necesario
+            updateExternalMetrics(metrics.external);
+        }
+    }
+
+    function formatMetric(metric) {
+        if (!metric) return '-';
+        if (typeof metric === 'object' && metric.value !== undefined) {
+            return `${metric.value} ${metric.unit || ''}`.trim();
+        }
+        return metric.toString();
+    }
+
+    function updateExternalMetrics(external) {
+        // Por ahora, las métricas externas se muestran en la sección de thresholds status
+        // En el futuro, podríamos añadir una sección dedicada
+        console.log('External metrics:', external);
+    }
+
+    function updateThresholds(thresholds) {
+        document.getElementById('cpu-critical').textContent = formatThreshold(thresholds.cpu?.critical, 'percent');
+        document.getElementById('memory-critical').textContent = formatThreshold(thresholds.memory?.critical, 'percent');
+        document.getElementById('disk-critical').textContent = formatThreshold(thresholds.disk?.critical, 'percent');
+        document.getElementById('response-critical').textContent = formatThreshold(thresholds.response_time?.critical, 'seconds');
+    }
+
+    function formatThreshold(value, unit) {
+        if (value === undefined || value === null) return '-';
+        return `${value} ${unit}`;
+    }
+
+    function updateThresholdsStatus(data) {
+        const statusEl = document.getElementById('thresholds-status');
+        const statusTextEl = document.getElementById('thresholds-status-text');
+
+        if (!data.metrics || !data.thresholds) {
+            statusEl.className = 'alert alert-warning small';
+            statusTextEl.textContent = 'Información de umbrales no disponible';
+            return;
+        }
+
+        const violations = [];
+
+        // Check CPU
+        if (data.metrics.cpu_percent >= data.thresholds.cpu.critical) {
+            violations.push(`CPU crítica (${data.metrics.cpu_percent}% >= ${data.thresholds.cpu.critical}%)`);
+        } else if (data.metrics.cpu_percent >= data.thresholds.cpu.high) {
+            violations.push(`CPU alta (${data.metrics.cpu_percent}% >= ${data.thresholds.cpu.high}%)`);
+        }
+
+        // Check Memory
+        if (data.metrics.memory_percent >= data.thresholds.memory.critical) {
+            violations.push(`Memoria crítica (${data.metrics.memory_percent}% >= ${data.thresholds.memory.critical}%)`);
+        } else if (data.metrics.memory_percent >= data.thresholds.memory.high) {
+            violations.push(`Memoria alta (${data.metrics.memory_percent}% >= ${data.thresholds.memory.high}%)`);
+        }
+
+        // Check Disk
+        if (data.metrics.disk_percent >= data.thresholds.disk.critical) {
+            violations.push(`Disco crítico (${data.metrics.disk_percent}% >= ${data.thresholds.disk.critical}%)`);
+        } else if (data.metrics.disk_percent >= data.thresholds.disk.high) {
+            violations.push(`Disco alto (${data.metrics.disk_percent}% >= ${data.thresholds.disk.high}%)`);
+        }
+
+        if (violations.length === 0) {
+            statusEl.className = 'alert alert-success small';
+            statusTextEl.innerHTML = '<i class="fas fa-check-circle"></i> Todos los umbrales dentro de límites normales';
+        } else {
+            statusEl.className = 'alert alert-danger small';
+            statusTextEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Umbrales excedidos: ' + violations.join(', ');
         }
     }
 
