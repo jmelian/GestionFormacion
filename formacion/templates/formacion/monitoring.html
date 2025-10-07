@@ -141,9 +141,9 @@
                                         <div class="col-md-6">
                                             <h6>Métricas Actuales</h6>
                                             <div id="current-metrics">
-                                                <p class="mb-1"><strong>CPU:</strong> <span id="cpu-percent">-</span>%</p>
-                                                <p class="mb-1"><strong>Memoria:</strong> <span id="memory-percent">-</span>% (<span id="memory-used">-</span>GB / <span id="memory-total">-</span>GB)</p>
-                                                <p class="mb-1"><strong>Disco:</strong> <span id="disk-percent">-</span>% (<span id="disk-used">-</span>GB / <span id="disk-total">-</span>GB)</p>
+                                                <p class="mb-1"><strong>CPU:</strong> <span id="cpu-percent">-</span></p>
+                                                <p class="mb-1"><strong>Memoria:</strong> <span id="memory-percent">-</span> (<span id="memory-used">-</span> / <span id="memory-total">-</span>)</p>
+                                                <p class="mb-1"><strong>Disco:</strong> <span id="disk-percent">-</span> (<span id="disk-used">-</span> / <span id="disk-total">-</span>)</p>
                                                 <p class="mb-1"><strong>Load Average:</strong> <span id="load-average">-</span></p>
                                             </div>
                                         </div>
@@ -295,9 +295,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
 
             // Update system info section
-            document.getElementById('cpu-info').textContent = `${service.info.cpu_count || '-'} cores`;
-            document.getElementById('memory-info').textContent = `${formatBytes(service.info.memory?.available || 0)} / ${formatBytes(service.info.memory?.total || 0)} (${service.info.memory?.percent?.toFixed(1) || '-'}%)`;
-            document.getElementById('disk-info').textContent = `${formatBytes(service.info.disk?.free || 0)} / ${formatBytes(service.info.disk?.total || 0)} (${service.info.disk?.percent?.toFixed(1) || '-'}%)`;
             document.getElementById('hostname').textContent = service.info.hostname || '-';
             document.getElementById('platform').textContent = service.info.platform || '-';
             document.getElementById('python-version').textContent = service.info.python_version || '-';
@@ -332,11 +329,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Métricas externas (calculadas por sistemas de monitoreo)
-        if (metrics.external) {
-            // Mostrar métricas externas en una sección separada si es necesario
-            updateExternalMetrics(metrics.external);
-        }
+        // Métricas externas (calculadas por sistemas de monitoreo) - no implementadas
     }
 
     function formatMetric(metric) {
@@ -347,11 +340,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return metric.toString();
     }
 
-    function updateExternalMetrics(external) {
-        // Por ahora, las métricas externas se muestran en la sección de thresholds status
-        // En el futuro, podríamos añadir una sección dedicada
-        console.log('External metrics:', external);
-    }
 
     function updateThresholds(thresholds) {
         document.getElementById('cpu-critical').textContent = formatThreshold(thresholds.cpu?.critical, 'percent');
@@ -378,24 +366,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const violations = [];
 
         // Check CPU
-        if (data.metrics.cpu_percent >= data.thresholds.cpu.critical) {
-            violations.push(`CPU crítica (${data.metrics.cpu_percent}% >= ${data.thresholds.cpu.critical}%)`);
-        } else if (data.metrics.cpu_percent >= data.thresholds.cpu.high) {
-            violations.push(`CPU alta (${data.metrics.cpu_percent}% >= ${data.thresholds.cpu.high}%)`);
+        if (data.metrics.internal.cpu_percent.value >= data.thresholds.cpu.critical) {
+            violations.push(`CPU crítica (${data.metrics.internal.cpu_percent.value}% >= ${data.thresholds.cpu.critical}%)`);
+        } else if (data.metrics.internal.cpu_percent.value >= data.thresholds.cpu.high) {
+            violations.push(`CPU alta (${data.metrics.internal.cpu_percent.value}% >= ${data.thresholds.cpu.high}%)`);
         }
 
         // Check Memory
-        if (data.metrics.memory_percent >= data.thresholds.memory.critical) {
-            violations.push(`Memoria crítica (${data.metrics.memory_percent}% >= ${data.thresholds.memory.critical}%)`);
-        } else if (data.metrics.memory_percent >= data.thresholds.memory.high) {
-            violations.push(`Memoria alta (${data.metrics.memory_percent}% >= ${data.thresholds.memory.high}%)`);
+        if (data.metrics.internal.memory_percent.value >= data.thresholds.memory.critical) {
+            violations.push(`Memoria crítica (${data.metrics.internal.memory_percent.value}% >= ${data.thresholds.memory.critical}%)`);
+        } else if (data.metrics.internal.memory_percent.value >= data.thresholds.memory.high) {
+            violations.push(`Memoria alta (${data.metrics.internal.memory_percent.value}% >= ${data.thresholds.memory.high}%)`);
         }
 
         // Check Disk
-        if (data.metrics.disk_percent >= data.thresholds.disk.critical) {
-            violations.push(`Disco crítico (${data.metrics.disk_percent}% >= ${data.thresholds.disk.critical}%)`);
-        } else if (data.metrics.disk_percent >= data.thresholds.disk.high) {
-            violations.push(`Disco alto (${data.metrics.disk_percent}% >= ${data.thresholds.disk.high}%)`);
+        if (data.metrics.internal.disk_percent.value >= data.thresholds.disk.critical) {
+            violations.push(`Disco crítico (${data.metrics.internal.disk_percent.value}% >= ${data.thresholds.disk.critical}%)`);
+        } else if (data.metrics.internal.disk_percent.value >= data.thresholds.disk.high) {
+            violations.push(`Disco alto (${data.metrics.internal.disk_percent.value}% >= ${data.thresholds.disk.high}%)`);
         }
 
         if (violations.length === 0) {

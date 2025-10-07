@@ -4239,31 +4239,8 @@ def health_check_api(request):
             }
         }
 
-        # Métricas externas (calculadas por sistemas de monitoreo - placeholders por ahora)
-        external_metrics = {
-            'error_rate_1h': {
-                'value': 0.0,  # Placeholder - calculado externamente
-                'unit': 'percent',
-                'description': 'Application error rate in last hour',
-                'source': 'external_monitoring'
-            },
-            'response_time_avg': {
-                'value': 0.0,  # Placeholder - calculado externamente
-                'unit': 'seconds',
-                'description': 'Average response time in last hour',
-                'source': 'external_monitoring'
-            },
-            'availability_24h': {
-                'value': 100.0,  # Placeholder - calculado externamente
-                'unit': 'percent',
-                'description': 'System availability in last 24 hours',
-                'source': 'external_monitoring'
-            }
-        }
-
         health_status['metrics'] = {
-            'internal': internal_metrics,
-            'external': external_metrics
+            'internal': internal_metrics
         }
 
         # Verificar si las métricas internas exceden umbrales críticos
