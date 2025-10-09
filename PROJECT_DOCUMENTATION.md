@@ -16,6 +16,9 @@ Este proyecto es un **Sistema de Gestión de Formación** desarrollado con **Dja
 | **Contenedor** | Docker + Docker Compose | - |
 | **Frontend** | HTML5, CSS3, Bootstrap | - |
 | **Autenticación** | Django Auth con modelo personalizado + LDAP opcional | - |
+| **Comunicaciones** | SMTP para notificaciones por email | - |
+| **Análisis de Datos** | Pandas, NumPy para reportes | - |
+| **Hojas de Cálculo** | OpenPyXL para importación/exportación Excel | - |
 
 ### Estructura del Proyecto
 
@@ -39,6 +42,265 @@ formacion_demo_casa/
 ├── Dockerfile                  # Construcción de imagen Docker
 ├── requirements.txt            # Dependencias Python
 └── README.md                   # Documentación básica
+```
+
+## Arquitectura Detallada del Sistema
+
+### Tecnologías y Dependencias
+
+#### Dependencias Externas
+- **PostgreSQL 17**: Sistema de gestión de base de datos relacional
+- **LDAP/Active Directory**: Autenticación corporativa opcional
+- **Servidor SMTP**: Sistema de envío de notificaciones por email
+- **Sistema de Archivos**: Almacenamiento de documentos y certificados
+
+#### Dependencias Internas de Infraestructura
+- **Docker + Docker Compose**: Contenedorización y orquestación
+- **Nginx**: Servidor web y proxy reverso
+- **Gunicorn**: Servidor WSGI para aplicaciones Python
+
+#### Framework y Librerías
+- **Django 5.2.3**: Framework web principal
+- **Bootstrap 5**: Framework CSS para interfaz responsiva
+- **Pandas + NumPy**: Análisis de datos para reportes
+- **OpenPyXL**: Procesamiento de archivos Excel
+- **python-decouple**: Gestión de configuración
+
+### Diagramas de Arquitectura
+
+#### Arquitectura General
+```mermaid
+graph TB
+    %% Usuarios y puntos de entrada
+    USERS[Usuarios del Sistema<br/>Empleados, Coordinadores, RRHH, Formación, Dirección]
+    BROWSER[Navegador Web<br/>Chrome, Firefox, Safari, Edge]
+
+    %% Capa de Presentación
+    NGINX[Nginx<br/>Proxy Reverso + Archivos Estáticos]
+    GUNICORN[Gunicorn WSGI<br/>Servidor de Aplicación]
+
+    %% Aplicación Django
+    DJANGO[Django Framework<br/>Aplicación Web]
+    TEMPLATES[Django Templates<br/>HTML + Bootstrap 5]
+    STATIC[Archivos Estáticos<br/>CSS, JS, Imágenes]
+
+    %% Capa de Datos
+    POSTGRESQL[(PostgreSQL<br/>Base de Datos)]
+    MODELS[Modelos Django<br/>ORM]
+
+    %% Servicios Externos
+    LDAP[LDAP / Active Directory<br/>Autenticación Corporativa]
+    SMTP[Servidor SMTP<br/>Notificaciones por Email]
+    FILESYS[Sistema de Archivos<br/>Documentos y Certificados]
+
+    %% Conexiones de usuario
+    USERS --> BROWSER
+    BROWSER --> NGINX
+
+    %% Flujo de infraestructura
+    NGINX --> GUNICORN
+    GUNICORN --> DJANGO
+
+    %% Aplicación Django interna
+    DJANGO --> TEMPLATES
+    DJANGO --> STATIC
+    DJANGO --> MODELS
+
+    %% Persistencia
+    MODELS --> POSTGRESQL
+
+    %% Servicios externos
+    DJANGO --> LDAP
+    DJANGO --> SMTP
+    DJANGO --> FILESYS
+```
+
+#### Dependencias Internas vs Externas
+```mermaid
+graph TB
+    %% Sistemas Externos (Nivel 1)
+    LDAP[LDAP / Active Directory<br/>Autenticación Corporativa]
+    SMTP[Servidor SMTP<br/>Envío de Emails]
+    FILESYS[Sistema de Archivos<br/>Almacenamiento de Documentos]
+
+    %% Infraestructura (Nivel 2)
+    NGINX[Nginx<br/>Proxy Reverso]
+    DOCKER[Docker<br/>Contenedorización]
+
+    %% Aplicación (Nivel 3)
+    GUNICORN[Gunicorn WSGI<br/>Servidor de Aplicación]
+    DJANGO[Django Framework<br/>Aplicación Web]
+    POSTGRESQL[(PostgreSQL<br/>Base de Datos)]
+
+    %% Librerías Internas (Nivel 4)
+    BOOTSTRAP[Bootstrap 5<br/>Framework CSS]
+    JQUERY[jQuery<br/>JavaScript]
+    FONTAWESOME[Font Awesome<br/>Iconos]
+
+    %% Módulos Django Internos (Nivel 5)
+    AUTH[django.contrib.auth<br/>Sistema de Autenticación]
+    ADMIN[django.contrib.admin<br/>Panel de Administración]
+    ORM[django.db.models<br/>ORM y Modelos]
+    FORMS[django.forms<br/>Formularios]
+    TEMPLATES2[Templates Django<br/>HTML + Bootstrap]
+
+    %% Módulos de Aplicación (Nivel 6)
+    FORMACION[App: formacion<br/>Lógica de Negocio]
+    USERS[Modelo: Empleado<br/>Usuarios del Sistema]
+    CURSOS[Modelo: Curso<br/>Gestión de Formación]
+    SOLICITUDES[Modelo: SolicitudCurso<br/>Solicitudes]
+    PARTICIPACIONES[Modelo: Participacion<br/>Inscripciones]
+    TITULACIONES[Modelo: Titulacion<br/>Certificaciones]
+    REPORTES[Reportes y Analytics<br/>Generación de Informes]
+
+    %% Conexiones Externas
+    LDAP -->|Autenticación| DJANGO
+    SMTP -->|Notificaciones| DJANGO
+    FILESYS -->|Archivos| DJANGO
+
+    %% Flujo de Infraestructura
+    DOCKER --> NGINX
+    DOCKER --> GUNICORN
+    DOCKER --> POSTGRESQL
+    NGINX --> GUNICORN
+    GUNICORN --> DJANGO
+
+    %% Dependencias Internas de Django
+    DJANGO --> AUTH
+    DJANGO --> ADMIN
+    DJANGO --> ORM
+    DJANGO --> FORMS
+    DJANGO --> TEMPLATES2
+
+    %% Frontend y UI
+    TEMPLATES2 --> BOOTSTRAP
+    TEMPLATES2 --> JQUERY
+    TEMPLATES2 --> FONTAWESOME
+
+    %% Lógica de Aplicación
+    FORMACION --> USERS
+    FORMACION --> CURSOS
+    FORMACION --> SOLICITUDES
+    FORMACION --> PARTICIPACIONES
+    FORMACION --> TITULACIONES
+    FORMACION --> REPORTES
+
+    %% Persistencia
+    ORM --> POSTGRESQL
+```
+
+#### Diagrama de Flujo de Datos
+```mermaid
+graph LR
+    %% Fuentes de datos
+    EMPLEADOS[Empleados del Sistema]
+    COORDINADORES[Coordinadores Departamentales]
+    RRHH[Departamento de RRHH]
+    FORMACION[Departamento de Formación]
+
+    %% Procesos principales
+    SOLICITUD[Solicitud de Curso]
+    APROBACION[Aprobación Jerárquica]
+    PRESELECCION[Preselección de Participantes]
+    INSCRIPCION[Inscripción en Curso]
+    REALIZACION[Realización del Curso]
+    EVALUACION[Evaluación y Certificación]
+    TITULACION[Registro de Titulación]
+
+    %% Flujos de trabajo
+    EMPLEADOS --> SOLICITUD
+    COORDINADORES --> SOLICITUD
+    COORDINADORES --> PRESELECCION
+
+    SOLICITUD --> APROBACION
+    APROBACION --> FORMACION
+    FORMACION --> INSCRIPCION
+
+    PRESELECCION --> APROBACION
+    APROBACION --> INSCRIPCION
+
+    INSCRIPCION --> REALIZACION
+    REALIZACION --> EVALUACION
+    EVALUACION --> TITULACION
+
+    %% Validaciones y controles
+    RRHH -.->|Validación| TITULACION
+    RRHH -.->|Aprobación| APROBACION
+
+    %% Notificaciones automáticas
+    NOTIFICACIONES[Notificaciones Automáticas]
+    SOLICITUD -.-> NOTIFICACIONES
+    APROBACION -.-> NOTIFICACIONES
+    INSCRIPCION -.-> NOTIFICACIONES
+    EVALUACION -.-> NOTIFICACIONES
+
+    %% Reportes y análisis
+    REPORTES[Generación de Reportes]
+    TITULACION -.-> REPORTES
+    EVALUACION -.-> REPORTES
+```
+
+#### Diagrama de Infraestructura de Despliegue
+```mermaid
+graph TB
+    %% Usuarios externos
+    USERS[Usuarios Externos<br/>Empleados vía Navegador]
+
+    %% Load Balancer / Proxy
+    LOADBALANCER[Load Balancer<br/>HAProxy/Nginx]
+
+    %% Capa Web
+    WEB1[Web Server 1<br/>Nginx + App]
+    WEB2[Web Server 2<br/>Nginx + App]
+    WEB3[Web Server 3<br/>Nginx + App]
+
+    %% Capa de Aplicación
+    APP1[Application Server 1<br/>Gunicorn + Django]
+    APP2[Application Server 2<br/>Gunicorn + Django]
+
+    %% Capa de Datos
+    POSTGRESQL_MASTER[(PostgreSQL Master<br/>Base de Datos Principal)]
+    POSTGRESQL_SLAVE[(PostgreSQL Slave<br/>Base de Datos Réplica)]
+    REDIS[(Redis<br/>Cache y Sesiones)]
+
+    %% Almacenamiento
+    STORAGE[(Almacenamiento Persistente<br/>Archivos y Documentos)]
+
+    %% Servicios Externos
+    LDAP_EXTERNAL[LDAP/Active Directory<br/>Autenticación Corporativa]
+    SMTP_EXTERNAL[Servidor SMTP<br/>Notificaciones Email]
+
+    %% Conexiones de usuarios
+    USERS --> LOADBALANCER
+    LOADBALANCER --> WEB1
+    LOADBALANCER --> WEB2
+    LOADBALANCER --> WEB3
+
+    %% Comunicación entre capas
+    WEB1 --> APP1
+    WEB2 --> APP2
+    WEB3 --> APP1
+    WEB3 --> APP2
+
+    %% Base de datos
+    APP1 --> POSTGRESQL_MASTER
+    APP2 --> POSTGRESQL_MASTER
+    APP1 -.-> POSTGRESQL_SLAVE
+    APP2 -.-> POSTGRESQL_SLAVE
+
+    %% Cache
+    APP1 --> REDIS
+    APP2 --> REDIS
+
+    %% Almacenamiento
+    APP1 --> STORAGE
+    APP2 --> STORAGE
+
+    %% Servicios externos
+    APP1 --> LDAP_EXTERNAL
+    APP2 --> LDAP_EXTERNAL
+    APP1 --> SMTP_EXTERNAL
+    APP2 --> SMTP_EXTERNAL
 ```
 
 ## Funcionalidades Principales
@@ -223,6 +485,40 @@ Para continuar con la documentación detallada, consulte los siguientes archivos
 
 ---
 
-**Versión**: 1.4
-**Última actualización**: 2025-10-07
+**Versión**: 1.5
+**Última actualización**: 2025-10-09
 **Autor**: Sistema de Documentación Automática
+
+---
+
+## 📋 Resumen Ejecutivo de Arquitectura
+
+La aplicación de **Sistema de Gestión de Formación** es una solución Django completa y escalable que integra múltiples tecnologías para ofrecer una plataforma robusta de gestión formativa empresarial.
+
+### 🏗️ Arquitectura Técnica
+- **Framework Principal**: Django 5.2.3 con arquitectura MVT
+- **Base de Datos**: PostgreSQL 17 con soporte de réplicas
+- **Servidor Web**: Nginx + Gunicorn en configuración de alta disponibilidad
+- **Contenedorización**: Docker con orquestación completa
+- **Frontend**: Bootstrap 5 con diseño responsivo y accesible
+
+### 🔗 Integraciones Externas
+- **LDAP/Active Directory**: Autenticación corporativa opcional
+- **Servidor SMTP**: Sistema de notificaciones por email
+- **Sistema de Archivos**: Almacenamiento seguro de documentos
+- **API de Reportes**: Integración con herramientas de análisis
+
+### 🛡️ Características de Seguridad
+- **Autenticación Multi-método**: Django Auth + LDAP opcional
+- **Autorización Basada en Roles**: 6 niveles jerárquicos de acceso
+- **Validación de Datos**: Formularios con sanitización completa
+- **Configuración Segura**: Variables de entorno y secretos
+
+### 📊 Capacidades Funcionales
+- **Gestión Completa de Formación**: Desde solicitud hasta certificación
+- **Sistema Multi-rol**: Empleados, coordinadores, RRHH, formación, dirección
+- **Reportes Avanzados**: Analytics con Pandas/NumPy
+- **Notificaciones Inteligentes**: Sistema de eventos y alertas
+- **Encuestas de Satisfacción**: Evaluación automática de cursos
+
+Esta arquitectura proporciona una base sólida para la gestión integral de procesos formativos en entornos empresariales, con capacidad de escalado horizontal y alta disponibilidad.

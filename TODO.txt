@@ -2,6 +2,7 @@
 # Lista de tareas pendientes y mejoras futuras
 
 ## Problemas Identificados
+- Mejorar los planes: no solo decir lo que hay que hacer sino cómo.
 
 
 ## Mejoras para Versiones Futuras
