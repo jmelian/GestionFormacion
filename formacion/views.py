@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from .models import Empleado, Departamento, Curso, Participacion, Preseleccion, Notificacion, Proveedor, Proyecto, Area, PuestoDeTrabajo, Titulacion, TIPO_TITULACION_MECES_MAP, ESTADO_PARTICIPACION_CHOICES, NIVEL_MECES_CHOICES, SolicitudCurso, RequisitoPuestoFormacion, EncuestaSatisfaccion, MODALIDAD_CURSO_CHOICES
 from .forms import EmpleadoCreationForm, EmpleadoProfileForm, CursoForm, PreseleccionForm, ParticipacionForm, TitulacionForm, SolicitudCursoForm, AprobarParticipacionForm, MarcarCompletadoForm, EncuestaSatisfaccionForm
+from .utils import send_notification_email, create_notification_with_email
 from django.contrib.auth.models import Group
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -326,12 +327,11 @@ def titulaciones_pendientes_rrhh(request):
                         titulacion.estado = 'aprobado' 
                         titulacion.save()
 
-                        Notificacion.objects.create(
+                        create_notification_with_email(
                             usuario=titulacion.empleado,
                             mensaje=f"Tu titulación de '{titulacion.nombre}' ha sido validada por RRHH.",
                             tipo='success',
-                            url=reverse('formacion:detalle_titulacion', args=[titulacion.id]),
-                            leida=False
+                            url=reverse('formacion:detalle_titulacion', args=[titulacion.id])
                         )
                     logger.info(f"Titulación '{titulacion.nombre}' de '{titulacion.empleado.get_full_name()}' validada por '{request.user.username}'.")
                     messages.success(request, f"Titulación de {titulacion.empleado.get_full_name()} ({titulacion.nombre}) validada correctamente.")
@@ -358,12 +358,11 @@ def titulaciones_pendientes_rrhh(request):
                         titulacion.motivo_rechazo = motivo_rechazo
                         titulacion.save()
 
-                        Notificacion.objects.create(
+                        create_notification_with_email(
                             usuario=titulacion.empleado,
                             mensaje=f"Tu titulación de '{titulacion.nombre}' ha sido rechazada por RRHH. Motivo: {motivo_rechazo}",
-                            tipo='danger',
-                            url=reverse('formacion:detalle_titulacion', args=[titulacion.id]),
-                            leida=False
+                            tipo='error',
+                            url=reverse('formacion:detalle_titulacion', args=[titulacion.id])
                         )
                     logger.info(f"Titulación '{titulacion.nombre}' de '{titulacion.empleado.get_full_name()}' rechazada por '{request.user.username}'. Motivo: '{motivo_rechazo}'.")
                     messages.success(request, f"Titulación de {titulacion.empleado.get_full_name()} ({titulacion.nombre}) rechazada correctamente.")
@@ -576,10 +575,10 @@ def preseleccionar_empleado(request):
 
                             # Creamos una única notificación para cada destinatario único
                             for usuario_notificacion in destinatarios_finales:
-                                Notificacion.objects.create(
+                                create_notification_with_email(
                                     usuario=usuario_notificacion,
                                     mensaje=mensaje_notificacion,
-                                    tipo='info', 
+                                    tipo='info',
                                     url=reverse('formacion:confirmar_preseleccionados_lista')
                                 )
                 except Exception as e:
@@ -716,10 +715,10 @@ def gestionar_preselecciones_curso(request, curso_id):
                         logger.info(f"Participación de '{empleado.get_full_name()}' aceptada en el curso '{curso.nombre}'. Plaza ocupada.")
 
                         # Notificaciones
-                        Notificacion.objects.create(usuario=empleado, mensaje=f'Tu participación en el curso "{curso.nombre}" ha sido ACEPTADA.', tipo='success')
+                        create_notification_with_email(usuario=empleado, mensaje=f'Tu participación en el curso "{curso.nombre}" ha sido ACEPTADA.', tipo='success')
                         if empleado.departamento and empleado.departamento.coordinador:
                             coordinador = empleado.departamento.coordinador
-                            Notificacion.objects.create(usuario=coordinador, mensaje=f'La participación de "{empleado.get_full_name()}" en el curso "{curso.nombre}" ha sido ACEPTADA.', tipo='info')
+                            create_notification_with_email(usuario=coordinador, mensaje=f'La participación de "{empleado.get_full_name()}" en el curso "{curso.nombre}" ha sido ACEPTADA.', tipo='info')
 
                 if confirmed_count > 0:
                     messages.success(request, f"Se confirmaron {confirmed_count} participantes para el curso '{curso.nombre}'.")
@@ -804,7 +803,7 @@ def gestionar_preselecciones_curso(request, curso_id):
 
                             messages.info(request, f'Preselección de "{preseleccion.empleado.get_full_name()}" para "{curso.nombre}" ha sido rechazada.')
                             logger.info(f"Preselección de '{preseleccion.empleado.username}' rechazada individualmente para el curso '{curso.nombre}'.")
-                            Notificacion.objects.create(usuario=preseleccion.empleado, mensaje=f'Tu preselección para el curso "{curso.nombre}" ha sido RECHAZADA.', tipo='warning')
+                            create_notification_with_email(usuario=preseleccion.empleado, mensaje=f'Tu preselección para el curso "{curso.nombre}" ha sido RECHAZADA.', tipo='warning')
                             
                             if preseleccion.empleado.departamento and preseleccion.empleado.departamento.coordinador:
                                 coordinador = preseleccion.empleado.departamento.coordinador
@@ -1918,10 +1917,10 @@ class NotificacionesListView(LoginRequiredMixin, ListView):
     def get(self, request, *args, **kwargs):
         """
         Sobrescribe el método `get` para realizar una acción antes de renderizar la plantilla:
-        marcar todas las notificaciones no leídas como leídas solo si NO es una petición AJAX.
+        marcar todas las notificaciones no leídas como leídas cuando se abra el modal (AJAX).
         """
-        # Solo marcar como leídas si no es una petición AJAX (modal)
-        if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # Marcar como leídas cuando es una petición AJAX (modal)
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             # Se obtiene el queryset de notificaciones no leídas y se actualiza su estado.
             num_actualizadas = self.get_queryset().filter(leida=False).update(leida=True)
             logger.info(f"Se marcaron {num_actualizadas} notificaciones como leídas para el usuario '{request.user.username}'.")
@@ -2326,7 +2325,7 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
                     )
 
                     for usuario_grupo in usuarios_del_grupo:
-                        Notificacion.objects.create(
+                        create_notification_with_email(
                             usuario=usuario_grupo,
                             mensaje=mensaje,
                             tipo=tipo_notificacion,
@@ -2353,7 +2352,7 @@ class SolicitudCursoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
             ).distinct()
 
             for admin_user in super_usuarios:
-                Notificacion.objects.create(
+                create_notification_with_email(
                     usuario=admin_user,
                     mensaje=mensaje,
                     tipo=tipo_notificacion,
@@ -3378,12 +3377,12 @@ def marcar_completado_unificado(request, participacion_id):
 
                         # Notificación para el empleado sobre el curso completado
                         url_completado = reverse('formacion:marcar_completado_unificado', args=[participacion.id])
-                        Notificacion.objects.create(usuario=participacion.empleado, mensaje=f"¡Tu participación en '{participacion.curso.nombre}' ha sido marcada como completada! Por favor, rellena los detalles finales.", tipo='success', url=url_completado, leida=False)
+                        create_notification_with_email(usuario=participacion.empleado, mensaje=f"¡Tu participación en '{participacion.curso.nombre}' ha sido marcada como completada! Por favor, rellena los detalles finales.", tipo='success', url=url_completado)
 
                         # Notificación para el empleado sobre la encuesta
                         notificacion_mensaje_encuesta = f"¡Tu curso '{participacion.curso.nombre}' ha sido completado! ¡Ayúdanos a mejorar rellenando nuestra encuesta de satisfacción!"
                         url_encuesta = reverse('formacion:encuesta_satisfaccion', args=[participacion.id])
-                        Notificacion.objects.create(usuario=participacion.empleado, mensaje=notificacion_mensaje_encuesta, tipo='info', url=url_encuesta, leida=False)
+                        create_notification_with_email(usuario=participacion.empleado, mensaje=notificacion_mensaje_encuesta, tipo='info', url=url_encuesta)
                         
                         if es_rrhh_usuario and participacion.empleado != request.user:
                             return redirect('formacion:listar_participantes_curso', curso_id=participacion.curso.id)

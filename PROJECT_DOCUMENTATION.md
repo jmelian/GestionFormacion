@@ -350,6 +350,9 @@ graph TB
 - **Enlaces de Acción**: URLs directas para completar tareas pendientes
 - **Sistema Masivo**: Envío automático a múltiples usuarios según roles
 - **Historial Completo**: Registro de todas las notificaciones con estado de lectura
+- **Notificaciones por Email**: Envío automático de emails para eventos que requieren intervención del usuario
+- **Plantillas de Email Personalizadas**: Templates HTML responsivos con enlaces directos a acciones
+- **Integración SMTP**: Configuración basada en servidor contactel.es con SSL/TLS
 
 ### 6. Encuestas de Satisfacción
 
@@ -375,6 +378,53 @@ graph TB
 - **Comentarios y Motivos**: Sistema de feedback detallado para rechazos
 - **Notificaciones Automáticas**: Alertas a todos los interesados en cada cambio de estado
 - **Conversión a Cursos**: Solicitudes aprobadas pueden convertirse automáticamente en cursos
+
+### 11. Sistema de Reportes Avanzados
+
+### 10. Sistema de Notificaciones por Email
+
+El sistema incluye un **mecanismo avanzado de notificaciones por email** que complementa las notificaciones internas del sistema. Las notificaciones por email se envían automáticamente cuando se requieren acciones específicas del usuario.
+
+#### Características del Sistema de Email
+
+- **Activación Condicional**: Los emails se envían únicamente para notificaciones que incluyen URLs de acción
+- **Plantillas Personalizadas**: Templates HTML responsivos con diseño profesional
+- **Enlaces Directos**: Cada email incluye links directos a las secciones relevantes de la aplicación
+- **Configuración SMTP**: Integración con servidor contactel.es usando SSL/TLS
+- **Gestión de Errores**: Logging completo de envíos exitosos y fallidos
+
+#### Eventos que Generan Notificaciones por Email
+
+1. **Validación de Titulaciones**: Cuando RRHH valida o rechaza una titulación pendiente
+2. **Aprobación/Rechazo de Preselecciones**: Confirmación de participación en cursos preseleccionados
+3. **Marcado de Cursos Completados**: Notificación de cursos finalizados con enlace a detalles
+4. **Solicitudes de Cursos**: Creación y cambios de estado en solicitudes de formación
+5. **Encuestas de Satisfacción**: Invitaciones a evaluar cursos completados
+
+#### Configuración Técnica
+
+```python
+# Configuración en settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.contactel.es'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_SUBJECT_PREFIX = config('EMAIL_SUBJECT_PREFIX', default='[GesForm]')
+```
+
+#### Plantillas de Email
+
+- `notificacion_info.html`: Notificaciones generales de información
+- `notificacion_success.html`: Confirmaciones de acciones exitosas
+- `notificacion_warning.html`: Advertencias que requieren atención
+- `notificacion_error.html`: Errores o rechazos que necesitan corrección
+
+#### Funciones Utilitarias
+
+- `send_notification_email()`: Envío básico de emails con templates
+- `create_notification_with_email()`: Creación combinada de notificación interna + email
 
 ### 9. Sistema de Reportes Avanzados
 

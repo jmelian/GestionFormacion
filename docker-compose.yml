@@ -1,6 +1,8 @@
 services:
   web:
     build: .
+    # Configurar hostname para resolver problemas SMTP
+    hostname: gesform.local
     # Ejecutamos todo como root para evitar problemas de permisos
     user: "root"
     command: sh -c "

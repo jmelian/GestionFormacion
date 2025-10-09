@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificación de Éxito - Sistema de Formación</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 8px; }
+        .header { background-color: #28a745; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { padding: 25px; }
+        .button { display: inline-block; padding: 12px 25px; background-color: #28a745; color: white !important; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .button:hover { background-color: #218838 !important; }
+        .footer { background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 0.9em; color: #777; border-radius: 0 0 8px 8px; }
+    </style>
+</head>
+<body style="background-color: #f4f4f4; padding: 20px;">
+    <div class="container">
+        <div class="header">
+            <h2>¡Éxito! - Sistema de Formación</h2>
+        </div>
+        <div class="content">
+            <p>Hola {% if usuario %}{{ usuario.get_full_name|default:usuario.username }}{% else %}Usuario{% endif %},</p>
+
+            <p>{{ mensaje }}</p>
+
+            {% if url %}
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ url }}" class="button">Acceder al Sistema</a>
+            </div>
+            <p style="text-align: center; color: #777; font-size: 14px;">
+                Si el botón no funciona, copia y pega este enlace:<br>
+                <a href="{{ url }}" style="color: #28a745;">{{ url }}</a>
+            </p>
+            {% endif %}
+        </div>
+        <div class="footer">
+            <p>Este es un mensaje automático. Por favor, no respondas a este email.</p>
+        </div>
+    </div>
+</body>
+</html>
