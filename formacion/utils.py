@@ -136,12 +136,11 @@ def send_notification_email(to_email, subject, template_name, context):
         # Crear mensaje de email usando EmailMessage
         email = EmailMessage(
             subject=subject,
-            body='',  # Mensaje de texto plano vacío, ya que usamos HTML
+            body=html_message,  # Mensaje HTML directamente
             from_email=from_email,
             to=[to_email],
         )
         email.content_subtype = 'html'  # Establecer como HTML
-        email.body = html_message
 
         # Usar nuestro backend SMTP personalizado
         logger.debug("Ejecutando envío con CustomSMTPBackend...")

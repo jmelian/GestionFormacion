@@ -190,6 +190,7 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
 EMAIL_SUBJECT_PREFIX = config('EMAIL_SUBJECT_PREFIX', default='[GesForm]')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 # LOGGING
 LOGGING = {
