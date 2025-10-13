@@ -1,7 +1,7 @@
 # ============================================================================
 # ETAPA 1: Preparación de certificados (opcional)
 # ============================================================================
-FROM python:3.12-slim as cert-stage
+FROM python:3.12-slim AS cert-stage
 
 # Crear directorio para certificados
 RUN mkdir -p /tmp/certs

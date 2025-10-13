@@ -169,10 +169,10 @@
                                         <div class="col-md-6">
                                             <h6>Umbrales de Alerta</h6>
                                             <div id="thresholds-info">
-                                                <p class="mb-1"><strong>CPU Crítico:</strong> <span id="cpu-critical">-</span>%</p>
-                                                <p class="mb-1"><strong>Memoria Crítica:</strong> <span id="memory-critical">-</span>%</p>
-                                                <p class="mb-1"><strong>Disco Crítico:</strong> <span id="disk-critical">-</span>%</p>
-                                                <p class="mb-1"><strong>Tiempo Respuesta Crítico:</strong> <span id="response-critical">-</span>s</p>
+                                                <p class="mb-1"><strong>CPU Crítico:</strong> <span id="cpu-critical">-</span> (%)</p>
+                                                <p class="mb-1"><strong>Memoria Crítica:</strong> <span id="memory-critical">-</span> (%)</p>
+                                                <p class="mb-1"><strong>Disco Crítico:</strong> <span id="disk-critical">-</span> (%)</p>
+                                                <p class="mb-1"><strong>Tiempo Respuesta Crítico:</strong> <span id="response-critical">-</span> (s)</p>
                                             </div>
                                         </div>
                                     </div>
@@ -324,6 +324,9 @@ document.addEventListener('DOMContentLoaded', function() {
             detailsEl.innerHTML = `<strong>Tipo:</strong> ${service.type || '-'}<br><strong>Estado:</strong> ${service.status === 'healthy' ? 'Conectado' : 'Error'}`;
         } else if (prefix === 'ldap' && detailsEl) {
             detailsEl.innerHTML = `<strong>Servidor:</strong> ${service.server || '-'}<br><strong>Estado:</strong> ${service.status === 'healthy' ? 'Conectado' : 'Error'}`;
+        } else if (prefix === 'email' && detailsEl) {
+            const sslInfo = service.use_ssl ? 'SSL' : (service.use_tls ? 'TLS' : 'Sin encriptación');
+            detailsEl.innerHTML = `<strong>Servidor:</strong> ${service.server || '-'}<br><strong>Encriptación:</strong> ${sslInfo}<br><strong>Estado:</strong> ${service.status === 'healthy' ? 'Conectado' : 'Error'}`;
         }
     }
 

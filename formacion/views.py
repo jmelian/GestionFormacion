@@ -4210,10 +4210,49 @@ def health_check_api(request):
         }
 
     # Verificar servicios externos si es necesario (ejemplo: email)
-    # Deshabilitado temporalmente para evitar timeouts
+    try:
+        import smtplib
+        import ssl
+
+        # Configurar contexto SSL si es necesario
+        context = ssl.create_default_context()
+        if settings.EMAIL_USE_SSL:
+            server = smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT, context=context, timeout=5)
+        else:
+            server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT, timeout=5)
+            if settings.EMAIL_USE_TLS:
+                server.starttls(context=context)
+
+        # Intentar autenticación si hay credenciales
+        if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
+            server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+
+        server.quit()
+        email_status = 'healthy'
+        email_message = f'Conexión SMTP exitosa a {settings.EMAIL_HOST}:{settings.EMAIL_PORT}'
+
+    except smtplib.SMTPConnectError as e:
+        email_status = 'unhealthy'
+        email_message = f'Error de conexión SMTP: {str(e)}'
+        health_status['status'] = 'unhealthy'
+    except smtplib.SMTPAuthenticationError as e:
+        email_status = 'unhealthy'
+        email_message = f'Error de autenticación SMTP: {str(e)}'
+        health_status['status'] = 'unhealthy'
+    except smtplib.SMTPException as e:
+        email_status = 'unhealthy'
+        email_message = f'Error SMTP: {str(e)}'
+        health_status['status'] = 'unhealthy'
+    except Exception as e:
+        email_status = 'warning'
+        email_message = f'Error al verificar SMTP: {str(e)}'
+
     health_status['services']['email'] = {
-        'status': 'info',
-        'message': 'Verificación SMTP deshabilitada'
+        'status': email_status,
+        'message': email_message,
+        'server': f'{settings.EMAIL_HOST}:{settings.EMAIL_PORT}',
+        'use_ssl': settings.EMAIL_USE_SSL,
+        'use_tls': settings.EMAIL_USE_TLS
     }
 
     # Recopilar métricas actuales del sistema (MÉTRICAS INTERNAS - cálculo inmediato)
