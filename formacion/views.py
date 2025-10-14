@@ -3965,6 +3965,57 @@ def reports_view(request):
             'borderWidth': 1
         }]
 
+    # --- Datos para gráfico de horas de formación por departamento por mes ---
+    monthly_dept_hours = Participacion.objects.filter(
+        created_at__year=selected_year,
+        estado__in=['completado', 'asistido']
+    ).annotate(
+        month=ExtractMonth('created_at')
+    ).values('empleado__departamento__nombre', 'month').annotate(
+        total_hours=Sum('curso__duracion_horas')
+    ).order_by('empleado__departamento__nombre', 'month')
+
+    # Obtener todos los departamentos únicos para horas mensuales
+    dept_monthly_names = list(set(item['empleado__departamento__nombre'] for item in monthly_dept_hours if item['empleado__departamento__nombre']))
+
+    # Crear diccionario para mapear departamento -> mes -> horas
+    dept_monthly_counts = {}
+    for item in monthly_dept_hours:
+        dept = item['empleado__departamento__nombre']
+        month = item['month']
+        hours = float(item['total_hours'] or 0)
+        if dept not in dept_monthly_counts:
+            dept_monthly_counts[dept] = {}
+        dept_monthly_counts[dept][month] = hours
+
+    # Preparar datos para gráfico stacked bar mensual
+    month_names = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    if dept_monthly_names:
+        monthly_dept_labels = month_names
+        monthly_dept_datasets = []
+        colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56']
+
+        for i, dept in enumerate(dept_monthly_names):
+            data = []
+            for month in range(1, 13):  # Meses 1-12
+                data.append(dept_monthly_counts.get(dept, {}).get(month, 0))
+            monthly_dept_datasets.append({
+                'label': dept,
+                'data': data,
+                'backgroundColor': colors[i % len(colors)],
+                'borderColor': colors[i % len(colors)],
+                'borderWidth': 1
+            })
+    else:
+        monthly_dept_labels = month_names
+        monthly_dept_datasets = [{
+            'label': 'Sin datos',
+            'data': [0] * 12,
+            'backgroundColor': '#5569c2',
+            'borderColor': '#5569c2',
+            'borderWidth': 1
+        }]
+
     context = {
         'active_dashboard': active_dashboard,
         'course_types_json': json.dumps(course_types),
@@ -3991,6 +4042,8 @@ def reports_view(request):
         'popular_course_counts_json': json.dumps(popular_course_counts),
         'solicitud_dept_labels_json': json.dumps(solicitud_dept_labels),
         'solicitud_datasets_json': json.dumps(solicitud_datasets),
+        'monthly_dept_labels_json': json.dumps(monthly_dept_labels),
+        'monthly_dept_datasets_json': json.dumps(monthly_dept_datasets),
         'selected_year': selected_year,
         'available_years': available_years,
         'stats': {

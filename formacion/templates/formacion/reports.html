@@ -110,6 +110,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const mecesCounts = JSON.parse('{{ meces_counts_json|escapejs }}');
     const solicitudDeptLabels = JSON.parse('{{ solicitud_dept_labels_json|escapejs }}');
     const solicitudDatasets = JSON.parse('{{ solicitud_datasets_json|escapejs }}');
+    const monthlyDeptLabels = JSON.parse('{{ monthly_dept_labels_json|escapejs }}');
+    const monthlyDeptDatasets = JSON.parse('{{ monthly_dept_datasets_json|escapejs }}');
 
     // Inicializar tooltips de Bootstrap para los badges ITIL
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
@@ -564,6 +566,53 @@ document.addEventListener('DOMContentLoaded', function() {
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                 const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                                 return `${context.dataset.label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Horas de Formación por Departamento por Mes
+    const monthlyDeptHoursCtx = document.getElementById('monthlyDeptHoursChart');
+    if (monthlyDeptHoursCtx) {
+        new Chart(monthlyDeptHoursCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: monthlyDeptLabels,
+                datasets: monthlyDeptDatasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    datalabels: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                return `${context.dataset.label}: ${value} horas`;
                             }
                         }
                     }

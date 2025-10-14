@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os, sys
 from decouple import config, Csv
+from cryptography.fernet import Fernet
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -182,11 +183,17 @@ LOGIN_URL = '/formacion/login/'
 LOGOUT_REDIRECT_URL = 'formacion:login'
 
 # --- Configuración del Servidor de Email ---
+def decrypt_env_value(encrypted_value):
+    key = config('EMAIL_KEY')
+    f = Fernet(key.encode())
+    return f.decrypt(encrypted_value.encode()).decode()
+
 EMAIL_BACKEND = 'formacion.utils.CustomSMTPBackend'
 EMAIL_HOST = config('EMAIL_HOST')
 EMAIL_PORT = config('EMAIL_PORT')
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+#EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_PASSWORD = decrypt_env_value(config('EMAIL_HOST_PASSWORD'))
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
 EMAIL_SUBJECT_PREFIX = config('EMAIL_SUBJECT_PREFIX', default='[GesForm]')
