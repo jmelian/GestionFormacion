@@ -1,0 +1,101 @@
+{# formacion/rechazar_solicitud_obligatoria.html #}
+
+{% extends 'base.html' %}
+
+{% block title %}Rechazar Solicitud de Curso Obligatorio: {{ participacion.curso.nombre }}{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-x-circle-fill me-2"></i> Rechazar Solicitud de Curso Obligatorio</h1>
+        <div class="page-description">
+            Proporciona el motivo del rechazo para la solicitud de inscripción al curso obligatorio.
+        </div>
+    </div>
+
+    <div class="card modern-card">
+        <div class="card-header">
+            <h5>Solicitud de: {{ participacion.empleado.get_full_name }}</h5>
+            <p class="mb-0 text-muted">Curso: {{ participacion.curso.nombre }}</p>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Empleado:</label>
+                        <p class="form-control-plaintext">{{ participacion.empleado.get_full_name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Departamento:</label>
+                        <p class="form-control-plaintext">{{ participacion.empleado.departamento.nombre }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Curso:</label>
+                        <p class="form-control-plaintext">{{ participacion.curso.nombre }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Estado Actual:</label>
+                        <p class="form-control-plaintext">
+                            <span class="badge bg-warning">{{ participacion.get_estado_display }}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.motivo_rechazo.label_tag }}
+                    {{ form.motivo_rechazo }}
+                    {% if form.motivo_rechazo.errors %}
+                        <div class="invalid-feedback d-block">{{ form.motivo_rechazo.errors }}</div>
+                    {% endif %}
+                    <div class="form-text">{{ form.motivo_rechazo.help_text }}</div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Nota:</strong> El motivo del rechazo se incluirá en la notificación que se enviará al empleado.
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'formacion:gestionar_solicitudes_obligatorias_rrhh' %}" class="btn-secondary-action">
+                        <i class="bi bi-arrow-left-circle-fill me-1"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn-primary-action btn-danger-action">
+                        <i class="bi bi-x-circle-fill me-1"></i> Rechazar Solicitud
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-danger-action {
+        background: linear-gradient(135deg, #ef4444, #f59e0b);
+        color: #fff !important;
+        border: none;
+        box-shadow: 0 5px 15px rgba(239,68,68,0.15);
+        text-decoration: none !important;
+    }
+    .btn-danger-action:hover {
+        background: linear-gradient(135deg, #b91c1c, #d97706);
+        color: #fff !important;
+        text-decoration: none !important;
+    }
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875em;
+    }
+    .form-text {
+        color: #6c757d;
+        font-size: 0.875em;
+    }
+    .badge {
+        font-size: 0.75em;
+    }
+</style>
+{% endblock %}

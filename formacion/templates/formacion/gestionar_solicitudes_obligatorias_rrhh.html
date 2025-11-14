@@ -76,9 +76,9 @@
                                             <button type="submit" name="action" value="approve" class="btn-action-confirm-small" title="Aprobar Solicitud">
                                                 <i class="bi bi-check-circle"></i>
                                             </button>
-                                            <button type="submit" name="action" value="reject" class="btn-action-reject-small" title="Rechazar Solicitud">
+                                            <a href="{% url 'formacion:rechazar_solicitud_obligatoria' participacion_id=solicitud.id %}" class="btn-action-reject-small" title="Rechazar Solicitud">
                                                 <i class="bi bi-x-circle"></i>
-                                            </button>
+                                            </a>
                                         </div>
                                     </form>
                                 </div>

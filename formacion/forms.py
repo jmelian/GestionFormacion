@@ -684,6 +684,31 @@ class EncuestaSatisfaccionForm(forms.ModelForm):
             'sugerencias_observaciones': forms.Textarea(attrs={'rows': 4}),
         }
 
+class RechazarParticipacionForm(forms.Form):
+    """
+    Formulario para rechazar una participación con justificación.
+    """
+    motivo_rechazo = forms.CharField(
+        label="Motivo del Rechazo",
+        widget=forms.Textarea(attrs={
+            'rows': 4,
+            'class': 'form-control',
+            'placeholder': 'Explique brevemente por qué se rechaza esta solicitud...'
+        }),
+        help_text="Por favor, proporcione una breve explicación del motivo del rechazo que se incluirá en la notificación al empleado.",
+        max_length=500,
+        required=True
+    )
+
+    def clean_motivo_rechazo(self):
+        motivo = self.cleaned_data['motivo_rechazo'].strip()
+        if not motivo:
+            raise forms.ValidationError("El motivo del rechazo no puede estar vacío.")
+        if len(motivo) < 10:
+            raise forms.ValidationError("Por favor, proporcione una explicación más detallada (mínimo 10 caracteres).")
+        return motivo
+
+
 class NotificacionForm(forms.ModelForm):
     class Meta:
         model = Notificacion

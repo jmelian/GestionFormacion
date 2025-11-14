@@ -50,6 +50,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'formacion.middleware.RequestLoggingMiddleware',
+    'formacion.middleware.BusinessLogicLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'formacion_demo.urls'
@@ -207,20 +209,126 @@ LOGGING = {
         'verbose': {
             'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s'
         },
+        'detailed': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(funcName)s - User:%(user)s IP:%(ip)s Action:%(action)s Resource:%(resource)s - %(message)s',
+            'defaults': {'user': 'unknown', 'ip': 'unknown', 'action': 'unknown', 'resource': 'unknown'}
+        },
+        'json': {
+            'format': '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "line": %(lineno)d, "function": "%(funcName)s", "message": "%(message)s", "user": "%(user)s", "ip": "%(ip)s", "method": "%(method)s", "path": "%(path)s", "status_code": "%(status_code)s", "duration": "%(duration)s", "db_queries": "%(db_queries)s", "db_time": "%(db_time)s", "action": "%(action)s", "resource": "%(resource)s", "pattern": "%(pattern)s", "severity": "%(severity)s"}',
+            'datefmt': '%Y-%m-%dT%H:%M:%S%z',
+            'defaults': {'user': 'unknown', 'ip': 'unknown', 'method': 'unknown', 'path': 'unknown', 'status_code': 'unknown', 'duration': 'unknown', 'db_queries': 'unknown', 'db_time': 'unknown', 'action': 'unknown', 'resource': 'unknown', 'pattern': 'unknown', 'severity': 'unknown'}
+        },
+        'security': {
+            'format': '[SECURITY] %(asctime)s %(levelname)s - User:%(user)s IP:%(ip)s Action:%(action)s %(message)s',
+            'defaults': {'user': 'unknown', 'ip': 'unknown', 'action': 'unknown'}
+        },
+        'business': {
+            'format': '[BUSINESS] %(asctime)s %(levelname)s - User:%(user)s Action:%(action)s Resource:%(resource)s %(message)s',
+            'defaults': {'user': 'unknown', 'action': 'unknown', 'resource': 'unknown'}
+        },
+        'anomaly': {
+            'format': '[ANOMALY] %(asctime)s %(levelname)s - Pattern:%(pattern)s Severity:%(severity)s %(message)s',
+            'defaults': {'pattern': 'unknown', 'severity': 'unknown'}
+        },
+        'performance': {
+            'format': '[PERFORMANCE] %(asctime)s %(levelname)s - User:%(user)s Action:%(action)s Duration:%(duration)s DB_Queries:%(db_queries)s %(message)s',
+            'defaults': {'user': 'unknown', 'action': 'unknown', 'duration': 'unknown', 'db_queries': 'unknown'}
+        },
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s'
+        },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
+        'file_general': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/formacion.log',
+            'maxBytes': 10*1024*1024,  # 10MB
+            'backupCount': 5,
+            'formatter': 'detailed'
+        },
+        'file_security': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/security.log',
+            'maxBytes': 10*1024*1024,
+            'backupCount': 10,
+            'formatter': 'security',
+            'level': 'WARNING'
+        },
+        'file_business': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/business.log',
+            'maxBytes': 10*1024*1024,
+            'backupCount': 5,
+            'formatter': 'business'
+        },
+        'file_anomaly': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/anomaly.log',
+            'maxBytes': 10*1024*1024,
+            'backupCount': 5,
+            'formatter': 'anomaly'
+        },
+        'file_performance': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/performance.log',
+            'maxBytes': 10*1024*1024,
+            'backupCount': 5,
+            'formatter': 'performance'
+        },
+        'file_json': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/formacion.json',
+            'maxBytes': 20*1024*1024,
+            'backupCount': 3,
+            'formatter': 'json'
+        },
     },
     'root': {
         'level': 'INFO',
-        'handlers': ['console'],
+        'handlers': ['console', 'file_general', 'file_json'],
     },
     'loggers': {
         'formacion': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file_general', 'file_business', 'file_json'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'formacion.security': {
+            'handlers': ['console', 'file_security', 'file_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'formacion.business': {
+            'handlers': ['console', 'file_business', 'file_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'formacion.anomaly': {
+            'handlers': ['console', 'file_anomaly', 'file_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'formacion.performance': {
+            'handlers': ['console', 'file_performance', 'file_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['console', 'file_general'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console', 'file_performance'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console', 'file_security'],
             'level': 'INFO',
             'propagate': False,
         },

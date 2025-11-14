@@ -30,6 +30,7 @@ services:
     volumes:
       - formacion_static_volume:/vol/web/staticfiles
       - formacion_media_volume:/vol/web/media
+      - ./logs:/app/logs
     depends_on:
       - web
     container_name: nginx_proxy

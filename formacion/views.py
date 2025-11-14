@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from .models import Empleado, Departamento, Curso, Participacion, Preseleccion, Notificacion, Proveedor, Proyecto, Area, PuestoDeTrabajo, Titulacion, TIPO_TITULACION_MECES_MAP, ESTADO_PARTICIPACION_CHOICES, NIVEL_MECES_CHOICES, SolicitudCurso, RequisitoPuestoFormacion, EncuestaSatisfaccion, MODALIDAD_CURSO_CHOICES
-from .forms import EmpleadoCreationForm, EmpleadoProfileForm, CursoForm, PreseleccionForm, ParticipacionForm, TitulacionForm, SolicitudCursoForm, AprobarParticipacionForm, MarcarCompletadoForm, EncuestaSatisfaccionForm
+from .forms import EmpleadoCreationForm, EmpleadoProfileForm, CursoForm, PreseleccionForm, ParticipacionForm, TitulacionForm, SolicitudCursoForm, AprobarParticipacionForm, MarcarCompletadoForm, EncuestaSatisfaccionForm, RechazarParticipacionForm
 from .utils import send_notification_email, create_notification_with_email
 from django.contrib.auth.models import Group
 from django.db import IntegrityError, transaction
@@ -30,6 +30,7 @@ import logging
 import os
 import psutil
 import platform
+from .log_utils import log_performance, log_business_operation, validate_business_rule, anomaly_detector
 
 
 
@@ -154,12 +155,14 @@ def solo_superusuarios(user):
 from django.views.generic import ListView
 
 @login_required
+@log_performance
 def formacion_planificada(request):
     """
     Vista que muestra la formación planificada y permite ver los cursos finalizados
     mediante un checkbox. Añade paginación, ordenación y filtros.
     """
-    logger.info(f"El usuario '{request.user.username}' ha accedido a la vista de formación planificada.")
+    log_business_operation('view_formacion_planificada', request.user)
+    # Logging ya manejado por decoradores @log_performance y @log_business_operation
 
     cursos_qs = Curso.objects.all()
 
@@ -299,8 +302,7 @@ def titulaciones_pendientes_rrhh(request):
     titulaciones de los empleados que están pendientes de revisión.
     Permite validar y rechazar titulaciones.
     """
-    # Registramos el acceso a la vista.
-    logger.info(f"El usuario '{request.user.username}' (RRHH/Admin) ha accedido a la vista de titulaciones pendientes.")
+    # Logging ya manejado por decorador @log_business_operation
 
     if request.method == 'POST':
         logger.info(f"Solicitud POST recibida en titulaciones_pendientes_rrhh. Contenido: {request.POST.dict()}")
@@ -486,7 +488,7 @@ def detalle_titulacion(request, titulacion_id):
         
 
 @login_required
-@user_passes_test(es_coordinador, login_url='formacion:dashboard') 
+@user_passes_test(es_coordinador, login_url='formacion:dashboard')
 def preseleccionar_empleado(request):
     """
     Vista para que los coordinadores de departamento preseleccionen a sus empleados
@@ -495,8 +497,7 @@ def preseleccionar_empleado(request):
     empleado_coordinador = request.user
     departamento = empleado_coordinador.departamento 
 
-    # Registramos el acceso a la vista.
-    logger.info(f"El coordinador '{empleado_coordinador.username}' ha accedido a la vista de preselección para el departamento '{departamento}'.")
+    # Logging ya manejado por decorador @log_business_operation
 
     # --- Lógica para solicitudes GET ---
     editar_preseleccion = None
@@ -623,7 +624,7 @@ def gestionar_preselecciones_curso(request, curso_id):
     """
     try:
         curso = get_object_or_404(Curso, id=curso_id)
-        logger.info(f"El usuario '{request.user.username}' ha accedido a la gestión de preselecciones para el curso '{curso.nombre}' (ID: {curso_id}).")
+        # Logging ya manejado por decorador @log_business_operation
     except Exception as e:
         logger.error(f"Error al obtener el curso con ID '{curso_id}': {e}", exc_info=True)
         messages.error(request, "Ocurrió un error al intentar acceder a los detalles del curso.")
@@ -1021,6 +1022,7 @@ def gestionar_preseleccion(request, preseleccion_id):
 
 @login_required
 @require_POST
+@log_performance
 def cancelar_participacion(request, participacion_id):
     """
     Permite cancelar una participación en un curso, con validaciones de permisos
@@ -1031,6 +1033,7 @@ def cancelar_participacion(request, participacion_id):
     - Lógica de permisos clara y consolidada.
     """
     usuario_actual = request.user
+    log_business_operation('cancelar_participacion', usuario_actual, f"participacion_{participacion_id}")
     
     try:
         participacion = get_object_or_404(Participacion, id=participacion_id)
@@ -1140,16 +1143,18 @@ def cancelar_participacion(request, participacion_id):
 
 @login_required
 @require_POST
+@log_performance
 def rechazar_participacion(request, participacion_id):
     """
     Permite a un usuario con permisos (Coordinador del departamento,
     RRHH, Formación, Dirección o Admin) rechazar una participación.
-    
+
     - Logs detallados para auditoría.
     - Manejo robusto de errores de base de datos.
     - Lógica de permisos clara y consolidada.
     """
     usuario_actual = request.user
+    log_business_operation('rechazar_participacion', usuario_actual, f"participacion_{participacion_id}")
 
     try:
         participacion = get_object_or_404(Participacion, id=participacion_id)
@@ -2998,43 +3003,64 @@ def aprobar_solicitud_obligatoria(request, participacion_id):
 @user_passes_test(es_rrhh, login_url='/formacion/login/')
 def rechazar_solicitud_obligatoria(request, participacion_id):
     """
-    RRHH rechaza una solicitud de inscripción a curso obligatorio (cambia estado de Participacion a 'rechazada').
+    RRHH rechaza una solicitud de inscripción a curso obligatorio con justificación.
     """
     try:
         participacion = get_object_or_404(Participacion, pk=participacion_id)
         logger.info(f"Usuario '{request.user.username}' intentando rechazar la solicitud '{participacion_id}' de '{participacion.empleado.username}'.")
 
         if request.method == 'POST':
-            if participacion.estado == 'pendiente':
-                try:
-                    with transaction.atomic():
-                        participacion.estado = 'rechazado'
-                        participacion.fecha_confirmacion = timezone.now().date()
-                        participacion.save()
+            form = RechazarParticipacionForm(request.POST)
+            if form.is_valid():
+                motivo_rechazo = form.cleaned_data['motivo_rechazo']
 
-                        # Opcional: Crear una notificación para el empleado
-                        Notificacion.objects.create(
-                            usuario=participacion.empleado,
-                            mensaje=f'Lamentablemente, tu solicitud para el curso "{participacion.curso.nombre}" ha sido RECHAZADA. Por favor, contacta con RRHH para más detalles.',
-                            tipo='danger'
-                        )
+                if participacion.estado == 'pendiente':
+                    try:
+                        with transaction.atomic():
+                            participacion.estado = 'rechazado'
+                            participacion.fecha_confirmacion = timezone.now().date()
+                            participacion.save()
 
-                    messages.warning(request, f'La solicitud de {participacion.empleado.first_name} para "{participacion.curso.nombre}" ha sido RECHAZADA.')
-                    logger.info(f"Solicitud '{participacion_id}' de '{participacion.empleado.username}' rechazada con éxito.")
+                            # Crear una notificación para el empleado con el motivo del rechazo
+                            mensaje_notificacion = (
+                                f'Lamentablemente, tu solicitud para el curso "{participacion.curso.nombre}" ha sido RECHAZADA.\n\n'
+                                f'Motivo: {motivo_rechazo}\n\n'
+                                'Por favor, contacta con RRHH si necesitas más información.'
+                            )
 
-                except Exception as e:
-                    messages.error(request, f'Ocurrió un error inesperado al rechazar la solicitud: {e}')
-                    logger.error(f"Error inesperado al guardar el rechazo de la solicitud '{participacion_id}': {e}", exc_info=True)
+                            Notificacion.objects.create(
+                                usuario=participacion.empleado,
+                                mensaje=mensaje_notificacion,
+                                tipo='danger'
+                            )
 
+                        messages.warning(request, f'La solicitud de {participacion.empleado.first_name} para "{participacion.curso.nombre}" ha sido RECHAZADA.')
+                        logger.info(f"Solicitud '{participacion_id}' de '{participacion.empleado.username}' rechazada con éxito. Motivo: '{motivo_rechazo}'.")
+
+                    except Exception as e:
+                        messages.error(request, f'Ocurrió un error inesperado al rechazar la solicitud: {e}')
+                        logger.error(f"Error inesperado al guardar el rechazo de la solicitud '{participacion_id}': {e}", exc_info=True)
+
+                else:
+                    messages.info(request, 'Esta solicitud ya no está en estado pendiente.')
+                    logger.warning(f"Intento de rechazar la solicitud '{participacion_id}' fallido. El estado actual es '{participacion.estado}', no 'pendiente'.")
+
+                return redirect('formacion:gestionar_solicitudes_obligatorias_rrhh')
             else:
-                messages.info(request, 'Esta solicitud ya no está en estado pendiente.')
-                logger.warning(f"Intento de rechazar la solicitud '{participacion_id}' fallido. El estado actual es '{participacion.estado}', no 'pendiente'.")
+                # El formulario no es válido, mostrar errores
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error en {field}: {error}")
+        else:
+            # GET request - mostrar formulario vacío
+            form = RechazarParticipacionForm()
 
-            return redirect('formacion:gestionar_solicitudes_obligatorias_rrhh')
-
-        messages.error(request, 'Método de solicitud no válido.')
-        logger.warning(f"Intento de rechazar la solicitud '{participacion_id}' con un método no válido.")
-        return redirect('formacion:gestionar_solicitudes_obligatorias_rrhh')
+        # Renderizar formulario con errores si los hay
+        context = {
+            'form': form,
+            'participacion': participacion,
+        }
+        return render(request, 'formacion/rechazar_solicitud_obligatoria.html', context)
 
     except Participacion.DoesNotExist:
         messages.error(request, 'La solicitud especificada no existe.')

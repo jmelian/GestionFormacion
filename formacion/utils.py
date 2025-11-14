@@ -185,8 +185,11 @@ def create_notification_with_email(usuario, mensaje, tipo='info', url=None):
         Notificacion: La instancia de notificación creada
     """
     from .models import Notificacion
+    import logging
 
-    logger.info(f"Creando notificación para {usuario.username}: tipo={tipo}, url={url}, email={getattr(usuario, 'email', None)}")
+    email_logger = logging.getLogger('formacion.business')
+
+    email_logger.info(f"Creando notificación para {usuario.username}: tipo={tipo}, url={url}, email={getattr(usuario, 'email', None)}")
 
     # Crear la notificación interna
     try:
@@ -197,9 +200,9 @@ def create_notification_with_email(usuario, mensaje, tipo='info', url=None):
             url=url,
             leida=False
         )
-        logger.info(f"Notificación interna creada exitosamente: ID={notificacion.id}")
+        email_logger.info(f"Notificación interna creada exitosamente: ID={notificacion.id}")
     except Exception as e:
-        logger.error(f"Error al crear notificación interna para {usuario.username}: {e}", exc_info=True)
+        email_logger.error(f"Error al crear notificación interna para {usuario.username}: {e}", exc_info=True)
         raise
 
     # Evaluar condiciones para envío de email
@@ -207,11 +210,11 @@ def create_notification_with_email(usuario, mensaje, tipo='info', url=None):
     has_email_attr = hasattr(usuario, 'email')
     has_email_value = bool(getattr(usuario, 'email', None))
 
-    logger.debug(f"Evaluando condiciones de email - URL: {has_url}, tiene_attr_email: {has_email_attr}, tiene_valor_email: {has_email_value}")
+    email_logger.debug(f"Evaluando condiciones de email - URL: {has_url}, tiene_attr_email: {has_email_attr}, tiene_valor_email: {has_email_value}")
 
     # Si la notificación tiene una URL (indica acción requerida) y el usuario tiene email, enviar email
     if has_url and has_email_attr and has_email_value:
-        logger.info(f"Intentando enviar email a {usuario.email} por notificación con URL (tipo: {tipo})")
+        email_logger.info(f"Intentando enviar email a {usuario.email} por notificación con URL (tipo: {tipo})")
 
         try:
             # Determinar el template y asunto basado en el tipo de notificación
@@ -249,7 +252,7 @@ def create_notification_with_email(usuario, mensaje, tipo='info', url=None):
                 'dominio': dominio,
             }
 
-            logger.debug(f"Contexto de email preparado - template: {template_name}, subject: {subject}")
+            email_logger.debug(f"Contexto de email preparado - template: {template_name}, subject: {subject}")
 
             # Enviar el email
             success = send_notification_email(
@@ -260,12 +263,36 @@ def create_notification_with_email(usuario, mensaje, tipo='info', url=None):
             )
 
             if success:
-                logger.info(f"✅ Email enviado exitosamente a {usuario.email} para notificación ID {notificacion.id}")
+                email_logger.info(f"✅ Email enviado exitosamente a {usuario.email} para notificación ID {notificacion.id}")
             else:
-                logger.error(f"❌ Falló el envío de email a {usuario.email} para notificación ID {notificacion.id}")
+                email_logger.error(f"❌ Falló el envío de email a {usuario.email} para notificación ID {notificacion.id}")
+                # Log adicional para análisis de fallos de email
+                anomaly_logger = logging.getLogger('formacion.anomaly')
+                anomaly_logger.warning(
+                    f"Email delivery failed for notification {notificacion.id}",
+                    extra={
+                        'pattern': 'email_failure',
+                        'severity': 'medium',
+                        'user': usuario.username,
+                        'email': usuario.email,
+                        'notification_type': tipo
+                    }
+                )
 
         except Exception as e:
-            logger.error(f"❌ Error inesperado al procesar envío de email para {usuario.email}: {e}", exc_info=True)
+            email_logger.error(f"❌ Error inesperado al procesar envío de email para {usuario.email}: {e}", exc_info=True)
+            # Log de anomalía para errores de email
+            anomaly_logger = logging.getLogger('formacion.anomaly')
+            anomaly_logger.error(
+                f"Email processing error for notification {notificacion.id}",
+                extra={
+                    'pattern': 'email_error',
+                    'severity': 'high',
+                    'user': usuario.username,
+                    'email': usuario.email,
+                    'error': str(e)
+                }
+            )
 
     else:
         # Log detallado de por qué NO se envía email
@@ -278,6 +305,6 @@ def create_notification_with_email(usuario, mensaje, tipo='info', url=None):
             reasons.append("email del usuario está vacío")
 
         reason_str = ", ".join(reasons)
-        logger.info(f"ℹ️ No se envía email para notificación ID {notificacion.id} - Razón: {reason_str}")
+        email_logger.info(f"ℹ️ No se envía email para notificación ID {notificacion.id} - Razón: {reason_str}")
 
     return notificacion
