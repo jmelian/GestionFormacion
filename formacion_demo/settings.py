@@ -171,6 +171,9 @@ AUTH_USER_MODEL = 'formacion.Empleado'
 STATIC_URL = '/static/'
 STATIC_ROOT = '/vol/web/staticfiles/'
 
+# Base URL for absolute links in emails
+BASE_URL = config('BASE_URL', default='http://localhost:8082')
+
 # Sección de seguridad
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False

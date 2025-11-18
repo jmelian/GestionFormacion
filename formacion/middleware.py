@@ -69,11 +69,14 @@ class RequestLoggingMiddleware(MiddlewareMixin):
             f"Request started: {method} {path}",
             extra={
                 'user': getattr(request.user, 'username', 'anonymous'),
+                'action': method,  # Set action to HTTP method
                 'ip': ip,
                 'method': method,
                 'path': path,
                 'user_agent': user_agent[:200],
-                'is_authenticated': request.user.is_authenticated
+                'is_authenticated': request.user.is_authenticated,
+                'duration': 'pending',  # Indicate it's not calculated yet
+                'db_queries': 'pending'  # Indicate it's not calculated yet
             }
         )
 
@@ -84,6 +87,17 @@ class RequestLoggingMiddleware(MiddlewareMixin):
         # Contar queries de base de datos
         db_queries = len(connection.queries)
         db_time = sum(float(q.get('time', 0)) for q in connection.queries) * 1000  # Convertir a ms
+
+        # Debug log to confirm process_response is called
+        logger.debug(
+            f"DEBUG: process_response called for {request.method} {request.path}, duration={duration:.2f}ms, db_queries={db_queries}",
+            extra={
+                'user': getattr(request.user, 'username', 'anonymous'),
+                'action': request.method,
+                'duration': f"{duration:.2f}",
+                'db_queries': db_queries
+            }
+        )
 
         ip = self.get_client_ip(request)
         user = getattr(request.user, 'username', 'anonymous')
@@ -160,6 +174,33 @@ class RequestLoggingMiddleware(MiddlewareMixin):
         )
 
         return response
+
+    def process_exception(self, request, exception):
+        """Registra excepciones ocurridas durante el procesamiento del request."""
+        duration = (time.time() - request.start_time) * 1000 if hasattr(request, 'start_time') else 0
+        db_queries = len(connection.queries)
+
+        ip = self.get_client_ip(request)
+        user = getattr(request.user, 'username', 'anonymous')
+        method = request.method
+        path = request.path
+
+        logger.error(
+            f"Request failed: {method} {path} - Exception: {str(exception)}",
+            extra={
+                'user': user,
+                'action': method,
+                'ip': ip,
+                'method': method,
+                'path': path,
+                'status_code': 'error',
+                'duration': f"{duration:.2f}",
+                'db_queries': db_queries,
+                'error': str(exception)
+            }
+        )
+
+        return None
 
     @staticmethod
     def get_client_ip(request):

@@ -235,21 +235,21 @@ def create_notification_with_email(usuario, mensaje, tipo='info', url=None):
                 template_name = 'notificacion_info'
                 subject = f'{prefix} Notificación - Sistema de Formación'
 
-            # Determinar el dominio correcto para los emails
-            if 'xwiki.contactel.es' in str(settings.ALLOWED_HOSTS):
-                dominio = 'xwiki.contactel.es:8082'
-            elif settings.ALLOWED_HOSTS and settings.ALLOWED_HOSTS[0] != '*':
-                dominio = settings.ALLOWED_HOSTS[0]
-            else:
-                dominio = 'localhost:8082'
+            # Build absolute URL for email links
+            absolute_url = None
+            if url:
+                if url.startswith('http'):
+                    absolute_url = url  # Already absolute
+                else:
+                    base_url = getattr(settings, 'BASE_URL', 'http://localhost:8082')
+                    absolute_url = f"{base_url.rstrip('/')}{url}"
 
             # Crear contexto para el email
             context = {
                 'usuario': usuario,
                 'mensaje': mensaje,
-                'url': url,
+                'url': absolute_url,
                 'tipo': tipo,
-                'dominio': dominio,
             }
 
             email_logger.debug(f"Contexto de email preparado - template: {template_name}, subject: {subject}")
