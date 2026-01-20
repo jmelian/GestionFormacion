@@ -20,6 +20,10 @@ services:
     env_file:
       - .env
     network_mode: bridge
+    extra_hosts:
+      - "db:192.168.65.2"  # ← DNS artificial para Django
+    environment:
+      - DATABASE_HOST=db  # Ahora resuelve a 192.168.65.2
     depends_on:
       db:
           condition: service_healthy
@@ -34,6 +38,8 @@ services:
       - formacion_media_volume:/vol/web/media
       - ./logs:/app/logs
     network_mode: bridge
+    extra_hosts:
+      - "web:192.168.65.3"  # ← Para futuro uso
     depends_on:
       - web
     container_name: nginx_proxy
