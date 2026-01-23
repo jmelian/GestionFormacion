@@ -19,7 +19,6 @@
         <table class="table-modern">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Título Solicitado</th>
                     <th>Solicitante</th>
                     <th>Departamento</th>
@@ -27,13 +26,12 @@
                     <th class="text-center">Carácter</th>
                     <th class="text-center">Nº Part.</th>
                     <th class="text-center">Estado</th>
-                    <th class="text-center">Acciones</th>
+                    {% if not es_coordinador %}<th class="text-center">Acciones</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for solicitud in solicitudes %}
                 <tr>
-                    <td>{{ solicitud.id }}</td>
                     <td>{{ solicitud.titulo_curso_solicitado }}</td>
                     <td>{{ solicitud.solicitante.get_full_name|default:solicitud.solicitante.username }}</td>
                     <td>{{ solicitud.departamento_solicitante.nombre|default:"N/A" }}</td>
@@ -41,7 +39,7 @@
                     <td class="text-center">
                         {# Mapping de los valores de `caracter_formacion` a tus clases de estado de CSS #}
                         {# Puedes ajustar estos mapeos si los nombres de tus estados en el modelo no coinciden directamente con las clases CSS #}
-                        <span class="status-badge 
+                        <span class="status-badge
                             {% if solicitud.caracter_formacion == 'urgente' %}status-danger{% comment %} O podrías tener una clase específica como status-urgente si la defines {% endcomment %}
                             {% elif solicitud.caracter_formacion == 'planificado' %}status-info{% comment %} O status-planificado {% endcomment %}
                             {% elif solicitud.caracter_formacion == 'obligatorio_legal' %}status-primary{% comment %} O status-obligatorio {% endcomment %}
@@ -52,22 +50,23 @@
                     <td class="text-center">{{ solicitud.numero_participantes_estimado }}</td>
                     <td class="text-center">
                         {# Mapping de los valores de `estado` a tus clases de estado de CSS #}
-                        <span class="status-badge 
+                        <span class="status-badge
                             {% if solicitud.estado == 'pendiente' %}status-warning
                             {% elif solicitud.estado == 'aprobada' %}status-success
                             {% elif solicitud.estado == 'rechazada' %}status-danger
                             {% elif solicitud.estado == 'en_proceso' %}status-primary
-                            {% elif solicitud.estado == 'completada' %}status-secondary{# Considera una clase como status-completed si es diferente #}
                             {% else %}status-secondary{% endif %}">
                             {{ solicitud.get_estado_display }}
                         </span>
                     </td>
+                    {% if not es_coordinador %}
                     <td class="text-center">
                         {# Usa la clase general btn-action con btn-action-participants para este botón de "Ver Detalle" #}
                         <a href="{% url 'formacion:detalle_solicitud_curso' pk=solicitud.pk %}" class="btn-action btn-action-participants" title="Ver Detalle">
                             <i class="bi bi-eye-fill"></i>{# El texto "Ver Detalle" se omite para usar solo el icono, como en tus otros btn-action #}
                         </a>
                     </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>

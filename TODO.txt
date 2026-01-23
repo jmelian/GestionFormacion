@@ -1,0 +1,30 @@
+# Sistema de Gestión de Formación - Versión 1.4
+# Lista de tareas pendientes y mejoras futuras
+
+## Problemas Identificados
+- Mejorar los planes: no solo decir lo que hay que hacer sino cómo.
+
+
+## Mejoras para Versiones Futuras
+- Acceso a la documentación de los cursos tanto desde Mis Cursos como desde Formación Planificada
+- Implementar notificaciones por email además de las internas
+- Añadir funcionalidad de backup automático de base de datos
+- Implementar sistema de auditoría completo de cambios
+- Optimizar rendimiento con índices de base de datos adicionales
+
+## Documentación Versión 1.4
+- ✅ Documentación actualizada a versión 1.4
+- ✅ Soporte LDAP documentado: configuración de autenticación contra servidores LDAP/Active Directory
+- ✅ Archivo .env.example actualizado con variables LDAP
+- ✅ Guía de instalación ampliada con sección de configuración LDAP
+- ✅ Documentación técnica actualizada con información de autenticación LDAP
+- ✅ Versiones consistentes en todos los archivos (2025-10-07)
+
+## Documentación Versión 1.2
+- ✅ Documentación actualizada a versión 1.2
+- ✅ Descripciones de funcionalidades actualizadas según código actual
+- ✅ Estructura de documentación reorganizada
+- ✅ Versiones consistentes en todos los archivos
+- ✅ Nuevas funcionalidades documentadas: reportes avanzados, gestión de solicitudes de cursos, marcado unificado de completado
+- ✅ Modelos adicionales documentados: Proyecto, RequisitoPuestoFormacion, Preseleccion, PreguntaEncuesta, RespuestaEncuesta, DetalleRespuesta
+- ✅ Vistas adicionales documentadas en DOCUMENTACION_API.md

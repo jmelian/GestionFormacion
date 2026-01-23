@@ -1,0 +1,47 @@
+/* =========================
+    VARIABLES CSS CONSOLIDADAS
+    Sistema unificado de variables para toda la aplicación
+========================= */
+
+/* Variables principales del sistema */
+:root {
+    /* Colores principales */
+    --primary-color: #3b82f6;
+    --primary-dark: #2563eb;
+    --secondary-color: #64748b;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+
+    /* Fondos y textos */
+    --light-bg: #f8fafc;
+    --dark-text: #1e293b;
+    --border-color: #e2e8f0;
+
+    /* Sombras */
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+    /* Variaciones de colores */
+    --primary-color-light: #60a5fa;
+    --primary-color-lighter: #93c5fd;
+
+    /* Colores adicionales del sistema anterior */
+    --main-bg: #f8fafc;
+    --main-fg: #22223b;
+    --brand-color: #6366f1;
+    --brand-color-2: #38bdf8;
+    --accent: #2dd4bf;
+    --muted: #64748b;
+    --footer-bg: #f3f4f6;
+    --dashboard-bg: #f1f5f9;
+    --card-shadow: 0 2px 16px rgba(60,80,150,.11);
+    --radius: 13px;
+    --font-main: 'Inter', Arial, sans-serif;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.2rem;
+    --font-size-sm: 0.98rem;
+    --box-padding: 1.25rem;
+    --card-bg: #fff;
+}

@@ -13,31 +13,192 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
-    <link rel="stylesheet" href="{% static 'css/messages.css' %}">
-    <link rel="stylesheet" href="{% static 'css/table.css' %}">
-    <link rel="stylesheet" href="{% static 'css/form.css' %}">
-    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
-    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
-    <link rel="stylesheet" href="{% static 'css/util.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <!-- Base styles -->
+    <link rel="stylesheet" href="{% static 'css/base/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base/animations.css' %}">
+
+    <!-- Component styles -->
+    <link rel="stylesheet" href="{% static 'css/components/buttons.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/tables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/cards.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components/badges.css' %}">
+
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="{% static 'css/layout/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/layout/layout.css' %}">
+
+    <!-- Page-specific styles -->
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/profile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/reports.css' %}">
+
+    <style>
+        /* Custom tooltip and popover styles */
+        .tooltip-inner {
+            background: rgba(59, 130, 246, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .tooltip-arrow::before {
+            border-top-color: rgba(59, 130, 246, 0.95);
+        }
+
+        .popover {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .popover-header {
+            background: rgba(59, 130, 246, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem 0.75rem 0 0;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .popover-body {
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .popover .arrow::before {
+            border-bottom-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .popover .arrow::after {
+            border-bottom-color: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Skip links for accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            z-index: 1000;
+            font-weight: 600;
+            transition: top 0.3s ease;
+        }
+
+        .skip-link:focus {
+            top: 6px;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .sr-only-focusable:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            padding: inherit;
+            margin: inherit;
+            overflow: visible;
+            clip: auto;
+            white-space: normal;
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1060;
+            max-width: 350px;
+        }
+
+        .toast {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast-header {
+            background: rgba(59, 130, 246, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem 0.75rem 0 0;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .toast-body {
+            padding: 0.75rem;
+            color: #374151;
+        }
+
+        .toast .btn-close {
+            margin: 0;
+        }
+
+        .toast-success .toast-header {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .toast-error .toast-header {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .toast-warning .toast-header {
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .toast-info .toast-header {
+            background: rgba(6, 182, 212, 0.1);
+        }
+    </style>
     
-    {% comment %}
-    <link rel="stylesheet" href="{% static 'css/app_global.css' %}">
-    {% endcomment %}
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="512x512" href="{% static 'favicon-512.png' %}">
+
+
     
     {% block extra_head %}{% endblock %} {# Para CSS o JS específicos de cada página #}
 </head>
 <body>
     <div class="main-wrapper">
+        <!-- Skip links for accessibility -->
+        <a href="#main-content" class="skip-link sr-only sr-only-focusable">Saltar al contenido principal</a>
+        <a href="#main-navigation" class="skip-link sr-only sr-only-focusable">Saltar a la navegación principal</a>
+
         {% if user.is_authenticated %}
-        <header>
-            <nav class="navbar navbar-expand-lg navbar-custom">
+        <header id="main-navigation">
+            <nav class="navbar navbar-expand-lg navbar-custom" role="navigation" aria-label="Navegación principal">
                 <div class="container-fluid">
-                    <a class="navbar-brand" href="{% url 'formacion:dashboard' %}">
-                        <i class="bi bi-mortarboard-fill me-2"></i>Portal de Formación
+                    <a class="navbar-brand" href="{% url 'formacion:dashboard' %}" aria-label="Ir al dashboard principal">
+                        <i class="bi bi-mortarboard-fill me-2" aria-hidden="true"></i>Portal de Formación
                     </a>
                     
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -46,7 +207,7 @@
                     
                     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                         <div class="d-flex align-items-center flex-wrap">
-                            <a href="{% url 'formacion:perfil_empleado_visualizar' %}" class="user-profile-clickable">
+                            <a href="{% url 'formacion:perfil_empleado_visualizar' %}" class="user-profile-clickable" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-html="true" data-bs-content="<strong>{{ user.get_full_name|default:user.username }}</strong><br><small>{% for grupo in user.groups.all %}{{ grupo.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small><br><em>Haz clic para ver perfil</em>">
                                         <div class="user-info">
                                             <i class="bi bi-person-circle fs-4"></i>
                                             <div>
@@ -64,12 +225,12 @@
                                         </div>
                                 </a>
                             
-                            <a href="{% url 'formacion:ver_notificaciones' %}" class="notification-btn">
-                                <i class="bi bi-bell-fill"></i>
+                            <button type="button" class="notification-btn" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Ver notificaciones" aria-label="Notificaciones {% if num_notificaciones > 0 %}({{ num_notificaciones }} pendientes){% else %}(sin notificaciones){% endif %}" onclick="openNotificationModal()">
+                                <i class="bi bi-bell-fill" aria-hidden="true"></i>
                                 {% if num_notificaciones > 0 %}
-                                    <span class="notification-badge">{{ num_notificaciones }}</span>
+                                    <span class="notification-badge" aria-label="{{ num_notificaciones }} notificaciones">{{ num_notificaciones }}</span>
                                 {% endif %}
-                            </a>
+                            </button>
                             
                             <form method="post" action="{% url 'formacion:logout' %}" class="d-inline">
                                 {% csrf_token %}
@@ -84,11 +245,11 @@
         </header>
         {% endif %}
 
-        <main class="main-content">
+        <main class="main-content" role="main" id="main-content">
             <div class="content-container">
                 {# Mueve los mensajes DENTRO de este bloque content #}
                 {% if messages %}
-                    <div class="messages">
+                    <div class="messages" role="region" aria-label="Mensajes del sistema" aria-live="polite">
                         {% for message in messages %}
                             <div class="alert alert-modern alert-dismissible fade show 
                                 {% if message.tags == 'success' %}alert-success
@@ -129,22 +290,184 @@
                 </div>
             </div>
         </footer>
+
+        <!-- Toast container -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- Notification Modal -->
+        <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content" id="notificationModalContent">
+                    <!-- Content will be loaded here via AJAX -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    
+
+    <!-- Chart.js for advanced reporting -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
-        // Auto-dismiss messages after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                var alerts = document.querySelectorAll('.alert');
-                alerts.forEach(function(alert) {
-                    var closeBtn = alert.querySelector('.btn-close');
-                    if (closeBtn) {
-                        closeBtn.click();
+        // Toast notification system
+        function showToast(message, type = 'info', title = '') {
+            const toastContainer = document.getElementById('toastContainer');
+
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+
+            // Default titles
+            const titles = {
+                'success': 'Éxito',
+                'error': 'Error',
+                'warning': 'Advertencia',
+                'info': 'Información'
+            };
+
+            const toastTitle = title || titles[type] || 'Notificación';
+
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <i class="bi me-2 ${getIconForType(type)}"></i>
+                    <strong class="me-auto">${toastTitle}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            // Initialize Bootstrap toast
+            const bsToast = new bootstrap.Toast(toast, {
+                autohide: true,
+                delay: 5000
+            });
+
+            // Show toast
+            setTimeout(() => {
+                toast.classList.add('show');
+                bsToast.show();
+            }, 100);
+
+            // Remove from DOM after hiding
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        function getIconForType(type) {
+            const icons = {
+                'success': 'bi-check-circle-fill text-success',
+                'error': 'bi-x-circle-fill text-danger',
+                'warning': 'bi-exclamation-triangle-fill text-warning',
+                'info': 'bi-info-circle-fill text-info'
+            };
+            return icons[type] || 'bi-info-circle-fill text-info';
+        }
+
+        // Notification modal functions
+        function openNotificationModal() {
+            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+            const modalContent = document.getElementById('notificationModalContent');
+
+            // Load content via AJAX
+            fetch('{% url "formacion:ver_notificaciones" %}', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                modalContent.innerHTML = html;
+                modal.show();
+
+                // Update notification badge after modal is shown
+                updateNotificationBadge();
+            })
+            .catch(error => {
+                console.error('Error loading notifications:', error);
+                showToast('Error al cargar las notificaciones', 'error');
+            });
+        }
+
+        function closeNotificationModal() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('notificationModal'));
+            if (modal) {
+                modal.hide();
+            }
+        }
+
+        function updateNotificationBadge() {
+            // Update the notification badge count after viewing notifications
+            fetch('{% url "formacion:dashboard" %}', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                // Extract the notification count from the dashboard response
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const badge = doc.querySelector('.notification-badge');
+                const currentBadge = document.querySelector('.notification-badge');
+
+                if (badge && currentBadge) {
+                    currentBadge.textContent = badge.textContent;
+                    if (badge.textContent === '0' || badge.textContent === '') {
+                        currentBadge.style.display = 'none';
+                    } else {
+                        currentBadge.style.display = 'inline';
                     }
-                });
-            }, 5000);
+                } else if (currentBadge && (!badge || badge.textContent === '0' || badge.textContent === '')) {
+                    currentBadge.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error updating notification badge:', error);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Convert Django messages to toasts
+            const messages = document.querySelectorAll('.alert');
+            messages.forEach(function(alert) {
+                const messageText = alert.textContent.trim();
+                let type = 'info';
+
+                if (alert.classList.contains('alert-success')) {
+                    type = 'success';
+                } else if (alert.classList.contains('alert-danger') || alert.classList.contains('alert-error')) {
+                    type = 'error';
+                } else if (alert.classList.contains('alert-warning')) {
+                    type = 'warning';
+                }
+
+                showToast(messageText, type);
+                alert.remove(); // Remove the original alert
+            });
+
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Initialize popovers
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
         });
     </script>
     {% block extra_js %}{% endblock %} {# Para JS específico de cada página #}

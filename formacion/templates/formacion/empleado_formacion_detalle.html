@@ -36,7 +36,6 @@
                             <th>Estado</th>
                             <th>Nota Final</th>
                             <th>Fecha de Registro</th>
-                            <th>Validado RRHH</th>
                             <th>Certificado Obtenido</th>
                         </tr>
                     </thead>
@@ -47,13 +46,6 @@
                                 <td><span class="status-badge status-info">{{ p.get_estado_display }}</span></td>
                                 <td>{{ p.nota_final|default:"-" }}</td>
                                 <td>{{ p.created_at|date:"d/m/Y" }}</td>
-                                <td>
-                                    {% if p.validado %}
-                                        <span class="status-badge status-success">Sí</span>
-                                    {% else %}
-                                        <span class="status-badge status-warning">No</span>
-                                    {% endif %}
-                                </td>
                                 <td>
                                     {% if p.certificado_obtenido %}
                                         <span class="status-badge status-success">Sí</span>

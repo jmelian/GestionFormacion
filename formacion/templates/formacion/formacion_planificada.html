@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% load static %}
+{% load formacion_tags %}
+
+{% block title %}Formación planificada{% endblock %}
+
+{% block content %}
+<div class="content-container">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-calendar-event me-2"></i> Formación Planificada
+        </h1>
+        <div class="page-description">
+            Explora los cursos disponibles y sus detalles.
+        </div>
+    </div>
+
+    <div class="filters-container sticky-top shadow-sm">
+        <form method="get" id="filtersForm" action="{% url 'formacion:formacion_planificada' %}">
+            <div class="filter-flexbar">
+                <div class="filter-group">
+                    <label for="keyword" class="filter-label">
+                        <i class="bi bi-search me-1"></i>
+                        Buscar
+                    </label>
+                    <div class="input-group">
+                        <input type="text" name="keyword" id="keyword" class="form-control form-control-modern" placeholder="Buscar por nombre, proveedor..." value="{{ keyword }}">
+                        <button type="submit" class="btn btn-modern-search">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center me-3 mt-4">
+                    <div class="form-check form-switch text-black fw-bold">
+                        <input class="form-check-input" type="checkbox" role="switch" id="showCompletedCourses"
+                            name="finalizados" value="true"
+                            {% if mostrar_finalizados %}checked{% endif %}
+                            onchange="document.getElementById('filtersForm').submit()">
+                        <label class="form-check-label" for="showCompletedCourses">Mostrar formación finalizada o en curso</label>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center mt-4 ms-auto">
+                    <a href="{% url 'formacion:formacion_planificada' %}" class="btn btn-clean-filters" title="Limpiar todos los filtros">
+                        <i class="bi bi-eraser-fill"></i> Limpiar Filtros
+                    </a>
+                </div>
+            </div>
+            
+            <input type="hidden" name="sort_by" value="{{ sort_by }}">
+            <input type="hidden" name="direction" value="{{ direction }}">
+            <input type="hidden" name="page" value="{{ page_obj.number }}">
+            <input type="hidden" name="page_size" value="{{ page_size }}">
+        </form>
+    </div>
+
+    {% if cursos %}
+        <div class="table-container">
+            <div class="table-responsive-modern">
+                <table class="table-modern sortable-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable-th" data-sort-by="nombre">
+                                Nombre
+                                <span class="sort-icon-container">
+                                    {% if sort_by == 'nombre' %}<i class="bi bi-arrow-down-up ms-2 {% if direction == 'desc' %}bi-sort-alpha-down-alt{% else %}bi-sort-alpha-up{% endif %}"></i>{% endif %}
+                                </span>
+                            </th>
+                            <th class="text-center sortable-th" data-sort-by="fecha_inicio">
+                                Fechas
+                                <span class="sort-icon-container">
+                                    {% if sort_by == 'fecha_inicio' %}<i class="bi bi-arrow-down-up ms-2 {% if direction == 'desc' %}bi-sort-numeric-down-alt{% else %}bi-sort-numeric-up{% endif %}"></i>{% endif %}
+                                </span>
+                            </th>
+                            <th class="text-center sortable-th" data-sort-by="duracion_horas">
+                                Duración
+                                <span class="sort-icon-container">
+                                    {% if sort_by == 'duracion_horas' %}<i class="bi bi-arrow-down-up ms-2 {% if direction == 'desc' %}bi-sort-numeric-down-alt{% else %}bi-sort-numeric-up{% endif %}"></i>{% endif %}
+                                </span>
+                            </th>
+                            <th>Modalidad</th>
+                            <th>Tipo</th>
+                            <th class="sortable-th" data-sort-by="proveedor">
+                                Proveedor
+                                <span class="sort-icon-container">
+                                    {% if sort_by == 'proveedor' %}<i class="bi bi-arrow-down-up ms-2 {% if direction == 'desc' %}bi-sort-alpha-down-alt{% else %}bi-sort-alpha-up{% endif %}"></i>{% endif %}
+                                </span>
+                            </th>
+                            <th class="text-center">Origen</th>
+                            <th class="text-center sortable-th" data-sort-by="plazas_totales">
+                                Plazas Totales
+                                <span class="sort-icon-container">
+                                    {% if sort_by == 'plazas_totales' %}<i class="bi bi-arrow-down-up ms-2 {% if direction == 'desc' %}bi-sort-numeric-down-alt{% else %}bi-sort-numeric-up{% endif %}"></i>{% endif %}
+                                </span>
+                            </th>
+                            {% if "Direccion" in user.groups.all|join:"," or "RRHH" in user.groups.all|join:"," or "Formacion" in user.groups.all|join:"," or user.is_superuser %}
+                                <th class="text-center">Plazas Disponibles</th>
+                            {% endif %}
+                            <th class="text-center">Acciones / Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for curso in cursos %}
+                            <tr>
+                                <td>
+                                    <strong>{{ curso.nombre }}</strong><br>
+                                    <small class="text-muted">{{ curso.contenido|truncatechars:80 }}</small>
+                                </td>
+                                <td class="text-center">
+                                    {{ curso.fecha_inicio|date:"d/m/Y" }} → {{ curso.fecha_fin|date:"d/m/Y" }}
+                                </td>
+                                <td class="text-center">
+                                    {% if curso.duracion_horas %}
+                                        {{ curso.duracion_horas }} h
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ curso.get_modalidad_display }}</td>
+                                <td>{{ curso.get_tipo_display }}</td>
+                                <td>{{ curso.proveedor.nombre }}</td>
+                                <td class="text-center">
+                                    {% if curso.es_obligatorio %}
+                                        <span class="status-badge status-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Obligatoria</span>
+                                    {% endif %}
+                                    {% if curso.proyecto_id %}
+                                        <span class="status-badge status-secondary"><i class="bi bi-puzzle-fill me-1"></i> Proyecto</span>
+                                    {% endif %}
+                                    {% if not curso.es_obligatorio and not curso.proyecto_id %}
+                                        <span class="status-badge status-primary"><i class="bi bi-calendar-check me-1"></i> Plan Anual</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">{{ curso.plazas_totales }}</td>
+                                {% if "Direccion" in user.groups.all|join:"," or "RRHH" in user.groups.all|join:"," or "Formacion" in user.groups.all|join:"," or user.is_superuser %}
+                                    <td class="text-center">
+                                        {% if curso.plazas_disponibles > 0 %}
+                                            <span class="status-badge status-success-inverse"><i class="bi bi-check-circle-fill me-1"></i> {{ curso.plazas_disponibles }}</span>
+                                        {% else %}
+                                            <span class="status-badge status-danger-inverse"><i class="bi bi-x-circle-fill me-1"></i> 0 (Completas)</span>
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                                <td class="table-actions-center">
+                                    {% if curso.fecha_inicio and curso.fecha_inicio < today %}
+                                        {# Si el curso ha finalizado o está en marcha, muestra el botón de resumen #}
+                                        <a href="{% url 'formacion:resumen_curso_finalizado' curso.id %}" class="btn-action btn-success-action" title="Ver resumen del curso">
+                                            <i class="bi bi-bar-chart-fill"></i>
+                                        </a>
+                                    {% else %}
+                                        {# Para cursos futuros, se mantiene la lógica de "inscrito" o "no disponible" #}
+                                        {% if user|has_participation:curso %}
+                                            <span class="status-badge status-secondary" title="Ya estás inscrito en este curso">
+                                                <i class="bi bi-check-lg me-1"></i> Inscrito
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge status-secondary" title="No disponible para inscripción">
+                                                <i class="bi bi-info-circle-fill me-1"></i> No disponible
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div> {# /table-responsive-modern #}
+        </div> {# /table-container #}
+        {% include 'formacion/includes/pagination_controls2.html' %}
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-info-circle"></i>
+            <p>No hay cursos programados próximamente.</p>
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-start mt-4">
+        <a href="{% url 'formacion:dashboard' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filtersForm = document.getElementById('filtersForm');
+        
+        // Lógica para manejar la ordenación de las columnas de la tabla.
+        const sortableHeaders = document.querySelectorAll('.sortable-th');
+        if (filtersForm) {
+            sortableHeaders.forEach(header => {
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', function() {
+                    const sortField = this.getAttribute('data-sort-by');
+                    const currentSortByInput = filtersForm.querySelector('input[name="sort_by"]');
+                    const currentDirectionInput = filtersForm.querySelector('input[name="direction"]');
+                    const currentPageInput = filtersForm.querySelector('input[name="page"]');
+
+                    let currentSortBy = currentSortByInput ? currentSortByInput.value : '';
+                    let currentDirection = currentDirectionInput ? currentDirectionInput.value : 'asc';
+                    
+                    if (currentSortBy === sortField) {
+                        currentDirection = (currentDirection === 'asc') ? 'desc' : 'asc';
+                    } else {
+                        currentDirection = 'asc';
+                    }
+
+                    currentSortByInput.value = sortField;
+                    currentDirectionInput.value = currentDirection;
+
+                    if (currentPageInput) {
+                        currentPageInput.value = 1;
+                    }
+                    
+                    filtersForm.submit();
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

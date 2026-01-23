@@ -1,0 +1,641 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes Avanzados{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <h1 class="page-title">
+                    <i class="bi bi-bar-chart-line-fill me-2"></i>Reportes Avanzados
+                </h1>
+                <p class="page-description">Estadísticas y análisis visual de la formación organizacional</p>
+            </div>
+            <!-- Filtro de Año integrado en el título -->
+            <div class="year-selector-container">
+                <form method="get" class="d-flex align-items-center">
+                    <label for="year" class="me-2 fw-bold">Seleccionar Año:</label>
+                    <select name="year" id="year" class="form-select w-auto" onchange="this.form.submit()">
+                        {% for year in available_years %}
+                            <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout con Menú Lateral -->
+    <div class="reports-layout">
+        <!-- Menú Lateral -->
+        <aside class="reports-sidebar">
+            <nav class="reports-menu">
+                <a href="?dashboard=overview{% if selected_year %}&year={{ selected_year }}{% endif %}" class="reports-menu-item{% if active_dashboard == 'overview' %} active{% endif %}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard de Reportes</span>
+                </a>
+                <a href="?dashboard=employees{% if selected_year %}&year={{ selected_year }}{% endif %}" class="reports-menu-item{% if active_dashboard == 'employees' %} active{% endif %}">
+                    <i class="bi bi-people"></i>
+                    <span>Análisis de Empleados</span>
+                </a>
+                <a href="?dashboard=courses{% if selected_year %}&year={{ selected_year }}{% endif %}" class="reports-menu-item{% if active_dashboard == 'courses' %} active{% endif %}">
+                    <i class="bi bi-book"></i>
+                    <span>Análisis de Cursos</span>
+                </a>
+                <a href="?dashboard=participation{% if selected_year %}&year={{ selected_year }}{% endif %}" class="reports-menu-item{% if active_dashboard == 'participation' %} active{% endif %}">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Participación y Rendimiento</span>
+                </a>
+                <a href="?dashboard=quality{% if selected_year %}&year={{ selected_year }}{% endif %}" class="reports-menu-item{% if active_dashboard == 'quality' %} active{% endif %}">
+                    <i class="bi bi-star"></i>
+                    <span>Calidad y Satisfacción</span>
+                </a>
+                <a href="?dashboard=sla{% if selected_year %}&year={{ selected_year }}{% endif %}" class="reports-menu-item{% if active_dashboard == 'sla' %} active{% endif %}">
+                    <i class="bi bi-clock-history"></i>
+                    <span>SLA</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Área de Contenido -->
+        <main class="reports-content">
+            {% if active_dashboard == 'overview' %}
+                {% include 'formacion/reports_overview.html' %}
+            {% elif active_dashboard == 'employees' %}
+                {% include 'formacion/reports_employees.html' %}
+            {% elif active_dashboard == 'courses' %}
+                {% include 'formacion/reports_courses.html' %}
+            {% elif active_dashboard == 'participation' %}
+                {% include 'formacion/reports_participation.html' %}
+            {% elif active_dashboard == 'quality' %}
+                {% include 'formacion/reports_quality.html' %}
+            {% elif active_dashboard == 'sla' %}
+                {% include 'formacion/reports_sla.html' %}
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuración común para gráficos
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.font.size = 12;
+    Chart.defaults.plugins.legend.position = 'bottom';
+
+    // Registrar plugin de datalabels
+    Chart.register(ChartDataLabels);
+
+    // Colores para los gráficos
+    const colors = [
+        '#5569c2', '#667eea', '#7793e5', '#88a8e0', '#a9d2d5',
+        '#9db1c9', '#908fbc', '#836daf', '#764ba2'
+    ];
+
+    // Parsear datos JSON
+    const courseTypes = JSON.parse('{{ course_types_json|escapejs }}');
+    const courseCounts = JSON.parse('{{ course_counts_json|escapejs }}');
+    const statusLabels = JSON.parse('{{ status_labels_json|escapejs }}');
+    const statusCounts = JSON.parse('{{ status_counts_json|escapejs }}');
+    const deptNames = JSON.parse('{{ dept_names_json|escapejs }}');
+    const deptHours = JSON.parse('{{ dept_hours_json|escapejs }}');
+    const surveyLabels = JSON.parse('{{ survey_labels_json|escapejs }}');
+    const surveyValues = JSON.parse('{{ survey_values_json|escapejs }}');
+    const mecesLabels = JSON.parse('{{ meces_labels_json|escapejs }}');
+    const mecesCounts = JSON.parse('{{ meces_counts_json|escapejs }}');
+    const solicitudDeptLabels = JSON.parse('{{ solicitud_dept_labels_json|escapejs }}');
+    const solicitudDatasets = JSON.parse('{{ solicitud_datasets_json|escapejs }}');
+    const monthlyDeptLabels = JSON.parse('{{ monthly_dept_labels_json|escapejs }}');
+    const monthlyDeptDatasets = JSON.parse('{{ monthly_dept_datasets_json|escapejs }}');
+
+    // Inicializar tooltips de Bootstrap para los badges ITIL
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Gráfico de Participación por Tipo de Curso
+    const courseTypeCtx = document.getElementById('courseTypeChart');
+    if (courseTypeCtx) {
+        new Chart(courseTypeCtx.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: courseTypes,
+                datasets: [{
+                    data: courseCounts,
+                    backgroundColor: colors.slice(0, courseTypes.length),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Estado de Formación
+    const trainingStatusCtx = document.getElementById('trainingStatusChart');
+    if (trainingStatusCtx) {
+        new Chart(trainingStatusCtx.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusCounts,
+                    backgroundColor: colors.slice(0, statusLabels.length),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Horas por Departamento
+    const departmentHoursCtx = document.getElementById('departmentHoursChart');
+    if (departmentHoursCtx) {
+        new Chart(departmentHoursCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: deptNames,
+                datasets: [{
+                    label: 'Horas Totales',
+                    data: deptHours,
+                    backgroundColor: colors.slice(0, deptNames.length),
+                    borderColor: colors.slice(0, deptNames.length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Satisfacción de Encuestas
+    const surveyCtx = document.getElementById('surveySatisfactionChart');
+    if (surveyCtx) {
+        new Chart(surveyCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: surveyLabels,
+                datasets: [{
+                    label: 'Promedio (1-5)',
+                    data: surveyValues,
+                    backgroundColor: '#a9d2d5',
+                    borderColor: '#a9d2d5',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Niveles MECES
+    const mecesCtx = document.getElementById('mecesLevelsChart');
+    if (mecesCtx) {
+        new Chart(mecesCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: mecesLabels,
+                datasets: [{
+                    data: mecesCounts,
+                    backgroundColor: colors.slice(0, mecesLabels.length),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 1.2,
+                plugins: {
+                    legend: {
+                        position: 'left',
+                        align: 'start',
+                        labels: {
+                            boxWidth: 15,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Distribución de Empleados por Departamento
+    const employeeDeptCtx = document.getElementById('employeeDepartmentChart');
+    if (employeeDeptCtx) {
+        new Chart(employeeDeptCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: JSON.parse('{{ dept_employee_names_json|escapejs }}'),
+                datasets: [{
+                    label: 'Empleados',
+                    data: JSON.parse('{{ dept_employee_counts_json|escapejs }}'),
+                    backgroundColor: colors.slice(0, JSON.parse('{{ dept_employee_names_json|escapejs }}').length),
+                    borderWidth: 1,
+                    borderColor: colors.slice(0, JSON.parse('{{ dept_employee_names_json|escapejs }}').length)
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        formatter: (value, ctx) => {
+                            let sum = 0;
+                            let dataArr = ctx.chart.data.datasets[0].data;
+                            dataArr.map(data => {
+                                sum += data;
+                            });
+                            let percentage = (value * 100 / sum).toFixed(1) + "%";
+                            return percentage;
+                        },
+                        color: '#000',
+                        font: {
+                            weight: 'bold'
+                        },
+                        anchor: 'end',
+                        align: 'end'
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Cursos por Modalidad
+    const coursesModalityCtx = document.getElementById('coursesModalityChart');
+    if (coursesModalityCtx) {
+        new Chart(coursesModalityCtx.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: JSON.parse('{{ modality_labels_json|escapejs }}'),
+                datasets: [{
+                    data: JSON.parse('{{ modality_counts_json|escapejs }}'),
+                    backgroundColor: colors.slice(0, JSON.parse('{{ modality_labels_json|escapejs }}').length),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Cursos por Mes
+    const coursesPerMonthCtx = document.getElementById('coursesPerMonthChart');
+    if (coursesPerMonthCtx) {
+        const coursesPerMonthData = JSON.parse('{{ courses_per_month_json|escapejs }}');
+        new Chart(coursesPerMonthCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: JSON.parse('{{ courses_month_labels_json|escapejs }}'),
+                datasets: [{
+                    label: 'Número de Cursos',
+                    data: JSON.parse('{{ courses_month_counts_json|escapejs }}'),
+                    backgroundColor: '#5569c2',
+                    borderColor: '#5569c2',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const count = context.parsed.y;
+                                const monthIndex = context.dataIndex;
+                                const courses = coursesPerMonthData[monthIndex];
+                                let lines = [count + ' cursos:'];
+                                courses.forEach(course => {
+                                    lines.push('- ' + course);
+                                });
+                                return lines;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Cursos Más Populares
+    const popularCoursesCtx = document.getElementById('popularCoursesChart');
+    if (popularCoursesCtx) {
+        new Chart(popularCoursesCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: JSON.parse('{{ popular_course_names_json|escapejs }}'),
+                datasets: [{
+                    label: 'Número de Solicitudes, Preselecciones y Participaciones',
+                    data: JSON.parse('{{ popular_course_counts_json|escapejs }}'),
+                    backgroundColor: colors.slice(0, JSON.parse('{{ popular_course_names_json|escapejs }}').length),
+                    borderColor: colors.slice(0, JSON.parse('{{ popular_course_names_json|escapejs }}').length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Satisfacción por Curso
+    const courseSatisfactionCtx = document.getElementById('courseSatisfactionChart');
+    if (courseSatisfactionCtx) {
+        const courseSatisfactionLabels = JSON.parse('{{ course_satisfaction_labels_json|escapejs }}');
+        const courseSatisfactionValues = JSON.parse('{{ course_satisfaction_values_json|escapejs }}');
+        const courseSatisfactionCounts = JSON.parse('{{ course_satisfaction_counts_json|escapejs }}');
+
+        new Chart(courseSatisfactionCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: courseSatisfactionLabels,
+                datasets: [{
+                    label: 'Promedio de Satisfacción (1-5)',
+                    data: courseSatisfactionValues,
+                    backgroundColor: courseSatisfactionValues.map(value => {
+                        if (value >= 4) return '#28a745'; // green
+                        if (value >= 3) return '#ffc107'; // yellow
+                        return '#dc3545'; // red
+                    }),
+                    borderColor: courseSatisfactionValues.map(value => {
+                        if (value >= 4) return '#28a745';
+                        if (value >= 3) return '#ffc107';
+                        return '#dc3545';
+                    }),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                const count = courseSatisfactionCounts[context.dataIndex];
+                                return `Promedio: ${value} (${count} encuestas)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Estado de Solicitudes de Cursos por Departamento
+    const solicitudStatusCtx = document.getElementById('solicitudStatusChart');
+    if (solicitudStatusCtx) {
+        new Chart(solicitudStatusCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: solicitudDeptLabels,
+                datasets: solicitudDatasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    datalabels: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${context.dataset.label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Horas de Formación por Departamento por Mes
+    const monthlyDeptHoursCtx = document.getElementById('monthlyDeptHoursChart');
+    if (monthlyDeptHoursCtx) {
+        new Chart(monthlyDeptHoursCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: monthlyDeptLabels,
+                datasets: monthlyDeptDatasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    datalabels: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                return `${context.dataset.label}: ${value} horas`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

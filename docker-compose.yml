@@ -1,0 +1,66 @@
+services:
+  web:
+    build: .
+    # Configurar hostname para resolver problemas SMTP
+    hostname: gesform.local
+    # Ejecutamos todo como root para evitar problemas de permisos
+    user: "root"
+    command: sh -c "
+      mkdir -p /vol/web/staticfiles /vol/web/media &&
+      chmod -R 755 /vol/web &&
+      python manage.py migrate &&
+      python manage.py collectstatic --no-input &&
+      gunicorn formacion_demo.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - formacion_static_volume:/vol/web/staticfiles
+      - formacion_media_volume:/vol/web/media
+      - ./logs:/app/logs
+    expose:
+      - 8000
+    env_file:
+      - .env
+    network_mode: bridge
+    extra_hosts:
+      - "db:192.168.65.2"  # ← DNS artificial para Django
+    environment:
+      - DATABASE_HOST=db  # Ahora resuelve a 192.168.65.2
+    depends_on:
+      db:
+          condition: service_healthy
+    container_name: django_app
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "8082:80"
+    volumes:
+      - formacion_static_volume:/vol/web/staticfiles
+      - formacion_media_volume:/vol/web/media
+      - ./logs:/app/logs
+    network_mode: bridge
+    extra_hosts:
+      - "web:192.168.65.3"  # ← Para futuro uso
+    depends_on:
+      - web
+    container_name: nginx_proxy
+    restart: unless-stopped
+
+  db:
+    image: postgres:17
+    volumes:
+      - formacion_postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    network_mode: bridge
+    container_name: postgres_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  formacion_postgres_data:
+  formacion_static_volume:
+  formacion_media_volume:

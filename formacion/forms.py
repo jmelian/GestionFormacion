@@ -400,7 +400,7 @@ class ProyectoForm(forms.ModelForm):
 class CursoForm(forms.ModelForm):
     class Meta:
         model = Curso
-        exclude = ['codigo', 'origen']
+        exclude = ['codigo', 'origen', 'plazas_disponibles']
         widgets = {
             'fecha_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'fecha_fin': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'), 
@@ -606,43 +606,30 @@ class AprobarParticipacionForm(forms.ModelForm):
         return cleaned_data
 
 class MarcarCompletadoForm(forms.ModelForm):
-    nota_final = forms.CharField(
-        label="Nota Final / Calificación",
-        max_length=100,
-        required=False # Puede que no todos los cursos tengan nota
-    )
-    certificado_obtenido = forms.BooleanField(
-        label="¿Certificado Obtenido?",
-        required=False, # Puede que no todos los cursos den certificado
-        initial=False
-    )
-    fecha_certificado = forms.DateField(
-        label="Fecha de Obtención del Certificado",
-        widget=forms.DateInput(attrs={'type': 'date'}),
-        required=False # Opcional si no siempre hay certificado
-    )
-    fecha_caducidad_certificado = forms.DateField(
-        label="Fecha de Caducidad del Certificado",
-        widget=forms.DateInput(attrs={'type': 'date'}),
-        required=False # Opcional si no todos los certificados caducan
-    )
-
-
+    """
+    Formulario para que los usuarios (empleados o RRHH) marquen
+    una participación como completada, con campos adicionales.
+    """
     class Meta:
         model = Participacion
-        fields = ['nota_final', 'certificado_obtenido', 'fecha_certificado', 'fecha_caducidad_certificado'] # Añadir 'certificado_url' si lo tienes
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        certificado_obtenido = cleaned_data.get('certificado_obtenido')
-        fecha_certificado = cleaned_data.get('fecha_certificado')
-        fecha_caducidad_certificado = cleaned_data.get('fecha_caducidad_certificado')
+        fields = ['nota_final', 'certificado_obtenido', 'fecha_certificado']
+        widgets = {
+            'nota_final': forms.TextInput(attrs={'class': 'form-control'}),
+            'certificado_obtenido': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'fecha_certificado': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+        labels = {
+            'nota_final': 'Nota Final (Texto Abierto)',
+            'certificado_obtenido': 'Certificado Obtenido',
+            'fecha_certificado': 'Fecha de Certificado',
+        }
 
-        if certificado_obtenido and not fecha_certificado:
-            raise forms.ValidationError(
-                "Si el certificado ha sido obtenido, la fecha de obtención es obligatoria."
-            )
-        return cleaned_data
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Hace que la nota final y la fecha del certificado no sean campos requeridos
+        self.fields['nota_final'].required = False
+        self.fields['fecha_certificado'].required = False
+
 
 class EncuestaSatisfaccionForm(forms.ModelForm):
     # Campos que el usuario rellenará directamente
@@ -696,6 +683,31 @@ class EncuestaSatisfaccionForm(forms.ModelForm):
         widgets = {
             'sugerencias_observaciones': forms.Textarea(attrs={'rows': 4}),
         }
+
+class RechazarParticipacionForm(forms.Form):
+    """
+    Formulario para rechazar una participación con justificación.
+    """
+    motivo_rechazo = forms.CharField(
+        label="Motivo del Rechazo",
+        widget=forms.Textarea(attrs={
+            'rows': 4,
+            'class': 'form-control',
+            'placeholder': 'Explique brevemente por qué se rechaza esta solicitud...'
+        }),
+        help_text="Por favor, proporcione una breve explicación del motivo del rechazo que se incluirá en la notificación al empleado.",
+        max_length=500,
+        required=True
+    )
+
+    def clean_motivo_rechazo(self):
+        motivo = self.cleaned_data['motivo_rechazo'].strip()
+        if not motivo:
+            raise forms.ValidationError("El motivo del rechazo no puede estar vacío.")
+        if len(motivo) < 10:
+            raise forms.ValidationError("Por favor, proporcione una explicación más detallada (mínimo 10 caracteres).")
+        return motivo
+
 
 class NotificacionForm(forms.ModelForm):
     class Meta:

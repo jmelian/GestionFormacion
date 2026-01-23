@@ -1,0 +1,371 @@
+/* =========================
+    TABLAS CONSOLIDADAS
+    Todos los estilos de tablas unificados
+========================= */
+
+/* Contenedor de tabla */
+.table-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    margin-top: 1rem;
+    padding: 1.3rem 0.5rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow-x: auto;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Tabla moderna */
+.table-modern {
+    table-layout: auto;
+    width: 100%;
+    min-width: 770px;
+    border-collapse: separate;
+    margin: 0;
+    background: transparent;
+    border: none;
+}
+
+/* Cabeceras de tabla */
+.table-modern thead th {
+    border: none;
+    background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+    border-bottom: 2px solid #cbd5e1;
+    color: #374151;
+    font-weight: 700;
+    padding: 1rem 0.5rem;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    white-space: normal;
+    text-align: center;
+    word-break: break-word;
+    transition: background 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+.table-modern thead th i {
+    color: #3b82f6;
+    font-size: 1rem;
+}
+
+/* Celdas de tabla */
+.table-modern tbody td {
+    border: none;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    transition: all 0.3s ease;
+    vertical-align: middle;
+    align-items: center;
+    height: auto;
+    justify-content: center;
+}
+
+.table-modern tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table-modern tbody tr:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Tabla responsive */
+.table-responsive-modern {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+}
+
+/* Centrar contenido */
+.table-modern .text-center {
+    text-align: center;
+}
+
+/* Contenedores de acciones centradas */
+.table-actions-center,
+.table-actions-center-wrap {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 120px;
+    flex-wrap: wrap;
+}
+
+/* Estilos específicos para columnas */
+.table-modern th,
+.table-modern td {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.88rem;
+    line-height: 1.3;
+    text-align: center;
+    word-break: break-word;
+    white-space: normal;
+}
+
+.table-modern th:nth-child(1),
+.table-modern td:nth-child(1) {
+    text-align: left;
+    min-width: 180px;
+}
+
+/* Badge de acción */
+.action-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--danger-color);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    line-height: 1;
+    padding: 0.25em 0.5em;
+    border-radius: 9999px;
+    min-width: 1.5em;
+    text-align: center;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Enlaces de ordenación */
+.sort-link {
+    color: #374151;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.sort-link:hover {
+    color: #3b82f6;
+}
+
+.sort-arrow {
+    font-size: 0.8rem;
+    color: #3b82f6;
+}
+
+/* Paginación */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.1em;
+    width: auto;
+    margin: 1.5rem auto 0 auto;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.25rem;
+    max-width: 90vw;
+}
+
+.page-item {
+    margin: 0 2px;
+}
+
+.page-link {
+    position: relative;
+    display: block;
+    padding: 0.5rem 0.75rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.page-link:hover {
+    z-index: 2;
+    color: var(--primary-dark);
+    background-color: var(--light-bg);
+    border-color: var(--primary-color);
+}
+
+.page-item.active .page-link {
+    z-index: 3;
+    color: #fff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.page-item.disabled .page-link {
+    color: var(--secondary-color);
+    pointer-events: none;
+    background-color: var(--light-bg);
+    border-color: var(--border-color);
+}
+
+.record-count {
+    font-size: 0.97rem;
+    color: var(--primary-color, #3b82f6);
+    font-weight: 600;
+    margin-bottom: 0.5em;
+    margin-top: 1em;
+    letter-spacing: 0.02em;
+}
+
+/* Filtros checkbox */
+.filter-controls .form-check-label {
+    font-weight: 600;
+    color: whitesmoke;
+    font-size: 1.08rem;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 0;
+}
+
+.filter-controls .form-check-input {
+    margin-right: 0.7em;
+    accent-color: var(--primary-color);
+    width: 1.12em;
+    height: 1.12em;
+}
+
+/* Contenedor de filtros sticky */
+.filters-container.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* Footer de tabla */
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.table-footer .form-select {
+    padding: 0.25rem 1.5rem 0.25rem 0.5rem;
+    font-size: 0.9rem;
+    border-radius: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .table-modern th,
+    .table-modern td {
+        font-size: 0.93em;
+        padding: 5px 4px;
+    }
+}
+
+@media (max-width: 600px) {
+    .table-modern th,
+    .table-modern td {
+        font-size: 0.92em;
+        padding: 5px 2px;
+    }
+    .table-modern th:nth-child(1),
+    .table-modern td:nth-child(1) {
+        text-align: left;
+        min-width: 110px;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        padding: 1rem;
+    }
+    .table-modern th,
+    .table-modern td {
+        font-size: 0.92em;
+        padding: 5px 2px;
+    }
+    .table-modern th:nth-child(1),
+    .table-modern td:nth-child(1) {
+        text-align: left;
+        min-width: 110px;
+    }
+    .table-modern tbody td {
+        word-break: break-word;
+    }
+
+    .action-column-width {
+        width: 140px;
+        max-width: 140px;
+    }
+
+    .action-cell-content {
+        gap: 6px;
+        min-height: 70px;
+    }
+}
+
+@media (max-width: 992px) {
+    .table-modern th,
+    .table-modern td {
+        padding: 0.8rem 0.6rem;
+        font-size: 0.9rem;
+    }
+    .table-actions-center {
+        gap: 0.3rem;
+    }
+}
+
+/* Ajustes para última columna */
+.table-modern th:last-child,
+.table-modern td:last-child {
+    min-width: 150px;
+    white-space: nowrap;
+}
+
+/* Espaciado entre botones */
+.me-2 {
+    margin-right: 8px !important;
+}
+
+/* Estilos para la columna de acciones */
+.action-column-width {
+    width: 160px;
+    max-width: 160px;
+}
+
+.action-cell {
+    padding: 8px 12px !important;
+    vertical-align: middle;
+}
+
+.action-cell-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-height: 80px;
+    justify-content: center;
+}
+
+/* Contenedor de botones de acción */
+.action-buttons-container {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    width: 100%;
+}

@@ -42,10 +42,10 @@ ESTADO_PARTICIPACION_CHOICES = [
     ('pendiente', 'Pendiente de Confirmación'),
     ('confirmado', 'Confirmado'),
     ('asistido', 'Asistido'),
-    ('aprobado', 'Aprobado'),
-    ('suspendido', 'Suspendido'),
     ('cancelado', 'Cancelado'),
-    ('completado', 'Completado (Aprobado y Certificado)'),
+    ('abandonado', 'Abandonado'),
+    ('rechazado', 'Rechazado'),
+    ('completado', 'Completado'),
 ]
 
 # Para el modelo Proyecto
@@ -228,7 +228,7 @@ class Empleado(AbstractUser):
     SEDE_CHOICES = [
         ('tf', 'TF'),
         ('remoto', 'Remoto'),
-        ('gc', 'CG'),
+        ('gc', 'GC'),
     ]
     ESTADO_EMPLEADO_CHOICES = [
         ('activo', 'Activo'),
@@ -437,9 +437,11 @@ class Curso(models.Model):
     duracion_horas = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, validators=[MinValueValidator(0)], help_text="Duración total del curso en horas.")
     fecha_inicio = models.DateField(null=True, blank=True, help_text="Fecha de inicio de la edición actual del curso.")
     fecha_fin = models.DateField(null=True, blank=True, help_text="Fecha de fin de la edición actual del curso.")
+    horario = models.CharField(max_length=255, blank=True, null=True, help_text="Horario de impartición del curso. Ejemplo: 'De 9:00 a 14:00'.")
     plazas_totales = models.PositiveIntegerField(default=0, help_text="Número total de plazas disponibles en el curso.")
     plazas_disponibles = models.PositiveIntegerField(default=0, help_text="Número de plazas aún disponibles para inscripción. Se actualiza automáticamente.")
     observaciones = models.TextField(blank=True, null=True, help_text="Notas o comentarios adicionales sobre el curso.")
+    documentacion = models.CharField(max_length=255, blank=True, null=True, help_text="Enlace a la documentación del curso (ej. Google Drive, SharePoint, etc.).")
     externo = models.BooleanField(default=False, help_text="Indica si el curso es impartido por un proveedor externo.")
     origen = models.CharField(max_length=20, choices=ORIGEN_CURSO_CHOICES, default='interno', help_text="Indica si el curso es interno o externo a la organización.")
     es_obligatorio = models.BooleanField(default=False, help_text="Indica si este curso es generalmente obligatorio para algún puesto o perfil.")
@@ -461,7 +463,20 @@ class Curso(models.Model):
             self.plazas_disponibles = self.plazas_totales
         super().save(*args, **kwargs)
 
+    @property
+    def gestion_solicitudes(self):
+        return self.es_obligatorio
+
+
 class SolicitudCurso(models.Model):
+    # Choices for estado field
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+        ('en_proceso', 'En Proceso')
+    ]
+
     # Información básica y de solicitante (gestionada automáticamente)
     solicitante = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -532,13 +547,7 @@ class SolicitudCurso(models.Model):
     # Estado de la solicitud (para el seguimiento interno por RRHH/Formación)
     estado = models.CharField(
         max_length=20,
-        choices=[
-            ('pendiente', 'Pendiente'),
-            ('aprobada', 'Aprobada'),
-            ('rechazada', 'Rechazada'),
-            ('en_proceso', 'En Proceso'),
-            ('completada', 'Completada')
-        ],
+        choices=ESTADO_CHOICES,
         default='pendiente',
         verbose_name='Estado de la Solicitud'
     )
@@ -585,12 +594,8 @@ class Participacion(models.Model):
     nota_final = models.CharField(
         max_length=100,
         blank=True,
-        null=True, 
+        null=True,
         help_text="Calificación final o estado textual (ej. Aprobado, N/A, 7.5)."
-    )
-    validado = models.BooleanField(
-        default=False,
-        help_text="Indica si la participación y resultados han sido validados por RRHH."
     )
     certificado_obtenido = models.BooleanField(
         default=False,
@@ -605,6 +610,11 @@ class Participacion(models.Model):
         blank=True,
         null=True,
         help_text="Fecha de inicio asignada por RRHH para esta participación específica."
+    )
+    fecha_fin_real = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Fecha de finalización del curso para esta participación específica."
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -622,6 +632,41 @@ class Participacion(models.Model):
 
     def __str__(self):
         return f"{self.empleado.get_full_name()} - {self.curso.nombre} ({self.get_estado_display()})"
+
+    @property
+    def puede_ser_cancelada(self):
+        """
+        Determina si una participación puede ser cancelada.
+        La lógica está basada en la vista que proporcionaste.
+        """
+        estados_no_cancelables = ['completado', 'asistido', 'cancelado', 'rechazado']
+        return self.estado not in estados_no_cancelables and self.curso.fecha_fin and self.curso.fecha_fin >= date.today()
+    
+    @property
+    def encuesta_rellenada(self):
+        """
+        Retorna True si esta participación tiene una encuesta de satisfacción asociada, de lo contrario False.
+        """
+        try:
+            return self.encuesta is not None
+        except EncuestaSatisfaccion.DoesNotExist:
+            return False
+        
+    @property
+    def completado_con_datos_finales(self):
+        """
+        Retorna True si la participación está en estado 'completado'
+        y se han rellenado los datos finales del curso (nota, certificado),
+        si aplica.
+        """
+        # Si el curso es de tipo 'no_aplica', la acción de "completado" no requiere datos finales.
+        # En este caso, solo necesitamos verificar que el estado sea 'completado'.
+        if self.curso.resultado_formal == 'no_aplica':
+            return self.estado == 'completado'
+        # Si el resultado formal sí aplica, se debe verificar que la nota y el certificado se hayan rellenado.
+        else:
+            return self.estado == 'completado' and self.nota_final is not None and self.nota_final != ''
+
 
 
 class Titulacion(models.Model):
@@ -767,7 +812,7 @@ class Preseleccion(models.Model):
         help_text="Empleado preseleccionado para el curso."
     )
     prioridad = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        validators=[MinValueValidator(1)],
         help_text="Orden de prioridad de la preselección."
     )
     observaciones = models.TextField(
@@ -874,6 +919,7 @@ class EncuestaSatisfaccion(models.Model):
     @property
     def valoracion_media_eficacia(self):
         return (self.mejora_conocimientos_carrera + self.adquisicion_habilidades_puesto) / 2
+    
 
 
 class PreguntaEncuesta(models.Model):

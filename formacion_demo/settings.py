@@ -11,12 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-import os
-from decouple import config
+import os, sys
+from decouple import config, Csv
+from cryptography.fernet import Fernet
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -29,9 +29,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
 
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -52,6 +50,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'formacion.middleware.RequestLoggingMiddleware',
+    'formacion.middleware.BusinessLogicLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'formacion_demo.urls'
@@ -75,28 +75,71 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'formacion_demo.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# Lógica para determinar el HOST de la base de datos
+DB_HOST = config('DB_HOST_DOCKER', default=None)
+if not DB_HOST:
+    # Si DB_HOST_DOCKER no existe, asumimos que estamos en local.
+    DB_HOST = config('DB_HOST_LOCAL', default='localhost')
+
+# Configuración de la base de datos
 DATABASES = {
     'default': {
         'ENGINE': config('DB_ENGINE'),
-        'NAME': config('DB_NAME'),
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', 'localhost'),
-        'PORT': config('DB_PORT', ''),
+        'NAME': config('POSTGRES_DB'),
+        'USER': config('POSTGRES_USER'),
+        'PASSWORD': config('POSTGRES_PASSWORD'),
+        'HOST': DB_HOST,  # Aquí se usa la variable ya definida.
+        'PORT': config('DB_PORT'),
     }
 }
 
-
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = '/vol/web/media/'
+
+# ============================================================================
+# CONFIGURACIÓN DE AUTENTICACIÓN (Condicional basada en variable de entorno)
+# ============================================================================
+
+# Variable de entorno para controlar el uso de LDAP
+USE_LDAP = config('LDAP', default=False, cast=bool)
+
+if USE_LDAP:
+    # Importaciones necesarias para LDAP
+    import ldap
+    from django_auth_ldap.config import LDAPSearch
+    
+    # Configuración de autenticación con LDAP
+    AUTHENTICATION_BACKENDS = [
+        'django_auth_ldap.backend.LDAPBackend',
+        'django.contrib.auth.backends.ModelBackend',  # Backup para admin
+    ]
+    
+    # Configuración de Conexión LDAP
+    AUTH_LDAP_SERVER_URI = config('AUTH_LDAP_SERVER_URI')
+    AUTH_LDAP_USER_DN_TEMPLATE = config('LDAP_BIND_DN')
+    
+    AUTH_LDAP_USER_ATTR_MAP = {
+        "first_name": "givenName",
+        "last_name": "sn",
+        "email": "mail",
+    }
+    
+    AUTH_LDAP_ALWAYS_UPDATE_USER = True
+    
+    # Opciones adicionales de seguridad (comentadas por defecto)
+    # AUTH_LDAP_TLS_CACERTFILE = "/ruta/a/tu/proyecto/certs/ldap.crt"
+    # AUTH_LDAP_TLS_VERIFY_SERVER_CERT = True
+    
+else:
+    # Configuración de autenticación estándar de Django
+    AUTHENTICATION_BACKENDS = [
+        'django.contrib.auth.backends.ModelBackend',
+    ]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -112,40 +155,188 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
-
-
-TIME_ZONE = 'UTC'
-
+DEFAULT_CHARSET = 'utf-8'
+TIME_ZONE = config('TIME_ZONE', default='Atlantic/Canary')
 USE_I18N = True
-
 USE_TZ = True
-TIME_ZONE = config('TIME_ZONE')
-
-
-LANGUAGE_CODE = 'es'
-
+LANGUAGE_CODE = 'es-es'
 USE_L10N = True
 
 AUTH_USER_MODEL = 'formacion.Empleado'
 
-
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = '/static/'
+STATIC_ROOT = '/vol/web/staticfiles/'
+
+# Base URL for absolute links in emails
+BASE_URL = config('BASE_URL', default='http://localhost:8082')
+
+# Sección de seguridad
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=Csv())
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'formacion:dashboard'
 LOGIN_URL = '/formacion/login/'
 LOGOUT_REDIRECT_URL = 'formacion:login'
+
+# --- Configuración del Servidor de Email ---
+def decrypt_env_value(encrypted_value):
+    key = config('EMAIL_KEY')
+    f = Fernet(key.encode())
+    return f.decrypt(encrypted_value.encode()).decode()
+
+EMAIL_BACKEND = 'formacion.utils.CustomSMTPBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+#EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_PASSWORD = decrypt_env_value(config('EMAIL_HOST_PASSWORD'))
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
+EMAIL_SUBJECT_PREFIX = config('EMAIL_SUBJECT_PREFIX', default='[GesForm]')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+
+# LOGGING
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s'
+        },
+        'detailed': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(funcName)s - User:%(user)s IP:%(ip)s Action:%(action)s Resource:%(resource)s - %(message)s',
+            'defaults': {'user': 'unknown', 'ip': 'unknown', 'action': 'unknown', 'resource': 'unknown'}
+        },
+        'json': {
+            'format': '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "line": %(lineno)d, "function": "%(funcName)s", "message": "%(message)s", "user": "%(user)s", "ip": "%(ip)s", "method": "%(method)s", "path": "%(path)s", "status_code": "%(status_code)s", "duration": "%(duration)s", "db_queries": "%(db_queries)s", "db_time": "%(db_time)s", "action": "%(action)s", "resource": "%(resource)s", "pattern": "%(pattern)s", "severity": "%(severity)s"}',
+            'datefmt': '%Y-%m-%dT%H:%M:%S%z',
+            'defaults': {'user': 'unknown', 'ip': 'unknown', 'method': 'unknown', 'path': 'unknown', 'status_code': 'unknown', 'duration': 'unknown', 'db_queries': 'unknown', 'db_time': 'unknown', 'action': 'unknown', 'resource': 'unknown', 'pattern': 'unknown', 'severity': 'unknown'}
+        },
+        'security': {
+            'format': '[SECURITY] %(asctime)s %(levelname)s - User:%(user)s IP:%(ip)s Action:%(action)s %(message)s',
+            'defaults': {'user': 'unknown', 'ip': 'unknown', 'action': 'unknown'}
+        },
+        'business': {
+            'format': '[BUSINESS] %(asctime)s %(levelname)s - User:%(user)s Action:%(action)s Resource:%(resource)s %(message)s',
+            'defaults': {'user': 'unknown', 'action': 'unknown', 'resource': 'unknown'}
+        },
+        'anomaly': {
+            'format': '[ANOMALY] %(asctime)s %(levelname)s - Pattern:%(pattern)s Severity:%(severity)s %(message)s',
+            'defaults': {'pattern': 'unknown', 'severity': 'unknown'}
+        },
+        'performance': {
+            'format': '[PERFORMANCE] %(asctime)s %(levelname)s - User:%(user)s Action:%(action)s Duration:%(duration)s DB_Queries:%(db_queries)s %(message)s',
+            'defaults': {'user': 'unknown', 'action': 'unknown', 'duration': 'unknown', 'db_queries': 'unknown'}
+        },
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+        'file_general': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/formacion.log',
+            'maxBytes': 10*1024*1024,  # 10MB
+            'backupCount': 5,
+            'formatter': 'detailed'
+        },
+        'file_security': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/security.log',
+            'maxBytes': 10*1024*1024,
+            'backupCount': 10,
+            'formatter': 'security',
+            'level': 'WARNING'
+        },
+        'file_business': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/business.log',
+            'maxBytes': 10*1024*1024,
+            'backupCount': 5,
+            'formatter': 'business'
+        },
+        'file_anomaly': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/anomaly.log',
+            'maxBytes': 10*1024*1024,
+            'backupCount': 5,
+            'formatter': 'anomaly'
+        },
+        'file_performance': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/performance.log',
+            'maxBytes': 10*1024*1024,
+            'backupCount': 5,
+            'formatter': 'performance'
+        },
+        'file_json': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/formacion.json',
+            'maxBytes': 20*1024*1024,
+            'backupCount': 3,
+            'formatter': 'json'
+        },
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console', 'file_general', 'file_json'],
+    },
+    'loggers': {
+        'formacion': {
+            'handlers': ['console', 'file_general', 'file_business', 'file_json'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'formacion.security': {
+            'handlers': ['console', 'file_security', 'file_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'formacion.business': {
+            'handlers': ['console', 'file_business', 'file_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'formacion.anomaly': {
+            'handlers': ['console', 'file_anomaly', 'file_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'formacion.performance': {
+            'handlers': ['console', 'file_performance', 'file_json'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['console', 'file_general'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console', 'file_performance'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console', 'file_security'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # --- NOMBRES DE GRUPOS DE USUARIO ---
 GRUPO_EMPLEADO = 'Empleado'
@@ -158,3 +349,38 @@ GRUPO_ADMINISTRACION = 'Administración'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
+# ============================================================================
+# CONFIGURACIÓN DE MONITORIZACIÓN Y UMBRALES
+# ============================================================================
+
+# Umbrales de monitorización para alertas y health checks
+MONITORING_THRESHOLDS = {
+    'cpu': {
+        'critical': config('MONITORING_CPU_CRITICAL', default=95, cast=int),  # %
+        'high': config('MONITORING_CPU_HIGH', default=85, cast=int),        # %
+        'medium': config('MONITORING_CPU_MEDIUM', default=70, cast=int),    # %
+    },
+    'memory': {
+        'critical': config('MONITORING_MEMORY_CRITICAL', default=95, cast=int),  # %
+        'high': config('MONITORING_MEMORY_HIGH', default=85, cast=int),        # %
+        'medium': config('MONITORING_MEMORY_MEDIUM', default=70, cast=int),    # %
+    },
+    'disk': {
+        'critical': config('MONITORING_DISK_CRITICAL', default=95, cast=int),  # %
+        'high': config('MONITORING_DISK_HIGH', default=90, cast=int),        # %
+        'medium': config('MONITORING_DISK_MEDIUM', default=80, cast=int),    # %
+    },
+    'response_time': {
+        'critical': config('MONITORING_RESPONSE_TIME_CRITICAL', default=10.0, cast=float),  # segundos
+        'high': config('MONITORING_RESPONSE_TIME_HIGH', default=5.0, cast=float),          # segundos
+        'medium': config('MONITORING_RESPONSE_TIME_MEDIUM', default=2.0, cast=float),      # segundos
+    },
+    'error_rate': {
+        'critical': config('MONITORING_ERROR_RATE_CRITICAL', default=5.0, cast=float),   # %
+        'high': config('MONITORING_ERROR_RATE_HIGH', default=1.0, cast=float),           # %
+        'medium': config('MONITORING_ERROR_RATE_MEDIUM', default=0.5, cast=float),       # %
+    },
+    'availability': {
+        'target': config('MONITORING_AVAILABILITY_TARGET', default=99.9, cast=float),    # % SLA objetivo
+    }
+}
