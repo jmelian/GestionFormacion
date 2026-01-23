@@ -453,13 +453,6 @@ Después de completar un curso:
 - Cerrar otras aplicaciones
 - Contactar con administrador si persiste
 
-### Contacto y Soporte
-
-Para soporte técnico:
-- **Email**: soporte@empresa.com
-- **Teléfono**: +34 900 123 456
-- **Horario**: Lunes a Viernes, 9:00-18:00
-
 ## Glosario
 
 - **Curso**: Actividad formativa programada
