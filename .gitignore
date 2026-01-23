@@ -24,7 +24,7 @@ media/
 *.swp
 *.swo
 
-# Archivos de compilación de frontend (si usas Node.js/npm)
+# Archivos de compilación de frontend
 node_modules/
 npm-debug.log
 yarn-error.log
@@ -41,4 +41,6 @@ Thumbs.db
 # Archivos de datos
 datos/
 cambios/
-
+logs/
+*.sql
+*.json
